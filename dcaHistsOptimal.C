@@ -5,6 +5,7 @@
 
 TH1D* hDcaMCAll(TH3*, TH1&, const double&, const std::string&);
 void hDcaData(TH3*, std::map<std::string, TH3*>, std::map<std::string, TH3*>, TH1&, const double&, const std::string&);
+
 void dcaHistsOptimal(int mode = 1)
 {
    //TGaxis::SetMaxDigits(3);
@@ -65,7 +66,7 @@ void dcaHistsOptimal(int mode = 1)
       cNonPrompt.Print(Form("Pic/mva%d/cNonPrompt.png", iMva));
       delete hDcaMCNPD0_Proj;
 
-   // DCA distribution of signal + swap, by fitting mass;
+      // DCA distribution of signal + swap, by fitting mass;
       TCanvas cData("cData", "", 550, 450);
       TH1D hDcaDataD0("hDcaDataD0", "hDcaDataD0", ana::nuofDca, ana::dcaBin);
       std::string tmpName(Form("Pic/mva%d/massPerDcaBin", iMva));
@@ -76,6 +77,7 @@ void dcaHistsOptimal(int mode = 1)
       hDcaDataD0.Draw();
       cData.Print(Form("Pic/mva%d/cData.png", iMva));
       
+      // DCA distribution of N1*signal + N2*swap, by side band substraction
       // extract invariant mass
       int mvaBinMin = hDcaVsMassAndMvaNPD0["h_match_all"]->GetYaxis()->FindBin(mvaCut+0.1*ana::mvaStep); // 0.1 offset to make sure the correct bin is returned
       int mvaBinMax = hDcaVsMassAndMvaNPD0["h_match_all"]->GetYaxis()->GetNbins()+1;
@@ -86,7 +88,21 @@ void dcaHistsOptimal(int mode = 1)
       TH1D* hMassPD0All = hDcaVsMassAndMvaPD0["h_match_all"]->ProjectionX(Form("hMassMCPD0Allmva%d", label), mvaBinMin, mvaBinMax);
       TH1D* hMassData = hDcaVsMassAndMvaDataD0->ProjectionX(Form("hMassDataD0mva%d", label), mvaBinMin, mvaBinMax);
 
+      // TFitResultPtr constructed by std::shared_ptr<TFitResult>, be free of it even if you do not delete it
+      // fitting the mass
+      TFitResultPtr fitResultPtr;
+      TF1 fMass;
+      if(mode == 0) fMass = massfitting(hMassData, hMassPD0, hMassPD0All, TString::Format("fMassMva%d", iMva), fitResultPtr);
+      if(mode == 1) fMass = massfitting(hMassData, hMassNPD0, hMassNPD0All, TString::Format("fMassMva%d", iMva), fitResultPtr);
+
+      // draw the fitting
+      drawMassFitting(hMassData, fMass, TString::Format("Pic/mva%d/MassFittingUnNormalized.png", iMva), 
+            "4 < pT < 5GeV  |y|<1", TString::Format("MVA > %.2f", 0.4+0.02*iMva));
+
+      auto covMat = fitResultPtr->GetCovarianceMatrix();
+
       f2.cd();
+      fMass.Write();
 
       hDcaDataD0.Write(Form("hDcaDataD0mva%d", label));
       hDcaMCNPD0.Write(Form("hDcaMCNPD0mva%d", label));
@@ -111,13 +127,9 @@ TH1D* hDcaMCAll(TH3* hDcaVsMassAndMva, TH1& hDcaMC, const double& mvaCut, const 
    TH1D* hDcaMCProj = hDcaVsMassAndMva->ProjectionZ(proj_name.c_str(), 1, 60, mvaBinMin, mvaBinMax); // x: mass, y: dca 
    for(int iDca=0; iDca<ana::nuofDca; iDca++){
       int binlw = hDcaMCProj->FindBin(ana::dcaBin[iDca] + hDcaMCProj->GetBinWidth(1)/2.); // binwidth/2 offset to make sure the correct bin is returned
-      int binup = hDcaMCProj->FindBin(ana::dcaBin[iDca+1] + hDcaMCProj->GetBinWidth(1)/2.) - 1;  // 1 bin decreased due to the integral is taken within [binlw, binup]
-      //std::cout << binlw << std::endl;
-      //std::cout << ana::dcaBin[iDca] << std::endl;
-      //std::cout << binup << std::endl;
-      //std::cout << ana::dcaBin[iDca+1] << std::endl;
+      int binup = hDcaMCProj->FindBin(ana::dcaBin[iDca+1] - hDcaMCProj->GetBinWidth(1)/2.);  // - binwidth/2 offset due to the integral is taken within [binlw, binup]
+      // calculate the contents and errors per dca bin
       double binwidth = ana::dcaBin[iDca+1] - ana::dcaBin[iDca];
-      //std::cout << binwidth << std::endl;
       double err = 0.;
       double yield = hDcaMCProj->IntegralAndError(binlw, binup, err);
       hDcaMC.SetBinContent(iDca+1, yield/binwidth);
@@ -149,47 +161,10 @@ void hDcaData(TH3* hData, std::map<std::string, TH3*> hNP, std::map<std::string,
       hTemp->Scale(1./hTemp->GetBinWidth(1));
       hTemp->GetYaxis()->SetRangeUser(0, hTemp->GetMaximum() * 1.3);
       hTemp->SetTitle(";Mass (GeV);Entries /(5 MeV)");
-      TF1 f = massfitting(hTemp, hMCNonPromptMass, hMCNonPromptMassAll, "iDca");
-      TF1 signal("signal", "[0]* [5] * (" "[4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))"
-            "+ (1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6]))" ")", 1.7, 2.0);
-      signal.SetLineColor(kOrange-3);
-      signal.SetLineWidth(1);
-      signal.SetLineStyle(2);
-      signal.SetFillColorAlpha(kOrange-3,0.3);
-      signal.SetFillStyle(1001);
-      for(int ipar=0; ipar<6+1; ipar++){
-         signal.FixParameter(ipar, f.GetParameter(ipar));
-      }
-
-      TF1 swap("swap", "[0]*((1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6])))"
-            "+0 *[1]*[2]*[3]*[4]", 1.7, 2.0);
-      swap.SetLineColor(kGreen+4);
-      swap.SetLineWidth(1);
-      swap.SetLineStyle(1);
-      swap.SetFillColorAlpha(kGreen+4,0.3);
-      swap.SetFillStyle(1001);
-      for(int ipar=0; ipar<8+1; ipar++){
-         swap.FixParameter(ipar, f.GetParameter(ipar));
-      }
-
-      TF1 bkg("bkg", "[9] + [10]*x + [11]*x*x + [12]*x*x*x"
-            "+ 0 *[0]*[1]*[2]*[3]*[4]*[5]*[6]*[7]*[8]", 1.7, 2.0);
-      bkg.SetLineColor(4);
-      bkg.SetLineWidth(1);
-      bkg.SetLineStyle(2);
-      for(int ipar=0; ipar<12+1; ipar++){
-         bkg.FixParameter(ipar, f.GetParameter(ipar));
-      }
-
-      signal.Draw("same FC");
-      swap.Draw("same FC");
-      bkg.Draw("same L");
-      TLatex ltx;
-      ltx.SetTextFont(42);
-      ltx.DrawLatexNDC(0.2, 0.75, TString::Format("%2.fmm<DCA%2.f", ana::dcaBin[iDca]*1e3, 
-               ana::dcaBin[iDca+1]*1e3));
-
-      cTemp.Print(Form("%s%d.png", tmpName.c_str(), iDca));
+      TFitResultPtr fitResultPtr;
+      TF1 f = massfitting(hTemp, hMCNonPromptMass, hMCNonPromptMassAll, TString::Format("iDca%d", iDca), fitResultPtr);
+      drawMassFitting(hTemp, f, TString::Format("%s%d.png", tmpName.c_str(), iDca), "4 < pT < 5GeV  |y|<1",
+            TString::Format("%2.f < DCA <%2.fmm", ana::dcaBin[iDca]*1e3, ana::dcaBin[iDca+1]*1e3));
 
       double binWidth = ana::dcaBin[iDca+1] - ana::dcaBin[iDca];
       hDataD0.SetBinContent(iDca+1, f.GetParameter(0)/binWidth);

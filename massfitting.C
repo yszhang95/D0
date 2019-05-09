@@ -1,20 +1,35 @@
-//  this is a macro for fitting mass of d0 produced at cms                    
-//  Here we have a short instruction for the macro                            
-//  There are three parameters:                                               
-//    The 1st paramter is the histogram represneting the data               
-//    The 2nd paramter is the histogram represneting the signal of MC samples 
-//    The 3rd paramter is the histogram represneting 
+//  This is a macro for fitting mass of d0 produced at cms.
+//  Also, a function drawing the invariant mass is defined, named after drawMassFitting
+//
+//  Here we have a short instruction for the mass fitting and drawing function
+//
+//  1. There are several parameters for mass fitting:
+//    The 1st parameter is the histogram represneting the data               
+//    The 2nd parameter is the histogram represneting the signal of MC samples 
+//    The 3rd parameter is the histogram represneting 
 //        the signal and swap of MC samples  
-//    The 4th paramter is the name of the fitting function            
+//    The 4th parameter is the name of the fitting function            
+//    The 5th parameter returns the fitting result
+//
+//  2. Drawing function has a list of paramters:
+//    1) the histogram of data
+//    2) the fiting function
+//    3) the name passed to TCanvas.Print(name);
+//    4) the bin label indicating the pT and y range
+//    5) the (mva) cut applied
+//    one more thing to notice is that one have to specifiy the y axis title 
+//    before calling the drawing function
 
 #include "TF1.h"
 #include "TH1.h"
 #include "TH1F.h"
 #include "TH1D.h"
 #include "TMath.h"
+#include "TFitResult.h"
+#include "TFitResultPtr.h"
 
 TF1 massfitting
-(TH1* h_data, TH1* h_mc_match_signal, TH1* h_mc_match_all, const char* fname)
+(TH1* h_data, TH1* h_mc_match_signal, TH1* h_mc_match_all, const char* fname, TFitResultPtr& fitResultPtr)
 {
 //   The full fitting function is constructed as follow
 //   [0] is signal + swap yield;
@@ -129,7 +144,76 @@ TF1 massfitting
     h_data->Fit(&f,"L q","",fit_range_low,fit_range_high);
     h_data->Fit(&f,"L q","",fit_range_low,fit_range_high);
     h_data->Fit(&f,"L q","",fit_range_low,fit_range_high);
-    h_data->Fit(&f,"L m","",fit_range_low,fit_range_high);
+    fitResultPtr = h_data->Fit(&f,"L m S","",fit_range_low,fit_range_high);
 
     return f;
+}
+
+void drawMassFitting(TH1* hMassData, const TF1& f, const char* picName, 
+      const char* binLabel = "", const char* cut = "")
+{
+   TCanvas cMass("cMass", "", 550, 450);
+   cMass.SetLeftMargin(0.16);
+   cMass.SetBottomMargin(0.16);
+
+   TF1 signal("signal", "[0]* [5] * (" "[4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))"
+         "+ (1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6]))" ")", 1.7, 2.0);
+   signal.SetLineColor(kOrange-3);
+   signal.SetLineWidth(1);
+   signal.SetLineStyle(2);
+   signal.SetFillColorAlpha(kOrange-3,0.3);
+   signal.SetFillStyle(1001);
+   for(int ipar=0; ipar<6+1; ipar++){
+      signal.FixParameter(ipar, f.GetParameter(ipar));
+   }
+
+   TF1 swap("swap", "[0]*((1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6])))"
+         "+0 *[1]*[2]*[3]*[4]", 1.7, 2.0);
+   swap.SetLineColor(kGreen+4);
+   swap.SetLineWidth(1);
+   swap.SetLineStyle(1);
+   swap.SetFillColorAlpha(kGreen+4,0.3);
+   swap.SetFillStyle(1001);
+   for(int ipar=0; ipar<8+1; ipar++){
+      swap.FixParameter(ipar, f.GetParameter(ipar));
+   }
+
+   TF1 bkg("bkg", "[9] + [10]*x + [11]*x*x + [12]*x*x*x"
+         "+ 0 *[0]*[1]*[2]*[3]*[4]*[5]*[6]*[7]*[8]", 1.7, 2.0);
+   bkg.SetLineColor(4);
+   bkg.SetLineWidth(1);
+   bkg.SetLineStyle(2);
+   for(int ipar=0; ipar<12+1; ipar++){
+      bkg.FixParameter(ipar, f.GetParameter(ipar));
+   }
+
+   hMassData->SetTitle("");
+   hMassData->GetXaxis()->SetTitle("Mass (GeV)");
+   hMassData->SetTitleOffset(1.2, "y");
+   hMassData->GetYaxis()->SetRangeUser(0, 1.3*hMassData->GetMaximum());
+   auto gYaxis = (TGaxis*) hMassData->GetYaxis();
+   gYaxis->SetMaxDigits(3);
+   hMassData->Draw("E P");
+   signal.Draw("same FC");
+   swap.Draw("same FC");
+   bkg.Draw("same L");
+   hMassData->SetMarkerStyle(20);
+   hMassData->Draw("SAME E P");
+
+   TLegend lgdMass(0.6, 0.7, 0.9, 0.9);
+   lgdMass.AddEntry(hMassData, "Data", "p");
+   lgdMass.AddEntry(&f, "Fitting", "l");
+   lgdMass.AddEntry(&signal, "Signal", "f");
+   lgdMass.AddEntry(&swap, "Swap", "f");
+   lgdMass.AddEntry(&bkg, "Background", "l");
+   lgdMass.Draw();
+
+   TLatex ltx;
+   ltx.SetTextFont(42);
+   ltx.SetTextSize(0.035);
+   ltx.DrawLatexNDC(0.25, 0.8, cut);
+   ltx.DrawLatexNDC(0.2, 0.65, binLabel);
+
+   cMass.Print(picName);
+
 }

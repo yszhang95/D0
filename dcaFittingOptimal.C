@@ -162,67 +162,21 @@ void dcaFittingOptimal(int mode=1, int method = 0)
          cDca.SetLogy();
          cDca.Print(Form("Pic/mva%d/DcaFittingLogScale.png", iMva));
 
-         TCanvas cMass("cMass", "", 550, 450);
-         cMass.SetLeftMargin(0.16);
-         cMass.SetBottomMargin(0.16);
-         TF1 f = massfitting(hMassData, hMassMCNPD0, hMassMCNPD0All, TString::Format("mva%d", iMva));
-   //      hMassData->Fit(&f, "L q", "", ana::fit_range_low, ana::fit_range_high);
-   //      hMassData->Fit(&f, "L q", "", ana::fit_range_low, ana::fit_range_high);
-   //      hMassData->Fit(&f, "L q", "", ana::fit_range_low, ana::fit_range_high);
-   //      hMassData->Fit(&f, "L m" , "", ana::fit_range_low, ana::fit_range_high);
+         // fit the invariant mass
+         TFitResultPtr fitResultPtr;
+         TF1 f = massfitting(hMassData, hMassMCNPD0, hMassMCNPD0All, TString::Format("mva%d", iMva), fitResultPtr);
 
+         // draw the invariant mass
+         hMassData->GetYaxis()->SetTitle("Entries /(5 MeV)");
+         drawMassFitting(hMassData, f, TString::Format("Pic/mva%d/MassFitting.png", iMva), 
+               "4 < pT < 5GeV  |y|<1", TString::Format("MVA > %.2f", 0.4+0.02*iMva));
+
+         // calculate the significance
          TF1 signal("signal", "[0]* [5] * (" "[4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))"
                "+ (1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6]))" ")", 1.7, 2.0);
-         signal.SetLineColor(kOrange-3);
-         signal.SetLineWidth(1);
-         signal.SetLineStyle(2);
-         signal.SetFillColorAlpha(kOrange-3,0.3);
-         signal.SetFillStyle(1001);
          for(int ipar=0; ipar<6+1; ipar++){
             signal.FixParameter(ipar, f.GetParameter(ipar));
          }
-
-         TF1 swap("swap", "[0]*((1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6])))"
-               "+0 *[1]*[2]*[3]*[4]", 1.7, 2.0);
-         swap.SetLineColor(kGreen+4);
-         swap.SetLineWidth(1);
-         swap.SetLineStyle(1);
-         swap.SetFillColorAlpha(kGreen+4,0.3);
-         swap.SetFillStyle(1001);
-         for(int ipar=0; ipar<8+1; ipar++){
-            swap.FixParameter(ipar, f.GetParameter(ipar));
-         }
-
-         TF1 bkg("bkg", "[9] + [10]*x + [11]*x*x + [12]*x*x*x"
-               "+ 0 *[0]*[1]*[2]*[3]*[4]*[5]*[6]*[7]*[8]", 1.7, 2.0);
-         bkg.SetLineColor(4);
-         bkg.SetLineWidth(1);
-         bkg.SetLineStyle(2);
-         for(int ipar=0; ipar<12+1; ipar++){
-            bkg.FixParameter(ipar, f.GetParameter(ipar));
-         }
-
-         hMassData->SetTitle(";Mass (GeV);Entries / 5 MeV");
-         hMassData->GetYaxis()->SetRangeUser(0, 1.3*hMassData->GetMaximum());
-         hMassData->Draw("E P");
-         signal.Draw("same FC");
-         swap.Draw("same FC");
-         bkg.Draw("same L");
-         hMassData->SetMarkerStyle(20);
-         hMassData->Draw("SAME E P");
-
-         TLegend lgdMass(0.6, 0.7, 0.9, 0.9);
-         lgdMass.AddEntry(hMassData, "Data", "p");
-         lgdMass.AddEntry(&f, "Fitting", "l");
-         lgdMass.AddEntry(&signal, "Signal", "f");
-         lgdMass.AddEntry(&swap, "Swap", "f");
-         lgdMass.AddEntry(&bkg, "Background", "l");
-         lgdMass.Draw();
-
-         ltx.DrawLatexNDC(0.35, 0.8, Form("MVA > %.2f", 0.4+0.02*iMva));
-         ltx.DrawLatexNDC(0.55, 0.55, "4 < pT < 5GeV  |y|<1");
-
-         cMass.Print(Form("Pic/mva%d/MassFitting.png", iMva));
 
          double max = signal.GetMaximum(1.7, 2.0);
          double xmin = signal.GetX(max/2., 1.84, 1.865);
