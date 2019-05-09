@@ -144,9 +144,11 @@ void hDcaData(TH3* hData, std::map<std::string, TH3*> hNP, std::map<std::string,
    TCanvas cTemp("cTemp", "", 550, 450);
    for(int iDca=0; iDca<ana::nuofDca; iDca++){
       int binlw = hData->GetZaxis()->FindBin(ana::dcaBin[iDca] + hData->GetZaxis()->GetBinWidth(1) * 0.2); // 0.2 offset to make sure the correct bin is returned
-      int binup = hData->GetZaxis()->FindBin(ana::dcaBin[iDca+1] + hData->GetZaxis()->GetBinWidth(1) * 0.2) -1; // -1 due to the integral is taken within [binlw, binup]
+      int binup = hData->GetZaxis()->FindBin(ana::dcaBin[iDca+1] - hData->GetZaxis()->GetBinWidth(1) * 0.2); // -0.2 offset due to the integral is taken within [binlw, binup]
       hTemp = hData->ProjectionX("tmp", mvaBinMin, mvaBinMax, binlw, binup); // projection, y-mva:[cut, overflow], z-DCA:[dca[iDca], dca[iDca+1]]
+      hTemp->Scale(1./hTemp->GetBinWidth(1));
       hTemp->GetYaxis()->SetRangeUser(0, hTemp->GetMaximum() * 1.3);
+      hTemp->SetTitle(";Mass (GeV);Entries /(5 MeV)");
       TF1 f = massfitting(hTemp, hMCNonPromptMass, hMCNonPromptMassAll, "iDca");
       TF1 signal("signal", "[0]* [5] * (" "[4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))"
             "+ (1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6]))" ")", 1.7, 2.0);
@@ -182,15 +184,19 @@ void hDcaData(TH3* hData, std::map<std::string, TH3*> hNP, std::map<std::string,
       signal.Draw("same FC");
       swap.Draw("same FC");
       bkg.Draw("same L");
+      TLatex ltx;
+      ltx.SetTextFont(42);
+      ltx.DrawLatexNDC(0.2, 0.75, TString::Format("%2.fmm<DCA%2.f", ana::dcaBin[iDca]*1e3, 
+               ana::dcaBin[iDca+1]*1e3));
+
       cTemp.Print(Form("%s%d.png", tmpName.c_str(), iDca));
 
-      double binWidth = hTemp->GetBinWidth(1) * (ana::dcaBin[iDca+1] - ana::dcaBin[iDca]);
+      double binWidth = ana::dcaBin[iDca+1] - ana::dcaBin[iDca];
       hDataD0.SetBinContent(iDca+1, f.GetParameter(0)/binWidth);
       hDataD0.SetBinError(iDca+1, f.GetParError(0)/binWidth);
 
       // clear pointers
       hTemp->Delete();
-
    }
    hMCPromptMass->Delete(); 
    hMCPromptMass = nullptr;

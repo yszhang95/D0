@@ -111,7 +111,7 @@ TF1 massfitting
     f.ReleaseParameter(12);
     
     //now fit data
-    //f.SetParLimits(0, 0, 1e3);
+    f.SetParLimits(0, 0, 1e8);
     f.SetParLimits(1, 1.86, 1.87);
 
     //h_data->Fit(&f,"q","",fit_range_low,fit_range_high);
