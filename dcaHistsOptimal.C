@@ -4,10 +4,13 @@
 #include <memory>
 
 TH1D* hDcaMCAll(TH3*, TH1&, const double&, const std::string&);
-void hDcaData(TH3*, std::map<std::string, TH3*>, std::map<std::string, TH3*>, TH1&, const double&, const std::string&);
+TH1D* hDcaData(TH3*, TH1&, const double&, const std::string&, const double&, const double&);
+void hDcaDataSignal(TH3*, std::map<std::string, TH3*>, std::map<std::string, TH3*>, TH1&, const double&, const std::string&);
 
 void dcaHistsOptimal(int mode = 1)
 {
+   TH1::SetDefaultSumw2();
+
    //TGaxis::SetMaxDigits(3);
    gStyle->SetOptStat(0);
    //TFile* f1 = new TFile(Form("%s_hists.root", ana::whichtree[mode].c_str()));
@@ -30,37 +33,35 @@ void dcaHistsOptimal(int mode = 1)
 
    //for(int iMva=0; iMva<15; iMva++){
    for(int iMva=0; iMva<9; iMva++){
+   //for(int iMva=2; iMva<3; iMva++){
 
       //create Pic/mva to store pictures
-      std::string dirMvaPic = Form( "if [ ! -d \"Pic/mva%d\" ]; then\n"
+      std::string dirMvaPic(TString::Format( "if [ ! -d \"Pic/mva%d\" ]; then\n"
                                  "    mkdir Pic/mva%d \n"
-                                 "fi", iMva, iMva);
+                                 "fi", iMva, iMva));
       gSystem->Exec(dirMvaPic.c_str());
 
-      // DCA distribution of Prompt D0 
       double mvaCut = (double)iMva*ana::mvaStep + ana::mvaMin;
-  
+
+      // DCA distribution of Prompt D0 
       TCanvas cPrompt("cPrompt", "", 550, 450);
       cPrompt.SetLogy();
       TH1D hDcaMCPD0("hDcaMCPD0", "hDCaMCPD0", ana::nuofDca, ana::dcaBin);
       TH1D* hDcaMCPD0_Proj = hDcaMCAll(hDcaVsMassAndMvaPD0["h_match_all"], hDcaMCPD0, mvaCut, "hprompt");
-      hDcaMCPD0.Scale(1./hDcaMCPD0.Integral("width"));
       hDcaMCPD0.Draw();
-      hDcaMCPD0_Proj->Scale(hDcaMCPD0.GetMaximum()/hDcaMCPD0_Proj->GetMaximum());
+      //hDcaMCPD0_Proj->Scale(hDcaMCPD0.GetMaximum()/hDcaMCPD0_Proj->GetMaximum());
       hDcaMCPD0_Proj->SetLineColor(kRed);
       hDcaMCPD0_Proj->Draw("same");
       cPrompt.Print(Form("Pic/mva%d/cPrompt.png", iMva));
       delete hDcaMCPD0_Proj;
 
       // DCA distribution of Non-Prompt D0
-
       TCanvas cNonPrompt("cNonPrompt", "", 550, 450);
       cNonPrompt.SetLogy();
       TH1D hDcaMCNPD0("hDcaMCNPD0", "hDCaMCNPD0", ana::nuofDca, ana::dcaBin);
       TH1D* hDcaMCNPD0_Proj = hDcaMCAll(hDcaVsMassAndMvaNPD0["h_match_all"], hDcaMCNPD0, mvaCut, "hnonprompt");
-      hDcaMCNPD0.Scale(1./hDcaMCNPD0.Integral("width"));
       hDcaMCNPD0.Draw();
-      hDcaMCNPD0_Proj->Scale(hDcaMCNPD0.GetMaximum()/hDcaMCNPD0_Proj->GetMaximum());
+      //hDcaMCNPD0_Proj->Scale(hDcaMCNPD0.GetMaximum()/hDcaMCNPD0_Proj->GetMaximum());
       hDcaMCNPD0_Proj->SetLineColor(kRed);
       hDcaMCNPD0_Proj->Draw("same");
       cNonPrompt.Print(Form("Pic/mva%d/cNonPrompt.png", iMva));
@@ -70,14 +71,14 @@ void dcaHistsOptimal(int mode = 1)
       TCanvas cData("cData", "", 550, 450);
       TH1D hDcaDataD0("hDcaDataD0", "hDcaDataD0", ana::nuofDca, ana::dcaBin);
       std::string tmpName(Form("Pic/mva%d/massPerDcaBin", iMva));
-      hDcaData(hDcaVsMassAndMvaDataD0, hDcaVsMassAndMvaNPD0, hDcaVsMassAndMvaPD0, hDcaDataD0, mvaCut, tmpName);
+      hDcaDataSignal(hDcaVsMassAndMvaDataD0, hDcaVsMassAndMvaNPD0, hDcaVsMassAndMvaPD0, hDcaDataD0, mvaCut, tmpName);
       cData.cd();
       cData.SetLogy();
-      hDcaDataD0.Scale(1./hDcaDataD0.Integral("width"));
+      //hDcaDataD0.Scale(1./hDcaDataD0.Integral("width"));
       hDcaDataD0.Draw();
       cData.Print(Form("Pic/mva%d/cData.png", iMva));
       
-      // DCA distribution of N1*signal + N2*swap, by side band substraction
+      // DCA distribution of N1*signal + N2*swap, by side band subtraction
       // extract invariant mass
       int mvaBinMin = hDcaVsMassAndMvaNPD0["h_match_all"]->GetYaxis()->FindBin(mvaCut+0.1*ana::mvaStep); // 0.1 offset to make sure the correct bin is returned
       int mvaBinMax = hDcaVsMassAndMvaNPD0["h_match_all"]->GetYaxis()->GetNbins()+1;
@@ -99,7 +100,97 @@ void dcaHistsOptimal(int mode = 1)
       drawMassFitting(hMassData, fMass, TString::Format("Pic/mva%d/MassFittingUnNormalized.png", iMva), 
             "4 < pT < 5GeV  |y|<1", TString::Format("MVA > %.2f", 0.4+0.02*iMva));
 
+      // https://root.cern/doc/v616/TF1Helper_8cxx_source.html and https://root.cern.ch/doc/master/classTF1.html
+      // help you understand how the integral error of TF1 is calculated
+      // 1-dimensional function have five parameters, x_low, x_min, array of pars, array of covariance matrix, precision
+      // array of pars would replace the original set of pars by last fitting unless no set of pars is passed
+      // it is very important to pass in the correct set of pars and covariance matrix
+      // explicitly pass the parameters to make sure anything won't go wrong
+      // be aware that the fixed parameter would bring effect on the evaluation
+      
+      // get the covariance matrix
       auto covMat = fitResultPtr->GetCovarianceMatrix();
+
+      // define the background function and then fix or set the parameters
+      TF1 bkg("bkg", "[9] + [10]*x + [11]*x*x + [12]*x*x*x"
+            "+ 0 *[0]*[1]*[2]*[3]*[4]*[5]*[6]*[7]*[8]", 1.7, 2.0);
+      for(int ipar=0; ipar<8+1; ipar++){
+         bkg.FixParameter(ipar, fMass.GetParameter(ipar));
+      }
+      for(int ipar=9; ipar<12+1; ipar++){
+         bkg.SetParameter(ipar, fMass.GetParameter(ipar));
+      }
+
+      // calculate the yield of background in three regions
+      // I do not use the right band, since the relative uncertainty is larger than the left and the peak
+      // for now, peak region has 6 sigma range, left side has 6 sigma range
+      std::map<std::string, double> yield;
+      std::map<std::string, double> yieldError;
+      yield["left_side"] = bkg.Integral(ana::left_side_min, ana::left_side_max);
+      yield["peak"] = bkg.Integral(ana::peak_min, ana::peak_max);
+      //yield["right_side"] = bkg.Integral(ana::right_side_min, ana::right_side_max);
+      yieldError["left_side"] = bkg.IntegralError(ana::left_side_min, ana::left_side_max, 0, covMat.GetMatrixArray());
+      yieldError["peak"] = bkg.IntegralError(ana::peak_min, ana::peak_max, 0, covMat.GetMatrixArray());
+      //yieldError["right_side"] = bkg.IntegralError(ana::right_side_min, ana::right_side_max, 0, covMat.GetMatrixArray());
+      //for(auto& element : yield) std::cout << element.second << std::endl;
+      //for(auto& element : yieldError) std::cout << element.second << std::endl;
+      
+      // calculate the signal-to-sideband ratio
+      // propagate the error
+      double ratio = yield["peak"] / yield["left_side"];
+      double relRatioError = std::sqrt(
+            std::pow(yieldError["peak"]/yield["peak"], 2) + std::pow(yieldError["left_side"]/yield["left_side"], 2));
+      double absRatioError = ratio* relRatioError;
+
+      // extract dca of left side band 
+      TCanvas cLeftSide("cLeftSide", "", 550, 450);
+      cLeftSide.SetLogy();
+      TH1D hDcaLeft("hDcaLeftSide", "hDcaLeftSide", ana::nuofDca, ana::dcaBin);
+      TH1D* hDcaLeft_Proj = hDcaData(hDcaVsMassAndMvaDataD0, hDcaLeft, mvaCut, "hDcaLeftSide_Proj", ana::left_side_min, ana::left_side_max);
+      hDcaLeft.Draw();
+      hDcaLeft_Proj->Scale(hDcaLeft.GetMaximum()/hDcaLeft_Proj->GetMaximum());
+      hDcaLeft_Proj->SetLineColor(kRed);
+      hDcaLeft_Proj->Draw("SAME");
+      cLeftSide.Print(Form("Pic/mva%d/cLeftSide.png", iMva));
+      hDcaLeft_Proj->Delete();
+
+      // extract dca of peak
+      TCanvas cPeak("cPeak", "", 550, 450);
+      cPeak.SetLogy();
+      TH1D hDcaPeak("hDcaPeak", "hDcaPeak", ana::nuofDca, ana::dcaBin);
+      TH1D* hDcaPeak_Proj = hDcaData(hDcaVsMassAndMvaDataD0, hDcaPeak, mvaCut, "hDcaPeak_Proj", ana::peak_min, ana::peak_max);
+      hDcaPeak.Draw();
+      hDcaPeak_Proj->Scale(hDcaPeak.GetMaximum()/hDcaPeak_Proj->GetMaximum());
+      hDcaPeak_Proj->SetLineColor(kRed);
+      hDcaPeak_Proj->Draw("SAME");
+      cPeak.Print(Form("Pic/mva%d/cPeak.png", iMva));
+      hDcaPeak_Proj->Delete();
+
+      // scale the left-side by signal-to-sideband ratio
+      for(int iDca=0; iDca<ana::nuofDca; iDca++){
+         double yield = ratio * hDcaLeft.GetBinContent(iDca+1);
+         double yieldErr = std::sqrt(std::pow(absRatioError* hDcaLeft.GetBinContent(iDca+1), 2) +
+               std::pow(ratio* hDcaLeft.GetBinError(iDca+1), 2));
+         hDcaLeft.SetBinContent(iDca+1, yield);
+         hDcaLeft.SetBinError(iDca+1, yieldErr);
+      }
+
+      // compare dca of peak and left-side
+      TCanvas cPeakAndLeft("cPeakAndLeft", "", 550, 450);
+      cPeakAndLeft.SetLogy();
+      hDcaPeak.SetMarkerStyle(20);
+      hDcaPeak.Draw("E P");
+      hDcaLeft.Draw("E SAME");
+      cPeakAndLeft.Print(Form("Pic/mva%d/cDcaPeakAndLeftSide.png", iMva));
+
+      TCanvas cSignal("cSignal", "", 550, 450);
+      cSignal.SetLogy();
+      TH1D* hDcaPeakSignal = (TH1D*) hDcaPeak.Clone();
+      hDcaPeakSignal->SetName("hDcaPeakSignal");
+      hDcaPeakSignal->Add(&hDcaLeft, -1);
+      hDcaPeakSignal->Draw();
+      hDcaDataD0.Draw("same");
+      cSignal.Print(Form("Pic/mva%d/cSignalSideBand.png", iMva));
 
       f2.cd();
       fMass.Write();
@@ -121,25 +212,49 @@ void dcaHistsOptimal(int mode = 1)
    }
 }
 
-TH1D* hDcaMCAll(TH3* hDcaVsMassAndMva, TH1& hDcaMC, const double& mvaCut, const  std::string& proj_name){
+TH1D* hDcaMCAll(TH3* hDcaVsMassAndMva, TH1& hDcaMC, const double& mvaCut, const  std::string& proj_name)
+{
    int mvaBinMin = hDcaVsMassAndMva->GetYaxis()->FindBin(mvaCut+0.1*ana::mvaStep); // 0.1 offset to make sure the correct bin is returned
    int mvaBinMax = hDcaVsMassAndMva->GetYaxis()->GetNbins()+1;
    TH1D* hDcaMCProj = hDcaVsMassAndMva->ProjectionZ(proj_name.c_str(), 1, 60, mvaBinMin, mvaBinMax); // x: mass, y: dca 
+   const double norm = hDcaMCProj->Integral(0, hDcaMCProj->GetXaxis()->GetNbins()+1); // normalized constant
+   hDcaMCProj->Scale(1./ (norm * hDcaMCProj->GetBinWidth(1))); // convert histogram to the P.D.F.
    for(int iDca=0; iDca<ana::nuofDca; iDca++){
       int binlw = hDcaMCProj->FindBin(ana::dcaBin[iDca] + hDcaMCProj->GetBinWidth(1)/2.); // binwidth/2 offset to make sure the correct bin is returned
       int binup = hDcaMCProj->FindBin(ana::dcaBin[iDca+1] - hDcaMCProj->GetBinWidth(1)/2.);  // - binwidth/2 offset due to the integral is taken within [binlw, binup]
       // calculate the contents and errors per dca bin
       double binwidth = ana::dcaBin[iDca+1] - ana::dcaBin[iDca];
       double err = 0.;
-      double yield = hDcaMCProj->IntegralAndError(binlw, binup, err);
+      double yield = hDcaMCProj->IntegralAndError(binlw, binup, err, "width"); // note the option "width"
       hDcaMC.SetBinContent(iDca+1, yield/binwidth);
       hDcaMC.SetBinError(iDca+1, err/binwidth);
    }
-   
    return hDcaMCProj;
 }
 
-void hDcaData(TH3* hData, std::map<std::string, TH3*> hNP, std::map<std::string, TH3*> hP, TH1& hDataD0, const double& mvaCut, const std::string& tmpName)
+TH1D* hDcaData(TH3* hDcaVsMassAndMva, TH1& hDca, const double& mvaCut, const  std::string& proj_name, 
+      const double& massMin, const double& massMax)
+{
+   int mvaBinMin = hDcaVsMassAndMva->GetYaxis()->FindBin(mvaCut+0.1*ana::mvaStep); // 0.1 offset to make sure the correct bin is returned
+   int mvaBinMax = hDcaVsMassAndMva->GetYaxis()->GetNbins()+1;
+   int massBinMin = hDcaVsMassAndMva->GetXaxis()->FindBin(massMin + 0.1*hDcaVsMassAndMva->GetXaxis()->GetBinWidth(1)); // 0.1 offset to get the correct bin, make sure massMin located at the bin edge
+   int massBinMax = hDcaVsMassAndMva->GetXaxis()->FindBin(massMax - 0.1*hDcaVsMassAndMva->GetXaxis()->GetBinWidth(1)); // -0.1 offset to get the correct bin, make sure massMin located at the bin edge
+   TH1D* hDcaDataProj = hDcaVsMassAndMva->ProjectionZ(proj_name.c_str(), massBinMin, massBinMax, mvaBinMin, mvaBinMax); // x: mass, y: dca 
+   for(int iDca=0; iDca<ana::nuofDca; iDca++){
+      int binlw = hDcaDataProj->FindBin(ana::dcaBin[iDca] + hDcaDataProj->GetBinWidth(1) * 0.1); // binwidth*0.1 offset to make sure the correct bin is returned
+      int binup = hDcaDataProj->FindBin(ana::dcaBin[iDca+1] - hDcaDataProj->GetBinWidth(1) * 0.1);  // - binwidth*0.1 offset due to the integral is taken within [binlw, binup]
+      // calculate the contents and errors per dca bin
+      double binwidth = ana::dcaBin[iDca+1] - ana::dcaBin[iDca];
+      double err = 0.;
+      double yield = hDcaDataProj->IntegralAndError(binlw, binup, err);
+      hDca.SetBinContent(iDca+1, yield/binwidth);
+      hDca.SetBinError(iDca+1, err/binwidth);
+   }
+   
+   return hDcaDataProj;
+}
+
+void hDcaDataSignal(TH3* hData, std::map<std::string, TH3*> hNP, std::map<std::string, TH3*> hP, TH1& hDataD0, const double& mvaCut, const std::string& tmpName)
 {
    int mvaBinMin = hP["h_match_unswap"]->GetYaxis()->FindBin(mvaCut+0.1*ana::mvaStep); // 0.1 offset to make sure the correct bin is returned
    int mvaBinMax = hP["h_match_unswap"]->GetYaxis()->GetNbins()+1; // overflow of y axis, mva

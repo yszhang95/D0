@@ -43,11 +43,7 @@ void dcaFittingOptimal(int mode=1, int method = 0)
       hD0DcaMCPSignal = (TH1D*) f1->Get(Form("hDcaMCPD0mva%d", label));
       hD0DcaMCNPSignal = (TH1D*) f1->Get(Form("hDcaMCNPD0mva%d", label));
 
-      double yield_PD0 = hD0DcaMCPSignal->Integral("width");
-      double yield_NPD0 = hD0DcaMCNPSignal->Integral("width");
       double yield_Data = hD0DcaData->Integral("width");
-      hD0DcaMCPSignal->Scale(1./yield_PD0);
-      hD0DcaMCNPSignal->Scale(1./yield_NPD0);
       hD0DcaData->Scale(1./yield_Data);
 
       TH1D* hMassData = (TH1D*) f1->Get(Form("hMassDataD0mva%d", label));
