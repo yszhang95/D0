@@ -20,6 +20,9 @@
 //    one more thing to notice is that one have to specifiy the y axis title 
 //    before calling the drawing function
 
+#ifndef __MASS_FITTING__
+#define __MASS_FITTING__
+
 #include "TF1.h"
 #include "TH1.h"
 #include "TH1F.h"
@@ -217,3 +220,4 @@ void drawMassFitting(TH1* hMassData, const TF1& f, const char* picName,
    cMass.Print(picName);
 
 }
+#endif

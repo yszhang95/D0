@@ -7,7 +7,8 @@ TH1D* hDcaMCAll(TH3*, TH1&, const double&, const std::string&);
 TH1D* hDcaData(TH3*, TH1&, const double&, const std::string&, const double&, const double&);
 void hDcaDataSignal(TH3*, std::map<std::string, TH3*>, std::map<std::string, TH3*>, TH1&, const double&, const std::string&);
 
-void dcaHistsOptimal(int mode = 1)
+void dcaHistsOptimal(int mode = 2)
+//void dcaHistsOptimal(int mode = 1)
 {
    TH1::SetDefaultSumw2();
 
@@ -26,19 +27,19 @@ void dcaHistsOptimal(int mode = 1)
    TFile f2(Form("%s_dca_hists.root", ana::whichtree[mode].c_str()), "recreate");
 
    // create Pic to store pictures
-   const std::string dirPic = "if [ ! -d \"Pic\" ]; then\n"
-                              "    mkdir Pic \n"
-                              "fi";
+   const std::string dirPic = Form("if [ ! -d \"Pic\" ]; then\n"
+                              "    mkdir %sPic \n"
+                              "fi", ana::whichtree[mode].c_str());
    gSystem->Exec(dirPic.c_str());
 
-   //for(int iMva=0; iMva<15; iMva++){
-   for(int iMva=0; iMva<9; iMva++){
-   //for(int iMva=2; iMva<3; iMva++){
+   for(int iMva=0; iMva<7; iMva++){
+   //for(int iMva=2; iMva<4; iMva++){
 
       //create Pic/mva to store pictures
-      std::string dirMvaPic(TString::Format( "if [ ! -d \"Pic/mva%d\" ]; then\n"
-                                 "    mkdir Pic/mva%d \n"
-                                 "fi", iMva, iMva));
+      std::string dirMvaPic(TString::Format( "if [ ! -d \"%sPic/mva%d\" ]; then\n"
+                                 "    mkdir %sPic/mva%d \n"
+                                 "fi", ana::whichtree[mode].c_str(), iMva, 
+                                 ana::whichtree[mode].c_str(), iMva));
       gSystem->Exec(dirMvaPic.c_str());
 
       double mvaCut = (double)iMva*ana::mvaStep + ana::mvaMin;
@@ -52,7 +53,7 @@ void dcaHistsOptimal(int mode = 1)
       //hDcaMCPD0_Proj->Scale(hDcaMCPD0.GetMaximum()/hDcaMCPD0_Proj->GetMaximum());
       hDcaMCPD0_Proj->SetLineColor(kRed);
       hDcaMCPD0_Proj->Draw("same");
-      cPrompt.Print(Form("Pic/mva%d/cPrompt.png", iMva));
+      cPrompt.Print(Form("%sPic/mva%d/cPrompt.png", ana::whichtree[mode].c_str(), iMva));
       delete hDcaMCPD0_Proj;
 
       // DCA distribution of Non-Prompt D0
@@ -64,19 +65,19 @@ void dcaHistsOptimal(int mode = 1)
       //hDcaMCNPD0_Proj->Scale(hDcaMCNPD0.GetMaximum()/hDcaMCNPD0_Proj->GetMaximum());
       hDcaMCNPD0_Proj->SetLineColor(kRed);
       hDcaMCNPD0_Proj->Draw("same");
-      cNonPrompt.Print(Form("Pic/mva%d/cNonPrompt.png", iMva));
+      cNonPrompt.Print(Form("%sPic/mva%d/cNonPrompt.png", ana::whichtree[mode].c_str(), iMva));
       delete hDcaMCNPD0_Proj;
 
       // DCA distribution of signal + swap, by fitting mass;
       TCanvas cData("cData", "", 550, 450);
       TH1D hDcaDataD0("hDcaDataD0", "hDcaDataD0", ana::nuofDca, ana::dcaBin);
-      std::string tmpName(Form("Pic/mva%d/massPerDcaBin", iMva));
+      std::string tmpName(Form("%sPic/mva%d/massPerDcaBin", ana::whichtree[mode].c_str(), iMva));
       hDcaDataSignal(hDcaVsMassAndMvaDataD0, hDcaVsMassAndMvaNPD0, hDcaVsMassAndMvaPD0, hDcaDataD0, mvaCut, tmpName);
       cData.cd();
       cData.SetLogy();
       //hDcaDataD0.Scale(1./hDcaDataD0.Integral("width"));
       hDcaDataD0.Draw();
-      cData.Print(Form("Pic/mva%d/cData.png", iMva));
+      cData.Print(Form("%sPic/mva%d/cData.png", ana::whichtree[mode].c_str(), iMva));
       
       // DCA distribution of N1*signal + N2*swap, by side band subtraction
       // extract invariant mass
@@ -89,15 +90,19 @@ void dcaHistsOptimal(int mode = 1)
       TH1D* hMassPD0All = hDcaVsMassAndMvaPD0["h_match_all"]->ProjectionX(Form("hMassMCPD0Allmva%d", label), mvaBinMin, mvaBinMax);
       TH1D* hMassData = hDcaVsMassAndMvaDataD0->ProjectionX(Form("hMassDataD0mva%d", label), mvaBinMin, mvaBinMax);
 
+
       // TFitResultPtr constructed by std::shared_ptr<TFitResult>, be free of it even if you do not delete it
       // fitting the mass
+      // rescale the mass
+      
       TFitResultPtr fitResultPtr;
       TF1 fMass;
       if(mode == 0) fMass = massfitting(hMassData, hMassPD0, hMassPD0All, TString::Format("fMassMva%d", iMva), fitResultPtr);
       if(mode == 1) fMass = massfitting(hMassData, hMassNPD0, hMassNPD0All, TString::Format("fMassMva%d", iMva), fitResultPtr);
+      if(mode == 2) fMass = massfitting(hMassData, hMassNPD0, hMassNPD0All, TString::Format("fMassMva%d", iMva), fitResultPtr);
 
       // draw the fitting
-      drawMassFitting(hMassData, fMass, TString::Format("Pic/mva%d/MassFittingUnNormalized.png", iMva), 
+      drawMassFitting(hMassData, fMass, TString::Format("%sPic/mva%d/MassFittingUnNormalized.png", ana::whichtree[mode].c_str(), iMva), 
             "4 < pT < 5GeV  |y|<1", TString::Format("MVA > %.2f", 0.4+0.02*iMva));
 
       // https://root.cern/doc/v616/TF1Helper_8cxx_source.html and https://root.cern.ch/doc/master/classTF1.html
@@ -151,7 +156,7 @@ void dcaHistsOptimal(int mode = 1)
       hDcaLeft_Proj->Scale(hDcaLeft.GetMaximum()/hDcaLeft_Proj->GetMaximum());
       hDcaLeft_Proj->SetLineColor(kRed);
       hDcaLeft_Proj->Draw("SAME");
-      cLeftSide.Print(Form("Pic/mva%d/cLeftSide.png", iMva));
+      cLeftSide.Print(Form("%sPic/mva%d/cLeftSide.png", ana::whichtree[mode].c_str(), iMva));
       hDcaLeft_Proj->Delete();
 
       // extract dca of peak
@@ -163,7 +168,7 @@ void dcaHistsOptimal(int mode = 1)
       hDcaPeak_Proj->Scale(hDcaPeak.GetMaximum()/hDcaPeak_Proj->GetMaximum());
       hDcaPeak_Proj->SetLineColor(kRed);
       hDcaPeak_Proj->Draw("SAME");
-      cPeak.Print(Form("Pic/mva%d/cPeak.png", iMva));
+      cPeak.Print(Form("%sPic/mva%d/cPeak.png", ana::whichtree[mode].c_str(), iMva));
       hDcaPeak_Proj->Delete();
 
       // scale the left-side by signal-to-sideband ratio
@@ -181,7 +186,7 @@ void dcaHistsOptimal(int mode = 1)
       hDcaPeak.SetMarkerStyle(20);
       hDcaPeak.Draw("E P");
       hDcaLeft.Draw("E SAME");
-      cPeakAndLeft.Print(Form("Pic/mva%d/cDcaPeakAndLeftSide.png", iMva));
+      cPeakAndLeft.Print(Form("%sPic/mva%d/cDcaPeakAndLeftSide.png", ana::whichtree[mode].c_str(), iMva));
 
       TCanvas cSignal("cSignal", "", 550, 450);
       cSignal.SetLogy();
@@ -190,7 +195,9 @@ void dcaHistsOptimal(int mode = 1)
       hDcaPeakSignal->Add(&hDcaLeft, -1);
       hDcaPeakSignal->Draw();
       hDcaDataD0.Draw("same");
-      cSignal.Print(Form("Pic/mva%d/cSignalSideBand.png", iMva));
+      cSignal.Print(Form("%sPic/mva%d/cSignalSideBand.png", ana::whichtree[mode].c_str(), iMva));
+
+      hDcaPeakSignal->Write(Form("hDcaDataPeakD0mva%d", label));
 
       f2.cd();
       fMass.Write();

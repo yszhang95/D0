@@ -30,21 +30,129 @@ using namespace RooFit;
 TH1D* hD0DcaMCPSignal;
 TH1D* hD0DcaMCNPSignal;
 TH1D* hD0DcaData;
+TH1D* hD0DcaDataPeak;
 
-void dcaFittingOptimal(int mode=1, int method = 0)
+void dcaFractionFitting(TH1* hData, TObjArray& mc, 
+      std::map<std::string, double>& frac, std::map<std::string, std::string>& name, 
+      std::string& cut, std::string& label)
+{
+   TFractionFitter fit(hD0DcaData, &mc);
+   fit.Constrain(0, 0.0, 1.0);
+   fit.Constrain(1, 0.0, 1.0);
+   fit.SetRangeX(1, 10);
+   int status = fit.Fit();
+   std::cout << "fit status: " << status << std::endl;
+
+   TCanvas cDca("cDca", "", 550, 450);
+   cDca.SetLeftMargin(0.16);
+   cDca.SetBottomMargin(0.16);
+
+   gStyle->SetErrorX(0);
+
+   TH1D* result = (TH1D*) fit.GetPlot();
+   //hD0DcaData->GetXaxis()->SetRangeUser(0, 0.036);
+   hD0DcaData->GetXaxis()->SetRangeUser(0, 0.044);
+   hD0DcaData->SetMarkerStyle(20);
+   hD0DcaData->SetTitle(";DCA (cm);Normalized dN / d(D0 Dca) (cm^{-1})");
+   hD0DcaData->Draw("E P");
+   result->SetLineColor(kBlack);
+   result->Draw("SAME");
+
+   double fracNPD0, fracErrNPD0;
+   double fracPD0, fracErrPD0;
+   fit.GetResult(0, fracNPD0, fracErrNPD0);
+   fit.GetResult(1, fracPD0, fracErrPD0);
+
+   /*
+   hD0DcaMCNPSignal->Scale(fracNPD0);
+   hD0DcaMCPSignal->Scale(fracPD0);
+   std::cout << hD0DcaMCNPSignal->GetBinContent(1) << std::endl;
+   std::cout << hD0DcaMCPSignal->GetBinContent(1) << std::endl;
+   hD0DcaMCNPSignal->SetFillColor(kBlue);
+   hD0DcaMCNPSignal->SetFillStyle(1001);
+   hD0DcaMCPSignal->SetFillColor(kRed);
+   hD0DcaMCPSignal->SetFillStyle(1001);
+   */
+
+   TH1D* hMCPredctionNPD0 = (TH1D*) fit.GetMCPrediction(0);
+   hMCPredctionNPD0->Scale(fracNPD0);
+   hMCPredctionNPD0->SetFillColor(kBlue);
+   //hMCPredctionNPD0->SetFillStyle(1001);
+   hMCPredctionNPD0->SetFillStyle(3001);
+   TH1D* hMCPredctionPD0 = (TH1D*) fit.GetMCPrediction(1);
+   hMCPredctionPD0->Scale(fracPD0);
+   hMCPredctionPD0->SetFillColor(kRed);
+   hMCPredctionPD0->SetFillStyle(1001);
+
+   THStack hs("hs", "");
+   //hs.Add(hD0DcaMCPSignal);
+   //hs.Add(hD0DcaMCNPSignal);
+   hs.Add(hMCPredctionPD0);
+   hs.Add(hMCPredctionNPD0);
+   hs.Draw("SAME HIST nostack");
+   result->Draw("SAME");
+   hD0DcaData->Draw("E P SAME ][");
+
+   TLegend lgd(0.55, 0.7, 0.9, 0.9);
+   lgd.AddEntry(hD0DcaData, "Data", "p");
+   lgd.AddEntry(hMCPredctionNPD0, "Predicted MC B #rightarrow D", "f");
+   lgd.AddEntry(hMCPredctionPD0, "Predicted MC Prompt D", "f");
+   lgd.AddEntry(result, "Fitting", "l");
+   lgd.Draw();
+
+   TLatex ltx;
+   ltx.SetTextSize(0.04);
+
+   ltx.DrawLatexNDC(0.35, 0.8, cut.c_str());
+   ltx.DrawLatexNDC(0.6, 0.6, label.c_str());
+
+   double realFracNPD0 = fracNPD0/(fracNPD0+fracPD0);
+   // err = errNPD(1/total - 1/total * realFrac) cross product errPD/total * realFrac
+   double realFracNPD0Err = std::sqrt(std::pow(fracErrNPD0/(fracNPD0+fracPD0)*(1-realFracNPD0Err), 2) 
+         + std::pow(fracErrPD0/(fracNPD0+fracPD0)*realFracNPD0Err, 2));
+   frac["fracNPD0"] = realFracNPD0;
+   frac["fracNPD0Err"] = realFracNPD0Err;
+
+   ltx.SetTextSize(0.035);
+   ltx.DrawLatexNDC(0.55, 0.5, Form("B2D Frac. = %.2f+/-%.2f", realFracNPD0, realFracNPD0Err));
+
+   cDca.Print(name["noLog"].c_str());
+   cDca.SetLogy();
+   cDca.Print(name["log"].c_str());
+
+   //std::cout << "chi2/ndf = " << fit.GetChisquare() << "/ " << fit.GetNDF() << std::endl;
+   //std::cout << "fit probability: " << fit.GetProb() << std::endl;
+}
+
+void dcaFittingOptimal(int mode=2, int method = 0)
+//void dcaFittingOptimal(int mode=1, int method = 0)
 {
    std::unique_ptr<TFile> f1 = std::unique_ptr<TFile>(new TFile(Form("%s_dca_hists.root", ana::whichtree[mode].c_str())));
-   double sig[9] = {0};
-   //for(int iMva=0; iMva<9; iMva++)
-   for(int iMva=0; iMva<9; iMva++)
+
+   const int nuOfMVA = 7;
+
+   double sig[nuOfMVA] = {0};
+   double sigErr[nuOfMVA] = {0};
+   double sigPeak[nuOfMVA] = {0};
+   double sigPeakErr[nuOfMVA] = {0};
+   for(int iMva=0; iMva<nuOfMVA; iMva++)
    {
       int label = 40 + 2*iMva;
       hD0DcaData = (TH1D*) f1->Get(Form("hDcaDataD0mva%d", label));
+      hD0DcaDataPeak = (TH1D*) f1->Get(Form("hDcaDataPeakD0mva%d", label));
       hD0DcaMCPSignal = (TH1D*) f1->Get(Form("hDcaMCPD0mva%d", label));
       hD0DcaMCNPSignal = (TH1D*) f1->Get(Form("hDcaMCNPD0mva%d", label));
 
+      // change the relative error of the MC distributions, to have a knowledge of how it effect on the fraction error
+      for(int iDca=0; iDca<ana::nuofDca; iDca++){
+         //hD0DcaMCNPSignal->SetBinContent(iDca+1, 1e-8*hD0DcaMCNPSignal->GetBinContent(iDca+1));
+         //hD0DcaMCPSignal->SetBinContent(iDca+1, 1e-8*hD0DcaMCPSignal->GetBinContent(iDca+1));
+      }
+
       double yield_Data = hD0DcaData->Integral("width");
       hD0DcaData->Scale(1./yield_Data);
+      double yield_DataPeak = hD0DcaDataPeak->Integral("width");
+      hD0DcaDataPeak->Scale(1./yield_DataPeak);
 
       TH1D* hMassData = (TH1D*) f1->Get(Form("hMassDataD0mva%d", label));
       TH1D* hMassMCNPD0 = (TH1D*) f1->Get(Form("hMassMCNPD0mva%d", label));
@@ -52,111 +160,52 @@ void dcaFittingOptimal(int mode=1, int method = 0)
       TH1D* hMassMCPD0 = (TH1D*) f1->Get(Form("hMassMCPD0mva%d", label));
       TH1D* hMassMCPD0All = (TH1D*) f1->Get(Form("hMassMCPD0Allmva%d", label));
 
-      double massBinWidth = hMassData->GetBinWidth(1);
-      hMassData->Scale(1./massBinWidth);
-      hMassMCNPD0->Scale(1./massBinWidth);
-      hMassMCNPD0All->Scale(1./massBinWidth);
-      hMassMCPD0->Scale(1./massBinWidth);
-      hMassMCPD0All->Scale(1./massBinWidth);
+      //double massBinWidth = hMassData->GetBinWidth(1);
+      //hMassData->Scale(1./massBinWidth);
+      //hMassMCNPD0->Scale(1./massBinWidth);
+      //hMassMCNPD0All->Scale(1./massBinWidth);
+      //hMassMCPD0->Scale(1./massBinWidth);
+      //hMassMCPD0All->Scale(1./massBinWidth);
 
       // create Pic to store pictures
-      const std::string dirPic = "if [ ! -d \"Pic\" ]; then\n"
-                                 "    mkdir Pic \n"
-                                 "fi";
+      const std::string dirPic = Form("if [ ! -d \"%sPic\" ]; then\n"
+                                 "    mkdir %sPic \n"
+                                 "fi", 
+                                 ana::whichtree[mode].c_str(), ana::whichtree[mode].c_str());
       gSystem->Exec(dirPic.c_str());
 
       if(method == 0){
-         TLatex ltx;
-         ltx.SetTextSize(0.04);
-
          //create Pic/mva to store pictures
-         std::string dirMvaPic = Form( "if [ ! -d \"Pic/mva%d\" ]; then\n"
-                                       "    mkdir Pic/mva%d \n"
-                                       "fi", iMva, iMva);
+         std::string dirMvaPic = Form( "if [ ! -d \"%sPic/mva%d\" ]; then\n"
+                                       "    mkdir %sPic/mva%d \n"
+                                       "fi", ana::whichtree[mode].c_str(), iMva, 
+                                       ana::whichtree[mode].c_str(), iMva);
          gSystem->Exec(dirMvaPic.c_str());
 
          TObjArray mc(2);
          mc.Add(hD0DcaMCNPSignal);
          mc.Add(hD0DcaMCPSignal);
-         TFractionFitter fit(hD0DcaData, &mc);
-         fit.Constrain(0, 0.0, 1.0);
-         fit.Constrain(1, 0.0, 1.0);
-         fit.SetRangeX(1, 9);
-         if(iMva==8) fit.SetRangeX(1, 8);
-         int status = fit.Fit();
-         std::cout << "fit status: " << status << std::endl;
 
-         TCanvas cDca("cDca", "", 550, 450);
-         //cDca.SetLogy();
-         cDca.SetLeftMargin(0.16);
-         cDca.SetBottomMargin(0.16);
+         std::map<std::string, double> frac;
+         frac["fracNPD0"] = 0;
+         frac["fracNPD0Err"] = 0;
+         std::map<std::string, std::string> name;
+         name["noLog"] = Form("%sPic/mva%d/DcaFitting.png", ana::whichtree[mode].c_str(), iMva);
+         name["log"] = Form("%sPic/mva%d/DcaFittingLogScale.png", ana::whichtree[mode].c_str(), iMva);
 
-         gStyle->SetErrorX(0);
+         std::string cut(TString::Format("MVA > %.2f", 0.4+0.02*iMva));
+         std::string label = "4 < pT < 5GeV  |y|<1";
 
-         TH1D* result = (TH1D*) fit.GetPlot();
-         hD0DcaData->GetXaxis()->SetRangeUser(0, 0.036);
-         hD0DcaData->SetMarkerStyle(20);
-         hD0DcaData->SetTitle(";DCA (cm);Normalized dN / d(D0 Dca) (cm^{-1})");
-         hD0DcaData->Draw("E P");
-         result->SetLineColor(kBlack);
-         result->Draw("SAME");
+         dcaFractionFitting(hD0DcaData, mc, frac, name, cut, label);
 
-         double fracNPD0, fracErrNPD0;
-         double fracPD0, fracErrPD0;
-         fit.GetResult(0, fracNPD0, fracErrNPD0);
-         fit.GetResult(1, fracPD0, fracErrPD0);
+         std::map<std::string, double> fracPeak;
+         fracPeak["fracNPD0"] = 0;
+         fracPeak["fracNPD0Err"] = 0;
+         std::map<std::string, std::string> namePeak;
+         namePeak["noLog"] = Form("%sPic/mva%d/PeakDcaFitting.png", ana::whichtree[mode].c_str(), iMva);
+         namePeak["log"] = Form("%sPic/mva%d/PeakDcaFittingLogScale.png", ana::whichtree[mode].c_str(), iMva);
 
-         /*
-         hD0DcaMCNPSignal->Scale(fracNPD0);
-         hD0DcaMCPSignal->Scale(fracPD0);
-         std::cout << hD0DcaMCNPSignal->GetBinContent(1) << std::endl;
-         std::cout << hD0DcaMCPSignal->GetBinContent(1) << std::endl;
-         hD0DcaMCNPSignal->SetFillColor(kBlue);
-         hD0DcaMCNPSignal->SetFillStyle(1001);
-         hD0DcaMCPSignal->SetFillColor(kRed);
-         hD0DcaMCPSignal->SetFillStyle(1001);
-         */
-
-         TH1D* hMCPredctionNPD0 = (TH1D*) fit.GetMCPrediction(0);
-         hMCPredctionNPD0->Scale(fracNPD0);
-         hMCPredctionNPD0->SetFillColor(kBlue);
-         //hMCPredctionNPD0->SetFillStyle(1001);
-         hMCPredctionNPD0->SetFillStyle(3001);
-         TH1D* hMCPredctionPD0 = (TH1D*) fit.GetMCPrediction(1);
-         hMCPredctionPD0->Scale(fracPD0);
-         hMCPredctionPD0->SetFillColor(kRed);
-         hMCPredctionPD0->SetFillStyle(1001);
-
-         THStack hs("hs", "");
-         //hs.Add(hD0DcaMCPSignal);
-         //hs.Add(hD0DcaMCNPSignal);
-         hs.Add(hMCPredctionPD0);
-         hs.Add(hMCPredctionNPD0);
-         hs.Draw("SAME HIST nostack");
-         result->Draw("SAME");
-         hD0DcaData->Draw("E P SAME ][");
-
-         TLegend lgd(0.55, 0.7, 0.9, 0.9);
-         lgd.AddEntry(hD0DcaData, "Data", "p");
-         lgd.AddEntry(hMCPredctionNPD0, "Predicted MC B #rightarrow D", "f");
-         lgd.AddEntry(hMCPredctionPD0, "Predicted MC Prompt D", "f");
-         lgd.AddEntry(result, "Fitting", "l");
-         lgd.Draw();
-
-         ltx.DrawLatexNDC(0.35, 0.8, Form("MVA > %.2f", 0.4+0.02*iMva));
-         ltx.DrawLatexNDC(0.2, 0.7, "4 < pT < 5GeV  |y|<1");
-
-         double realFracNPD0 = fracNPD0/(fracNPD0+fracPD0);
-         // err = errNPD(1/total - 1/total * realFrac) cross product errPD/total * realFrac
-         double realFracNPD0Err = std::sqrt(std::pow(fracErrNPD0/(fracNPD0+fracPD0)*(1-realFracNPD0Err), 2) 
-               + std::pow(fracErrPD0/(fracNPD0+fracPD0)*realFracNPD0Err, 2));
-
-         ltx.SetTextSize(0.035);
-         ltx.DrawLatexNDC(0.55, 0.5, Form("B2D Frac. = %.2f+/-%.2f", realFracNPD0, realFracNPD0Err));
-
-         cDca.Print(Form("Pic/mva%d/DcaFitting.png", iMva));
-         cDca.SetLogy();
-         cDca.Print(Form("Pic/mva%d/DcaFittingLogScale.png", iMva));
+         dcaFractionFitting(hD0DcaDataPeak, mc, fracPeak, namePeak, cut, label);
 
          // fit the invariant mass
          TFitResultPtr fitResultPtr;
@@ -164,7 +213,7 @@ void dcaFittingOptimal(int mode=1, int method = 0)
 
          // draw the invariant mass
          hMassData->GetYaxis()->SetTitle("Entries /(5 MeV)");
-         drawMassFitting(hMassData, f, TString::Format("Pic/mva%d/MassFitting.png", iMva), 
+         drawMassFitting(hMassData, f, TString::Format("%sPic/mva%d/MassFitting.png", ana::whichtree[mode].c_str(), iMva), 
                "4 < pT < 5GeV  |y|<1", TString::Format("MVA > %.2f", 0.4+0.02*iMva));
 
          // calculate the significance
@@ -173,12 +222,51 @@ void dcaFittingOptimal(int mode=1, int method = 0)
          for(int ipar=0; ipar<6+1; ipar++){
             signal.FixParameter(ipar, f.GetParameter(ipar));
          }
+         signal.ReleaseParameter(0);
+         signal.ReleaseParameter(1);
+         signal.ReleaseParameter(6);
+
+         TF1 swapAndBkg("swap", "[0]*((1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6])))"
+               " + " "[9] + [10]*x + [11]*x*x + [12]*x*x*x"
+               "+0 *[1]*[2]*[3]*[4]", 1.7, 2.0);
+         for(int ipar=0; ipar<12+1; ipar++){
+            swapAndBkg.SetParameter(ipar, f.GetParameter(ipar));
+         }
+         swapAndBkg.FixParameter(2, f.GetParameter(2));
+         swapAndBkg.FixParameter(3, f.GetParameter(3));
+         swapAndBkg.FixParameter(4, f.GetParameter(4));
+         swapAndBkg.FixParameter(5, f.GetParameter(5));
+         swapAndBkg.FixParameter(7, f.GetParameter(7));
+         swapAndBkg.FixParameter(8, f.GetParameter(8));
 
          double max = signal.GetMaximum(1.7, 2.0);
          double xmin = signal.GetX(max/2., 1.84, 1.865);
          double xmax = signal.GetX(max/2., 1.865, 1.9);
 
-         sig[iMva] = signal.Integral(xmin, xmax) * realFracNPD0 / sqrt(f.Integral(xmin, xmax));
+         double mass_bin_width = hD0DcaData->GetBinWidth(1);
+         double yieldSignal = signal.Integral(xmin, xmax) / mass_bin_width;
+         double errSignal = signal.IntegralError(xmin, xmax, 0, fitResultPtr->GetCovarianceMatrix().GetMatrixArray()) / mass_bin_width;
+         double yieldSwapAndBkg = swapAndBkg.Integral(xmin, xmax) / mass_bin_width;
+         double errSwapAndBkg = swapAndBkg.IntegralError(xmin, xmax, 0, fitResultPtr->GetCovarianceMatrix().GetMatrixArray()) / mass_bin_width;
+
+         //std::cout << yieldSignal << "+/-" << errSignal << std::endl;
+         //std::cout << yieldSwapAndBkg << "+/-" << errSwapAndBkg << std::endl;
+
+         // sig = frac*s/sqrt(s+b)
+         // err_sig = err_frac*s/sqrt(s+b) cross err_s*(frac/sqrt(s+b) - 0.5*frac*s/(s+b)^1.5) cross err_b * 0.5 * frac*s/(s+b)^1.5
+         //std::cout << frac["fracNPD0"] << " +/- " << frac["fracNPD0Err"] << std::endl;
+         sig[iMva] = signal.Integral(xmin, xmax) * frac["fracNPD0"] / sqrt(f.Integral(xmin, xmax)) / std::sqrt(mass_bin_width);
+         sigErr[iMva] = std::sqrt(
+                  std::pow(frac["fracNPD0Err"]/frac["fracNPD0"]*sig[iMva] ,2) + 
+                  std::pow(sig[iMva]*(errSignal/yieldSignal - 0.5*errSignal/(yieldSignal + yieldSwapAndBkg)), 2) +
+                  std::pow(errSwapAndBkg/(yieldSignal + yieldSwapAndBkg) * 0.5 *sig[iMva], 2)
+               );
+         sigPeak[iMva] = signal.Integral(xmin, xmax) * fracPeak["fracNPD0"] / sqrt(f.Integral(xmin, xmax)) / std::sqrt(mass_bin_width);
+         sigPeakErr[iMva] = std::sqrt(
+                  std::pow(fracPeak["fracNPD0Err"]/fracPeak["fracNPD0"]*sigPeak[iMva] ,2) + 
+                  std::pow(sigPeak[iMva]*(errSignal/yieldSignal - 0.5*errSignal/(yieldSignal + yieldSwapAndBkg)), 2) +
+                  std::pow(errSwapAndBkg/(yieldSignal + yieldSwapAndBkg) * 0.5 *sigPeak[iMva], 2)
+               );
       }
       if(method == 1){
          // following does not work
@@ -202,21 +290,60 @@ void dcaFittingOptimal(int mode=1, int method = 0)
          cTemp.Print("test.png");
       }
    }
-   for(int iMva=0; iMva<9; iMva++){
-      std::cout << sig[iMva] << std::endl;
+
+   FILE *fp;
+   fp = fopen(Form("%s_sig.txt", ana::whichtree[mode].c_str()), "w");
+   for(int iMva=0; iMva<nuOfMVA; iMva++){
+      fprintf(fp, "sig_mass_fitting: %lf +/- %lf\n", sig[iMva], sigErr[iMva]);
+      fprintf(fp, "sig_side_band:    %lf +/- %lf\n", sigPeak[iMva], sigPeakErr[iMva]);
    }
-   double mva[9];
-   for(int iMva=0; iMva<9; iMva++){
+
+   // draw the significance plot
+   double mva[nuOfMVA];
+   for(int iMva=0; iMva<nuOfMVA; iMva++){
       mva[iMva] = 0.4 + ana::mvaStep * iMva;
    }
+
    TCanvas cSig("cSig", "", 550, 450);
-   auto hist = cSig.DrawFrame(0.36, 0, 0.6, 10);
+
+   double mva_x[nuOfMVA];
+   double mvaPeak_x[nuOfMVA];
+   double mva_ex1[nuOfMVA];
+   double mva_ex2[nuOfMVA];
+   double mvaPeak_ex1[nuOfMVA];
+   double mvaPeak_ex2[nuOfMVA];
+   for(int iMva=0; iMva<nuOfMVA; iMva++){
+      double mva_x1 = 0.4 + iMva*ana::mvaStep;
+      double mva_x2 = 0.4 + (iMva+1)*ana::mvaStep;
+      mva_x[iMva] = mva_x1 + 0.5*ana::mvaStep;
+      mvaPeak_x[iMva] = mva_x1 + 0.7*ana::mvaStep;
+      mva_ex1[iMva] = mva_x[iMva] - mva_x1;
+      mva_ex2[iMva] = mva_x2 - mva_x[iMva];
+      mvaPeak_ex1[iMva] = mvaPeak_x[iMva] - mva_x1;
+      mvaPeak_ex2[iMva] = mva_x2 - mvaPeak_x[iMva];
+   }
+
+   TGraphAsymmErrors gSig(nuOfMVA, mva_x, sig, mva_ex1, mva_ex2, sigErr, sigErr);
+   TGraphAsymmErrors gSigPeak(nuOfMVA, mvaPeak_x, sigPeak, mvaPeak_ex1, mvaPeak_ex2, sigPeakErr, sigPeakErr);
+   gSig.SetMarkerStyle(kFullCircle);
+   gSigPeak.SetMarkerStyle(kOpenSquare);
+   gSig.SetMarkerColor(kBlue);
+   gSigPeak.SetMarkerColor(kRed);
+   TMultiGraph multiGraph;
+   multiGraph.Add(&gSig);
+   multiGraph.Add(&gSigPeak);
+   multiGraph.Draw("P SAME");
+   auto hist = multiGraph.GetHistogram();
    hist->SetTitle(";MVA;S_{B2D}/#sqrt{S_{D}+B}");
-   TGraph gSig(9, mva, sig);
-   gSig.SetMarkerStyle(20);
-   gSig.SetLineColor(kBlue);
-   gSig.Draw("PC");
+   const double ymin = 0;
+   const double ymax = 2.0* (*std::max_element(sig, sig+nuOfMVA));
+   hist->GetXaxis()->SetRangeUser(0.38, 0.56);
+   hist->GetYaxis()->SetRangeUser(ymin, ymax);
    TLatex ltx;
-   ltx.DrawLatexNDC(0.55, 0.55, "4 < pT < 5GeV  |y|<1");
-   cSig.Print("Pic/Sig.png");
+   ltx.DrawLatexNDC(0.5, 0.2, "4 < p_{T} < 5GeV  |y|<1");
+   TLegend lgdSig(0.6, 0.75, 0.9, 0.9);
+   lgdSig.AddEntry(&gSig, "mass fitting", "p");
+   lgdSig.AddEntry(&gSigPeak, "sideband", "p");
+   lgdSig.Draw();
+   cSig.Print(TString::Format("%sPic/Sig.png", ana::whichtree[mode].c_str()));
 }

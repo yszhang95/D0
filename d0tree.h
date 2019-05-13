@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
 // Fri Jan 11 15:28:35 2019 by ROOT version 6.06/01
-// from TTree d0tree/d0tree
+// from TChain d0tree/d0tree
 // found on file: /storage1/users/wl33/D0Trees/Data/Merged_pPbPbpData_MVATree_D0_default_BDTCut03_v1.root
 //////////////////////////////////////////////////////////
 
@@ -12,26 +12,26 @@
 #include <TChain.h>
 #include <TFile.h>
 
-// Header file for the classes stored in the TTree if any.
+// Header file for the classes stored in the TChain if any.
 
 class d0tree {
 public :
-   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+   TChain          *fChain;   //!pointer to the analyzed TChain or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
-// Fixed size dimensions of array or collections stored in the TTree if any.
+// Fixed size dimensions of array or collections stored in the TChain if any.
 
    // Declaration of leaf types
 
    // List of branches
 
-   d0tree(TTree *tree=0);
+   d0tree(TChain *tree=0);
    virtual ~d0tree();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Int_t    GetEntries();
    virtual Long64_t LoadTree(Long64_t entry);
-   virtual void     Init(TTree *tree);
+   virtual void     Init(TChain *tree);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 
@@ -81,7 +81,7 @@ public :
 
 #ifndef d0tree_cxx
 #define d0tree_cxx
-d0tree::d0tree(TTree *tree)  
+d0tree::d0tree(TChain *tree)  
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -107,14 +107,14 @@ Long64_t d0tree::LoadTree(Long64_t entry)
    return 0;
 }
 
-void d0tree::Init(TTree *tree)
+void d0tree::Init(TChain *tree)
 {
 }
 
 Bool_t d0tree::Notify()
 {
    // The Notify() function is called when a new file is opened. This
-   // can be either for a new TTree in a TChain or when when a new TTree
+   // can be either for a new TChain in a TChain or when when a new TChain
    // is started when using PROOF. It is normally not necessary to make changes
    // to the generated code, but the routine can be extended by the
    // user if needed. The return value is currently not used.

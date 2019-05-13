@@ -22,6 +22,22 @@ namespace ana{
    const double fit_range_low = 1.7;
    const double fit_range_high = 2.0;
    const double D0_mass = 1.8648;
+
+   // variables related to side band subtraction 
+   // make sure the variables located at the bin edge, and within mass range [1.7, 2.0], 
+   // since we use both TH1 Integral and TF1 Integral
+   // after convincing they satisfy the requirement, I add the the offset to get the correct bin of histogram
+   const double sigma = 0.015;
+   // I redefine the side range, some output shows the error of right band is large than the left
+   // then I expand the range of the left side, and will not use the right side
+   //const double left_side_min = 1.865 - 9*0.015; // 1.730
+   //const double left_side_max = 1.865 - 6*0.015; // 1.775
+   const double left_side_min = 1.7; // 1.730
+   const double left_side_max = 1.7 + 6*0.015; // 1.775
+   const double peak_min = 1.865 - 3*0.015;
+   const double peak_max = 1.865 + 3*0.015;
+   const double right_side_min = 1.865 + 6*0.015; // 1.955
+   const double right_side_max = 1.865 + 9*0.015; // 2.0
 }
 
 
