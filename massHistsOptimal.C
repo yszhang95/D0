@@ -11,7 +11,7 @@ void massHistsOptimal(int mode = 2)
    //TGaxis::SetMaxDigits(3);
    gStyle->SetOptStat(0);
    //TFile* f1 = new TFile(Form("%s_hists.root", ana::whichtree[mode].c_str()));
-   std::unique_ptr<TFile> f1 = std::unique_ptr<TFile>(new TFile(Form("%s_hists.root", ana::whichtree[mode].c_str())));
+   std::unique_ptr<TFile> f1 = std::unique_ptr<TFile>(new TFile(Form("%s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::pTMin,ana::pTMax,ana::yMin,ana::yMax)));
    std::map<std::string, TH3*> hDcaVsMassAndMvaPD0;
    std::map<std::string, TH3*> hDcaVsMassAndMvaNPD0;
    hDcaVsMassAndMvaPD0["h_match_unswap"] = (TH3D*) f1->Get("hDcaVsMassAndMvaPD0");
@@ -20,13 +20,19 @@ void massHistsOptimal(int mode = 2)
    hDcaVsMassAndMvaNPD0["h_match_all"] = (TH3D*) f1->Get("hDcaVsMassAndMvaNPD0_All");
    TH3D* hDcaVsMassAndMvaDataD0 = (TH3D*) f1->Get("hDcaVsMassAndMvaDataD0");
 
-   TFile f2(Form("%s_dca_hists.root", ana::whichtree[mode].c_str()), "recreate");
+   TFile f2(Form("%s_dca_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::pTMin,ana::pTMax,ana::yMin,ana::yMax), "recreate");
 
    // create Pic to store pictures
    const std::string dirPic = Form("if [ ! -d \"Pic\" ]; then\n"
                               "    mkdir %sPic \n"
                               "fi", ana::whichtree[mode].c_str());
    gSystem->Exec(dirPic.c_str());
+
+   const std::string dirPicPtY = Form("if [ ! -d \"Pic/pT%.1f-%.1f_y%.1f-%.1f\" ]; then\n"
+                              "    mkdir %sPic/pT%.1f-%.1f_y%.1f-%.1f \n"
+                              "fi", ana::whichtree[mode].c_str(),ana::pTMin,ana::pTMax,ana::yMin,ana::yMax,
+                                                                 ana::pTMin,ana::pTMax,ana::yMin,ana::yMax);
+   gSystem->Exec(dirPicPtY.c_str());
 
    double significance[100];
    double yields_signal[100];
@@ -36,10 +42,10 @@ void massHistsOptimal(int mode = 2)
    //for(int iMva=2; iMva<4; iMva++){
 
       //create Pic/mva to store pictures
-      std::string dirMvaPic(TString::Format( "if [ ! -d \"%sPic/mva%d\" ]; then\n"
-                                 "    mkdir %sPic/mva%d \n"
-                                 "fi", ana::whichtree[mode].c_str(), iMva, 
-                                 ana::whichtree[mode].c_str(), iMva));
+      std::string dirMvaPic(TString::Format( "if [ ! -d \"%sPic/pT%.1f-%.1f_y%.1f-%.1f/mva%d\" ]; then\n"
+                                 "    mkdir %sPic/pT%.1f-%.1f_y%.1f-%.1f/mva%d \n"
+                                 "fi", ana::whichtree[mode].c_str(), ana::pTMin,ana::pTMax,ana::yMin,ana::yMax, iMva, 
+                                 ana::whichtree[mode].c_str(), ana::pTMin,ana::pTMax,ana::yMin,ana::yMax, iMva));
       gSystem->Exec(dirMvaPic.c_str());
 
       double mvaCut = (double)iMva*ana::mvaStep + ana::mvaMin;
@@ -71,8 +77,8 @@ void massHistsOptimal(int mode = 2)
       if(mode == 2) fMass = massfitting(hMassData, hMassNPD0, hMassNPD0All, TString::Format("fMassMva%d", iMva), fitResultPtr);
 
       // draw the fitting
-      drawMassFitting(hMassData, fMass, TString::Format("%sPic/mva%d/MassFittingUnNormalized.png", ana::whichtree[mode].c_str(), iMva), 
-            "4 < pT < 5GeV  |y|<1", TString::Format("MVA > %.2f", 0.4+0.02*iMva));
+      drawMassFitting(hMassData, fMass, TString::Format("%sPic/pT%.1f-%.1f_y%.1f-%.1f/mva%d/MassFittingUnNormalized.png", ana::whichtree[mode].c_str(), ana::pTMin,ana::pTMax,ana::yMin,ana::yMax, iMva), 
+            TString::Format("%.1f<p_{T}<%.1fGeV, %.1f<y<%.1f",ana::pTMin,ana::pTMax,ana::yMin,ana::yMax), TString::Format("MVA > %.2f", 0.4+0.02*iMva));
 
       // https://root.cern/doc/v616/TF1Helper_8cxx_source.html and https://root.cern.ch/doc/master/classTF1.html
       // help you understand how the integral error of TF1 is calculated
@@ -149,4 +155,8 @@ void massHistsOptimal(int mode = 2)
    TGraph* gr2 = new TGraph(7, mvaCuts, yields_bkg);
    gr2->SetMarkerStyle(20);
    gr2->Draw("AP");
+
+   gr->Write("signalyieldvsmva");
+   gr1->Write("bkgyieldvsmva");
+   gr2->Write("significancevsmva");
 }

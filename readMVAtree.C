@@ -58,15 +58,15 @@ void readMVAtree
 
    // declare histograms
    std::map<std::string, TH3*> promptDCA;
-   promptDCA["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaPD0", "hDcaVsMassAndMvaPD0", 60, 1.7, 2.0, 20, 0.4, 0.8, ana::nDca, ana::dcaMin, ana::dcaMax);
-   promptDCA["h_match_all"] = new TH3D("hDcaVsMassAndMvaPD0_All", "hDcaVsMassAndMvaPD0_All", 60, 1.7, 2.0, 20, 0.4, 0.8, ana::nDca, ana::dcaMin, ana::dcaMax);
+   promptDCA["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaPD0", "hDcaVsMassAndMvaPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+   promptDCA["h_match_all"] = new TH3D("hDcaVsMassAndMvaPD0_All", "hDcaVsMassAndMvaPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
 
    std::map<std::string, TH3*> nonPromptDCA;
-   nonPromptDCA["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaNPD0", "hDcaVsMassAndMvaNPD0", 60, 1.7, 2.0, 20, 0.4, 0.8, ana::nDca, ana::dcaMin, ana::dcaMax);
-   nonPromptDCA["h_match_all"] = new TH3D("hDcaVsMassAndMvaNPD0_All", "hDcaVsMassAndMvaNPD0_All", 60, 1.7, 2.0, 20, 0.4, 0.8, ana::nDca, ana::dcaMin, ana::dcaMax);
+   nonPromptDCA["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaNPD0", "hDcaVsMassAndMvaNPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+   nonPromptDCA["h_match_all"] = new TH3D("hDcaVsMassAndMvaNPD0_All", "hDcaVsMassAndMvaNPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
 
    std::map<std::string, TH3*> dataDCA;
-   dataDCA["hdata"] = new TH3D("hDcaVsMassAndMvaDataD0", "hDcaVsMassAndMvaDataD0", 60, 1.7, 2.0, 20, 0.4, 0.8, ana::nDca, ana::dcaMin, ana::dcaMax);
+   dataDCA["hdata"] = new TH3D("hDcaVsMassAndMvaDataD0", "hDcaVsMassAndMvaDataD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
 
    // open mc files
 /*
@@ -119,7 +119,7 @@ void readMVAtree
    delete dataD0;
 
    
-   TFile f4(Form("%s_hists.root", ana::whichtree[mode].c_str()), "recreate");
+   TFile f4(Form("%s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::pTMin,ana::pTMax,ana::yMin,ana::yMax), "recreate");
    std::cout << "ready to write ouput file" << std::endl;
    f4.cd();
 
@@ -194,8 +194,9 @@ void loopTree(d0tree* d0, std::map<std::string, TH3*>& d0hists, bool isMC)
 bool passKinematicalCut(d0tree* d0)
 {
    //bool passPt = d0->Pt() > 3.5 && d0->Pt() < 4.2;
-   bool passPt = d0->Pt() > 4. && d0->Pt() < 5.;
-   bool passY = d0->Y() > -1 && d0->Y() < 1;
+   //bool passPt = d0->Pt() > 4. && d0->Pt() < 5.;
+   bool passPt = d0->Pt() > ana::pTMin && d0->Pt() < ana::pTMax;
+   bool passY = d0->Y() > ana::yMin && d0->Y() < ana::yMax;
    bool passPointingAngle = std::fabs(d0->PointingAngle3D()) < 1;
    //passPointingAngle = true;
    bool passTrkEta = std::fabs(d0->etaD1()) < 2.4 && std::fabs(d0->etaD2()) < 2.4;
@@ -205,7 +206,7 @@ bool passKinematicalCut(d0tree* d0)
    bool passTrkNhits = d0->nHitD1() >=11 && d0->nHitD2() >=11; 
 
    bool passMVA = d0->Mva() > 0.4;
-   //passMVA = true;
+   passMVA = true;
 
    if(passPt && passY && passPointingAngle && passTrkEta 
          && passTrkPt && passTrkPtErr && passTrkPurity && passTrkNhits
