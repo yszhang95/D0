@@ -40,8 +40,9 @@ void dcaFractionFitting(TH1* hData, TObjArray& mc,
    fit.Constrain(0, 0.0, 1.0);
    fit.Constrain(1, 0.0, 1.0);
    fit.SetRangeX(1, 10);
-   int status = fit.Fit();
-   std::cout << "fit status: " << status << std::endl;
+   auto fitResultPtr = fit.Fit();
+   auto covMat = fitResultPtr->GetCovarianceMatrix();
+   covMat.Print();
 
    TCanvas cDca("cDca", "", 550, 450);
    cDca.SetLeftMargin(0.16);
@@ -107,9 +108,16 @@ void dcaFractionFitting(TH1* hData, TObjArray& mc,
    ltx.DrawLatexNDC(0.6, 0.6, label.c_str());
 
    double realFracNPD0 = fracNPD0/(fracNPD0+fracPD0);
-   // err = errNPD(1/total - 1/total * realFrac) cross product errPD/total * realFrac
+   // err = errNPD(1/total - 1/total * realFrac) cross product errPD/total * realFrac + 2 cov(fracNPD, fracPD)*partial f partial x * partial f partial y
    double realFracNPD0Err = std::sqrt(std::pow(fracErrNPD0/(fracNPD0+fracPD0)*(1-realFracNPD0Err), 2) 
-         + std::pow(fracErrPD0/(fracNPD0+fracPD0)*realFracNPD0Err, 2));
+         + std::pow(fracErrPD0/(fracNPD0+fracPD0)*realFracNPD0Err, 2)
+         + 2*covMat[0][1]*fracPD0/(fracNPD0+fracPD0)*(-1)*fracNPD0/(fracNPD0+fracPD0));
+   /*
+   double realFracNPD0 = fracNPD0;
+   double realFracNPD0Err = fracErrNPD0;
+   */
+
+
    frac["fracNPD0"] = realFracNPD0;
    frac["fracNPD0Err"] = realFracNPD0Err;
 
@@ -267,6 +275,25 @@ void dcaFittingOptimal(int mode=2, int method = 0)
                   std::pow(sigPeak[iMva]*(errSignal/yieldSignal - 0.5*errSignal/(yieldSignal + yieldSwapAndBkg)), 2) +
                   std::pow(errSwapAndBkg/(yieldSignal + yieldSwapAndBkg) * 0.5 *sigPeak[iMva], 2)
                );
+
+
+         TCanvas cSignal("cSignal", "", 550, 450);
+         cSignal.SetLogy();
+         cSignal.SetLeftMargin(0.16);
+         cSignal.SetBottomMargin(0.16);
+         //hD0DcaData->Scale(1./hD0DcaData->Integral(1, hD0DcaData->GetXaxis()->GetNbins()));
+         //hD0DcaDataPeak->Scale(1./hD0DcaDataPeak->Integral(1, hD0DcaDataPeak->GetXaxis()->GetNbins()));
+         hD0DcaDataPeak->Scale(hD0DcaData->GetMaximum()/hD0DcaDataPeak->GetMaximum());
+         hD0DcaData->Draw();
+         hD0DcaDataPeak->Draw("same");
+         hD0DcaData->SetLineColor(kRed);
+         hD0DcaDataPeak->SetLineColor(kBlue);
+         hD0DcaDataPeak->SetMarkerStyle(kOpenSquare);
+         TLegend lgdDca(0.6, 0.75, 0.9, 0.9);
+         lgdDca.AddEntry(hD0DcaData, "mass fitting", "lp");
+         lgdDca.AddEntry(hD0DcaDataPeak, "sideband", "lp");
+         lgdDca.Draw();
+         cSignal.Print(Form("%sPic/mva%d/DcaComparison.png", ana::whichtree[mode].c_str(), iMva));
       }
       if(method == 1){
          // following does not work
@@ -346,4 +373,5 @@ void dcaFittingOptimal(int mode=2, int method = 0)
    lgdSig.AddEntry(&gSigPeak, "sideband", "p");
    lgdSig.Draw();
    cSig.Print(TString::Format("%sPic/Sig.png", ana::whichtree[mode].c_str()));
+
 }
