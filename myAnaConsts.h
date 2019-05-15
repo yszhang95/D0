@@ -6,12 +6,12 @@ namespace ana{
    const float ybin[nuofY+1] = {-0.8, 0.8};
    const std::string whichtree[] = {"d0ana", "npd0ana", "npd0ana1", "npd0ana2"};
 
-   const double pTMin = 6.0;
-   const double pTMax = 8.0;
-   const double yMin  = -1.0;
-   const double yMax  = 1.0;
+   const double pTMin = 2.2;
+   const double pTMax = 3.0;
+   const double yMin  = 1.0;
+   const double yMax  = 2.0;
 
-   const double mvaMin = 0.40;
+   const double mvaMin = 0.46;
    const double mvaMax = 0.80;
    const double mvaStep = 0.02;
 

@@ -38,7 +38,7 @@ void massHistsOptimal(int mode = 2)
    double yields_signal[100];
    double yields_bkg[100];
    double mvaCuts[100];
-   for(int iMva=0; iMva<7; iMva++){
+   for(int iMva=0; iMva<13; iMva++){
    //for(int iMva=2; iMva<4; iMva++){
 
       //create Pic/mva to store pictures
@@ -116,7 +116,7 @@ void massHistsOptimal(int mode = 2)
       std::map<std::string, double> yield_bkg;
       std::map<std::string, double> yieldError_bkg;
 
-      yield_signal["peak"] = signal.Integral(ana::peak_min, ana::peak_max);
+/*      yield_signal["peak"] = signal.Integral(ana::peak_min, ana::peak_max);
       yieldError_signal["peak"] = signal.IntegralError(ana::peak_min, ana::peak_max, 0, covMat.GetMatrixArray());
       yield_bkg["peak"] = bkg.Integral(ana::peak_min, ana::peak_max);
       yieldError_bkg["peak"] = bkg.IntegralError(ana::peak_min, ana::peak_max, 0, covMat.GetMatrixArray());
@@ -124,6 +124,9 @@ void massHistsOptimal(int mode = 2)
       yields_signal[iMva] = yield_signal["peak"]; 
       yields_bkg[iMva] = yield_bkg["peak"];
       significance[iMva] = yield_signal["peak"] / sqrt(yield_signal["peak"] + yield_bkg["peak"]);
+*/
+
+      significance[iMva] = fMass.GetParameter(0)/fMass.GetParError(0);
       mvaCuts[iMva] = mvaCut;
 
       f2.cd();
@@ -142,21 +145,21 @@ void massHistsOptimal(int mode = 2)
    }
 
    TCanvas* cc = new TCanvas("cc","cc",600,600);
-   TGraph* gr = new TGraph(7, mvaCuts, significance);
+   TGraph* gr = new TGraph(12, mvaCuts, significance);
    gr->SetMarkerStyle(20);
    gr->Draw("AP");
 
    TCanvas* cc1 = new TCanvas("cc1","cc1",600,600);
-   TGraph* gr1 = new TGraph(7, mvaCuts, yields_signal);
+   TGraph* gr1 = new TGraph(12, mvaCuts, yields_signal);
    gr1->SetMarkerStyle(20);
    gr1->Draw("AP");
 
    TCanvas* cc2 = new TCanvas("cc2","cc2",600,600);
-   TGraph* gr2 = new TGraph(7, mvaCuts, yields_bkg);
+   TGraph* gr2 = new TGraph(12, mvaCuts, yields_bkg);
    gr2->SetMarkerStyle(20);
    gr2->Draw("AP");
 
-   gr->Write("signalyieldvsmva");
-   gr1->Write("bkgyieldvsmva");
-   gr2->Write("significancevsmva");
+//   gr->Write("signalyieldvsmva");
+//   gr1->Write("bkgyieldvsmva");
+   gr->Write("significancevsmva");
 }
