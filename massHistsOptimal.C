@@ -11,7 +11,7 @@ void massHistsOptimal(int mode = 2)
    //TGaxis::SetMaxDigits(3);
    gStyle->SetOptStat(0);
    //TFile* f1 = new TFile(Form("%s_hists.root", ana::whichtree[mode].c_str()));
-   std::unique_ptr<TFile> f1 = std::unique_ptr<TFile>(new TFile(Form("%s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::pTMin,ana::pTMax,ana::yMin,ana::yMax)));
+   std::unique_ptr<TFile> f1 = std::unique_ptr<TFile>(new TFile(Form("hists/%s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::pTMin,ana::pTMax,ana::yMin,ana::yMax)));
    std::map<std::string, TH3*> hDcaVsMassAndMvaPD0;
    std::map<std::string, TH3*> hDcaVsMassAndMvaNPD0;
    hDcaVsMassAndMvaPD0["h_match_unswap"] = (TH3D*) f1->Get("hDcaVsMassAndMvaPD0");
@@ -127,6 +127,7 @@ void massHistsOptimal(int mode = 2)
 */
 
       significance[iMva] = fMass.GetParameter(0)/fMass.GetParError(0);
+      yields_signal[iMva] = fMass.GetParameter(0);
       mvaCuts[iMva] = mvaCut;
 
       f2.cd();
@@ -154,12 +155,6 @@ void massHistsOptimal(int mode = 2)
    gr1->SetMarkerStyle(20);
    gr1->Draw("AP");
 
-   TCanvas* cc2 = new TCanvas("cc2","cc2",600,600);
-   TGraph* gr2 = new TGraph(12, mvaCuts, yields_bkg);
-   gr2->SetMarkerStyle(20);
-   gr2->Draw("AP");
-
-//   gr->Write("signalyieldvsmva");
-//   gr1->Write("bkgyieldvsmva");
+   gr1->Write("signalvsmva");
    gr->Write("significancevsmva");
 }

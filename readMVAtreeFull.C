@@ -25,12 +25,10 @@
 #include "d0mc.h"
 #include "myAnaConsts.h"
 
-void loopTree(d0tree* , std::map<std::string, TH1*>&);
-void loopTree(d0tree* , std::map<std::string, TH2*>&, bool isMC);
-void loopTree(d0tree* , std::map<std::string, TH3*>&, bool isMC);
+void loopTree(d0tree* , std::map<std::string, TH3*> d0hists[][20], bool isMC);
 bool passKinematicalCut(d0tree*);
 
-void readMVAtree
+void readMVAtreeFull
 (int mode = 0, std::string mcPD0List = "MCPD0.list", std::string mcNPD0List = "MCNPD0.list",
  std::string dataList = "Data_small.list")
 {
@@ -58,23 +56,21 @@ void readMVAtree
 
 
    // declare histograms
-   std::map<std::string, TH3*> promptDCA;
-   promptDCA["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaPD0", "hDcaVsMassAndMvaPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
-   promptDCA["h_match_all"] = new TH3D("hDcaVsMassAndMvaPD0_All", "hDcaVsMassAndMvaPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+   std::map<std::string, TH3*> promptDCA[20][20];
+   std::map<std::string, TH3*> nonPromptDCA[20][20];
+   std::map<std::string, TH3*> dataDCA[20][20];
 
-   std::map<std::string, TH3*> nonPromptDCA;
-   nonPromptDCA["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaNPD0", "hDcaVsMassAndMvaNPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
-   nonPromptDCA["h_match_all"] = new TH3D("hDcaVsMassAndMvaNPD0_All", "hDcaVsMassAndMvaNPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+   for(int ipt=0;ipt<ana::nuofpt;ipt++)
+     for(int jy=0;jy<ana::nuofY;jy++)
+     {
+       (promptDCA[ipt][jy])["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaPD0", "hDcaVsMassAndMvaPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (promptDCA[ipt][jy])["h_match_all"] = new TH3D("hDcaVsMassAndMvaPD0_All", "hDcaVsMassAndMvaPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
 
-   std::map<std::string, TH3*> dataDCA;
-   dataDCA["hdata"] = new TH3D("hDcaVsMassAndMvaDataD0", "hDcaVsMassAndMvaDataD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (nonPromptDCA[ipt][jy])["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaNPD0", "hDcaVsMassAndMvaNPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (nonPromptDCA[ipt][jy])["h_match_all"] = new TH3D("hDcaVsMassAndMvaNPD0_All", "hDcaVsMassAndMvaNPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
 
-   // open mc files
-/*
-   TChain *chain = new TChain("d0ana_mc/VertexCompositeNtuple");
-   TFileCollection* fc = new TFileCollection("dum", "", "newD0Signal.list");
-   chain->AddFileInfoList(fc->GetList());
-*/
+       (dataDCA[ipt][jy])["hdata"] = new TH3D("hDcaVsMassAndMvaDataD0", "hDcaVsMassAndMvaDataD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+     } 
 
    // read trees and fill hisotgrams
 
@@ -125,37 +121,22 @@ void readMVAtree
                               "fi");
    gSystem->Exec(dirHists.c_str());
 
-   TFile f4(Form("hists/%s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::pTMin,ana::pTMax,ana::yMin,ana::yMax), "recreate");
-   std::cout << "ready to write ouput file" << std::endl;
-   f4.cd();
+   for(int ipt=0;ipt<ana::nuofpt;ipt++)
+     for(int jy=0;jy<ana::nuofY;jy++)
+     {
+       TFile f4(Form("hists/%s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::ptbin[ipt],ana::ptbin[ipt+1],ana::ybin[jy],ana::ybin[jy+1]), "recreate");
+       std::cout << "ready to write ouput file" << std::endl;
+       f4.cd();
 
-   for(const auto& h : promptDCA) {h.second->Write(); delete h.second;}
-   for(const auto& h : nonPromptDCA) {h.second->Write(); delete h.second;}
-   for(const auto& h : dataDCA) {h.second->Write(); delete h.second;}
+       for(const auto& h : promptDCA[ipt][jy]) {h.second->Write(); delete h.second;}
+       for(const auto& h : nonPromptDCA[ipt][jy]) {h.second->Write(); delete h.second;}
+       for(const auto& h : dataDCA[ipt][jy]) {h.second->Write(); delete h.second;}
+     }
 
-   std::cout << "ended writing output file" << std::endl;
-  
+   std::cout << "ended writing output file" << std::endl;  
 }
 
-void loopTree(d0tree* d0, std::map<std::string, TH1*>& d0hists)
-{
-   int nentries = d0->GetEntries();
-   std::cout << "total entries: " << nentries << std::endl;
-   //nentries = 10000;
-   for(int ientry=0; ientry<nentries; ientry++){
-      d0->GetEntry(ientry);
-      if(!d0->MatchGEN()) continue;
-      if(d0->IsSwap()) continue;
-      if(!passKinematicalCut(d0)) continue;
-      double dca3D = d0->DecayL3D() * std::sin(d0->PointingAngle3D());
-      d0hists["dca3D"]->Fill(dca3D);
-      double p = d0->Pt() * std::cosh(d0->Eta());
-      double scalar_product = d0->DecayL3D() * d0->CosPointingAngle3D() * ana::D0_mass / p;
-      d0hists["pseudo_decayL"]->Fill(scalar_product);
-   }
-}
-
-void loopTree(d0tree* d0, std::map<std::string, TH2*>& d0hists, bool isMC)
+void loopTree(d0tree* d0, std::map<std::string, TH3*> d0hists[][20], bool isMC)
 {
    int nentries = d0->GetEntries();
    std::cout << "total entries: " << nentries << std::endl;
@@ -163,46 +144,25 @@ void loopTree(d0tree* d0, std::map<std::string, TH2*>& d0hists, bool isMC)
    for(int ientry=0; ientry<nentries; ientry++){
       d0->GetEntry(ientry);
       if(!passKinematicalCut(d0)) continue;
-      double dca3D = d0->DecayL3D() * std::sin(d0->PointingAngle3D());
-      double mass = d0->Mass();
-      if(isMC){
-         if(!d0->MatchGEN()) continue;
-         if(!d0->IsSwap()) d0hists["h_match_unswap"]->Fill(mass, dca3D);
-         d0hists["h_match_all"]->Fill(mass, dca3D);
-      } else {
+      int ptbin = whichPt(d0->Pt());
+      int ybin = whichY(d0->Y());
+      if(ptbin==-1 || ybin==-1) continue;
 
-         d0hists["hdata"]->Fill(mass, dca3D);
-      }
-   }
-}
-
-void loopTree(d0tree* d0, std::map<std::string, TH3*>& d0hists, bool isMC)
-{
-   int nentries = d0->GetEntries();
-   std::cout << "total entries: " << nentries << std::endl;
-   //nentries = 10000;
-   for(int ientry=0; ientry<nentries; ientry++){
-      d0->GetEntry(ientry);
-      if(!passKinematicalCut(d0)) continue;
       double dca3D = d0->DecayL3D() * std::sin(d0->PointingAngle3D());
       double mass = d0->Mass();
       double mva = d0->Mva();
       if(isMC){
          if(!d0->MatchGEN()) continue;
-         if(!d0->IsSwap()) d0hists["h_match_unswap"]->Fill(mass, mva, dca3D);
-         d0hists["h_match_all"]->Fill(mass, mva, dca3D);
+         if(!d0->IsSwap()) (d0hists[ptbin][ybin])["h_match_unswap"]->Fill(mass, mva, dca3D);
+         (d0hists[ptbin][ybin])["h_match_all"]->Fill(mass, mva, dca3D);
       } else {
-         d0hists["hdata"]->Fill(mass, mva, dca3D);
+         (d0hists[ptbin][ybin])["hdata"]->Fill(mass, mva, dca3D);
       }
    }
 }
 
 bool passKinematicalCut(d0tree* d0)
 {
-   //bool passPt = d0->Pt() > 3.5 && d0->Pt() < 4.2;
-   //bool passPt = d0->Pt() > 4. && d0->Pt() < 5.;
-   bool passPt = d0->Pt() > ana::pTMin && d0->Pt() < ana::pTMax;
-   bool passY = fabs(d0->Y()) > ana::yMin && fabs(d0->Y()) < ana::yMax;
    bool passPointingAngle = std::fabs(d0->PointingAngle3D()) < 1;
    //passPointingAngle = true;
    bool passTrkEta = std::fabs(d0->etaD1()) < 2.4 && std::fabs(d0->etaD2()) < 2.4;
@@ -214,7 +174,7 @@ bool passKinematicalCut(d0tree* d0)
    bool passMVA = d0->Mva() > 0.4;
    passMVA = true;
 
-   if(passPt && passY && passPointingAngle && passTrkEta 
+   if(passPointingAngle && passTrkEta 
          && passTrkPt && passTrkPtErr && passTrkPurity && passTrkNhits
          && passMVA
          ) return true;
