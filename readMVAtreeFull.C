@@ -63,13 +63,13 @@ void readMVAtreeFull
    for(int ipt=0;ipt<ana::nuofpt;ipt++)
      for(int jy=0;jy<ana::nuofY;jy++)
      {
-       (promptDCA[ipt][jy])["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaPD0", "hDcaVsMassAndMvaPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
-       (promptDCA[ipt][jy])["h_match_all"] = new TH3D("hDcaVsMassAndMvaPD0_All", "hDcaVsMassAndMvaPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (promptDCA[ipt][jy])["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaPD0", "hDcaVsMassAndMvaPD0", 60, 1.7, 2.0, 100, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (promptDCA[ipt][jy])["h_match_all"] = new TH3D("hDcaVsMassAndMvaPD0_All", "hDcaVsMassAndMvaPD0_All", 60, 1.7, 2.0, 100, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
 
-       (nonPromptDCA[ipt][jy])["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaNPD0", "hDcaVsMassAndMvaNPD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
-       (nonPromptDCA[ipt][jy])["h_match_all"] = new TH3D("hDcaVsMassAndMvaNPD0_All", "hDcaVsMassAndMvaNPD0_All", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (nonPromptDCA[ipt][jy])["h_match_unswap"] = new TH3D("hDcaVsMassAndMvaNPD0", "hDcaVsMassAndMvaNPD0", 60, 1.7, 2.0, 100, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (nonPromptDCA[ipt][jy])["h_match_all"] = new TH3D("hDcaVsMassAndMvaNPD0_All", "hDcaVsMassAndMvaNPD0_All", 60, 1.7, 2.0, 100, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
 
-       (dataDCA[ipt][jy])["hdata"] = new TH3D("hDcaVsMassAndMvaDataD0", "hDcaVsMassAndMvaDataD0", 60, 1.7, 2.0, 50, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
+       (dataDCA[ipt][jy])["hdata"] = new TH3D("hDcaVsMassAndMvaDataD0", "hDcaVsMassAndMvaDataD0", 60, 1.7, 2.0, 100, -0.3, 0.7, ana::nDca, ana::dcaMin, ana::dcaMax);
      } 
 
    // read trees and fill hisotgrams
@@ -125,7 +125,7 @@ void readMVAtreeFull
      for(int jy=0;jy<ana::nuofY;jy++)
      {
        TFile f4(Form("hists/%s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::ptbin[ipt],ana::ptbin[ipt+1],ana::ybin[jy],ana::ybin[jy+1]), "recreate");
-       std::cout << "ready to write ouput file" << std::endl;
+       std::cout << Form("ready to write ouput file: %s_hists_pT%.1f-%.1f_y%.1f-%.1f.root", ana::whichtree[mode].c_str(),ana::ptbin[ipt],ana::ptbin[ipt+1],ana::ybin[jy],ana::ybin[jy+1]) << std::endl;
        f4.cd();
 
        for(const auto& h : promptDCA[ipt][jy]) {h.second->Write(); delete h.second;}

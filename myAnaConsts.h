@@ -2,17 +2,17 @@
 #define _MYANACONSTS_h
 #include <string>
 namespace ana{
-   const int nuofY = 4;
-   const float ybin[nuofY+1] = {-2.0, -1.0, 0, 1.0, 2.0};
+   const int nuofY = 2;
+   const float ybin[nuofY+1] = {0, 1.0, 2.0};
    const std::string whichtree[] = {"d0ana", "npd0ana", "npd0ana1", "npd0ana2"};
 
-   const double pTMin = 3.0;
-   const double pTMax = 4.0;
+   const double pTMin = 6.0;
+   const double pTMax = 7.0;
    const double yMin  = 0.0;
    const double yMax  = 1.0;
 
-   const double mvaMin = 0.46;
-   const double mvaMax = 0.80;
+   const double mvaMin = 0.26;
+   const double mvaMax = 0.40;
    const double mvaStep = 0.02;
 
    const int nuofpt = 9;
@@ -56,7 +56,7 @@ int whichPt(const double pT){
 
 int whichY(const double y){
    for(int iy=0; iy<ana::nuofY; iy++){
-      if(ana::ybin[iy]<y && y<ana::ybin[iy+1]) return iy;
+      if(ana::ybin[iy]<fabs(y) && fabs(y)<ana::ybin[iy+1]) return iy;
    }
    return -1;
 } 
