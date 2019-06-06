@@ -45,8 +45,11 @@ void dcaFractionFitting(TH1* hData, TObjArray& mc,
    covMat.Print();
 
    TCanvas cDca("cDca", "", 550, 450);
-   cDca.SetLeftMargin(0.16);
-   cDca.SetBottomMargin(0.16);
+   cDca.Divide(1, 2, 0, 0);
+   auto pad1 = cDca.cd(1);
+   pad1->SetBorderSize(0);
+   pad1->SetLeftMargin(0.16);
+   pad1->SetBottomMargin(0.);
 
    gStyle->SetErrorX(0);
 
@@ -95,9 +98,10 @@ void dcaFractionFitting(TH1* hData, TObjArray& mc,
 
    double realFracNPD0 = fracNPD0/(fracNPD0+fracPD0);
 
-   double realFracNPD0Err = std::sqrt(std::pow(fracErrNPD0/(fracNPD0+fracPD0)*(1-realFracNPD0Err), 2) 
-         + std::pow(fracErrPD0/(fracNPD0+fracPD0)*realFracNPD0Err, 2)
+   double realFracNPD0Err = std::sqrt(std::pow(fracErrNPD0/(fracNPD0+fracPD0)*(1-realFracNPD0), 2) 
+         + std::pow(fracErrPD0/(fracNPD0+fracPD0)*realFracNPD0, 2)
          + 2*covMat[0][1]*fracPD0/(fracNPD0+fracPD0)*(-1)*fracNPD0/(fracNPD0+fracPD0));
+   std::cout << "error of non-prompt: " << realFracNPD0Err << std::endl;
 
    frac["fracNPD0"] = realFracNPD0;
    frac["fracNPD0Err"] = realFracNPD0Err;
@@ -105,20 +109,34 @@ void dcaFractionFitting(TH1* hData, TObjArray& mc,
    ltx.SetTextSize(0.035);
    ltx.DrawLatexNDC(0.55, 0.5, Form("B2D Frac. = %.2f+/-%.2f", realFracNPD0, realFracNPD0Err));
 
+   auto pad2 = cDca.cd(2);
+   pad2->SetBorderSize(0);
+   pad2->SetLeftMargin(0.16);
+   pad2->SetTopMargin(0);
+   pad2->SetBottomMargin(0.16);
+
+   TH1D* ratio = (TH1D*) hData->Clone();
+   ratio->SetName("name");
+   ratio->GetYaxis()->SetTitle("dN_{obs}/dN_{th}");
+   ratio->Divide(result);
+   ratio->Draw();
+
    cDca.Print(name["noLog"].c_str());
    cDca.SetLogy();
    cDca.Print(name["log"].c_str());
+
+   delete ratio;
 
    std::cout << "chi2/ndf = " << fit.GetChisquare() << "/ " << fit.GetNDF() << std::endl;
    std::cout << "fit probability: " << fit.GetProb() << std::endl;
 }
 
-void dcaFittingOptimal(int mode=2, int method = 1)
+void dcaFittingOptimal(int mode=2, int method = 0)
 //void dcaFittingOptimal(int mode=1, int method = 0)
 {
    std::unique_ptr<TFile> f1 = std::unique_ptr<TFile>(new TFile(Form("%s_dca_hists.root", ana::whichtree[mode].c_str())));
 
-   const int nuOfMVA = 1;
+   const int nuOfMVA = 7;
 
    double sig[nuOfMVA] = {0};
    double sigErr[nuOfMVA] = {0};
@@ -131,6 +149,11 @@ void dcaFittingOptimal(int mode=2, int method = 1)
       hD0DcaDataPeak = (TH1D*) f1->Get(Form("hDcaDataPeakD0mva%d", label));
       hD0DcaMCPSignal = (TH1D*) f1->Get(Form("hDcaMCPD0mva%d", label));
       hD0DcaMCNPSignal = (TH1D*) f1->Get(Form("hDcaMCNPD0mva%d", label));
+
+      for(int iDca=0; iDca<ana::nuofDca; iDca++){
+         //hD0DcaMCPSignal->SetBinError(iDca, 0);
+         //hD0DcaMCNPSignal->SetBinError(iDca, 0);
+      }
 
       double yield_Data = hD0DcaData->Integral("width");
       hD0DcaData->Scale(1./yield_Data);
