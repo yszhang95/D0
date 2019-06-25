@@ -32,17 +32,13 @@ bool checkBranchStatus(Event*);
 
 bool passGoodTrack(Event*, const unsigned int&);
 inline bool passGoodVtx(Event* event);
-inline bool passD0Selections(Event*, const int&, const int&);
-bool passD0PreSelections(Event*, const int&);
-bool passD0KinematicCuts(Event*, const int&);
-inline bool passD0MVA(Event*, const int&, const int&);
 
 int main(int argc, char** argv)
 {
 
    TH1::SetDefaultSumw2(true);
 
-   if(argc!=2) {
+   if(argc!=3) {
       std::cerr << "The number of arguments is wrong" << std::endl;
       return -1;
    }
@@ -52,7 +48,11 @@ int main(int argc, char** argv)
 
    TFile fout(TString::Format("fout_ref_%s.root", datalist.c_str()), "recreate");
 
-   TChain *chain_d0 = new TChain("npd0ana1/VertexCompositeNtuple");
+   //bool isPromptD0 = false;
+   long int tree = strtol(argv[2], NULL, 1);
+   //if(tree == 0)  isPromptD0 = true;
+
+   TChain *chain_d0 = new TChain(TString::Format("%s/VertexCompositeNtuple", ana::treeName[tree].c_str()));
    TChain *chain_tracks = new TChain("track_ana/trackTree");
 
    TFileCollection* fcData = new TFileCollection(datalist.c_str(), "", datalist.c_str());
@@ -70,7 +70,6 @@ int main(int argc, char** argv)
    // declare hists
    TH1D* hMult;
 
-
    TH2D* hSignal_Ref;
    TH2D* hBackground_Ref;
 
@@ -84,12 +83,6 @@ int main(int argc, char** argv)
             ana::nPhiBin, ana::phiBegin, ana::phiEnd);
 
    // declare vectors
-   vector<TVector3> pVect_d0;
-
-   vector<TVector3> pVect_dau1_d0;
-
-   vector<TVector3> pVect_dau2_d0;
-
    vector<TVector3> pVect_ref;
    list<vector<TVector3>> pVectList_ref[ana::nZ_Vtx_];
    vector<float> effVect_ref;
@@ -102,7 +95,7 @@ int main(int argc, char** argv)
    // loop
    //
    // temporary vectors
-   TVector3 p_dau1(0, 0, 0), p_dau2(0, 0, 0), p_d0(0, 0, 0), p_ref(0, 0, 0), p_temp(0, 0, 0);
+   TVector3 p_ref(0, 0, 0), p_temp(0, 0, 0);
 
    std::cout << evt->GetEntries() << std::endl;
    long int nentries = evt->GetEntries();
@@ -115,18 +108,6 @@ int main(int argc, char** argv)
       }
       if(effVect_ref.size()!=0){
          cout << "did not clear the vector effVect_ref.size" << endl;
-         continue;
-      }
-      if(pVect_d0.size()!=0){
-         cout << "did not clear the vector pVect_d0.size" << endl;
-         continue;
-      }
-      if(pVect_dau1_d0.size()!=0){
-         cout << "did not clear the vector pVect_dau1_d0.size" << endl;
-         continue;
-      }
-      if(pVect_dau2_d0.size()!=0){
-         cout << "did not clear the vector pVect_dau2_d0.size" << endl;
          continue;
       }
 
@@ -148,30 +129,17 @@ int main(int argc, char** argv)
 
       // count number of good tracks per event
       unsigned int nMult_trk_good = 0;
+      /*
       for(unsigned int itrack=0; itrack<evt->CandSizeTrk(); itrack++){
          // assume all tracks in TTree are good, since error of dz and dxy are not available
          if(passGoodTrack(evt, itrack)) 
             nMult_trk_good++;
       }
+      */
+      nMult_trk_good = evt->nTrkOffline();
       hMult->Fill(nMult_trk_good);
 
       if(nMult_trk_good<ana::multMax_ && nMult_trk_good>=ana::multMin_){
-         for(int id0=0; id0<evt->CandSize(); id0++){
-            int ipt = ana::findPtBin(evt->Pt(id0));
-            int iy = ana::findYBin(evt->Y(id0));
-
-            if(ipt == -1) continue;
-            if(iy == -1) continue;
-            if(!passD0Selections(evt, id0, ipt)) continue;
-
-            p_dau1.SetPtEtaPhi(evt->PtD1(id0), evt->etaD1(id0), evt->phiD1(id0));
-            p_dau2.SetPtEtaPhi(evt->PtD2(id0), evt->etaD2(id0), evt->phiD2(id0));
-            p_d0 = p_dau1 + p_dau2;
-
-            pVect_d0.push_back(p_d0);
-            pVect_dau1_d0.push_back(p_dau1);
-            pVect_dau2_d0.push_back(p_dau2);
-         }
       }else{
          //std::cout << "multiplicity wrong" << std::endl;
          continue;
@@ -185,21 +153,9 @@ int main(int argc, char** argv)
          bool passPt = evt->PtTrk(itrack) > ana::ptMin_ass_ && evt->PtTrk(itrack) < ana::ptMax_ass_;
          bool passPtError = true;
          bool passEta = evt->EtaTrk(itrack) > ana::etaMin_ass_ && evt->EtaTrk(itrack) < ana::etaMax_ass_;
-         bool pass_rejecDaughter = true;
-         for(unsigned int id0=0; id0<pVect_d0.size(); id0++){
-            if(ana::rejectDaughter_){
-               p_temp.SetPtEtaPhi(evt->PtTrk(itrack), evt->EtaTrk(itrack), evt->PhiTrk(itrack));
-               if(fabs(p_temp.Eta() - pVect_dau1_d0.at(id0).Eta()<0.03)
-                     && fabs(p_temp.DeltaPhi(pVect_dau1_d0.at(id0)))<0.03)
-                  pass_rejecDaughter = false;
-               if(fabs(p_temp.Eta() - pVect_dau2_d0.at(id0).Eta()<0.03)
-                     && fabs(p_temp.DeltaPhi(pVect_dau2_d0.at(id0)))<0.03)
-                  pass_rejecDaughter = false;
-            }
-         }
 
          bool pass_ass_ = passDzErr && passDxyErr && passTrkPurity && passPt &&
-                           passPtError && passEta && pass_rejecDaughter;
+                           passPtError && passEta;
          if(pass_ass_) {
             p_ref.SetPtEtaPhi(evt->PtTrk(itrack), evt->EtaTrk(itrack), evt->PhiTrk(itrack));
             pVect_ref.push_back(p_ref);
@@ -215,9 +171,8 @@ int main(int argc, char** argv)
       }
 
       for(unsigned int itrg=0; itrg<nMult_ref; itrg++){
-         //for(unsigned int iass=itrg+1; iass<nMult_ref; iass++){
-         for(unsigned int iass=0; iass<nMult_ref; iass++){
-            if(iass == itrg) continue;
+         for(unsigned int iass=itrg+1; iass<nMult_ref; iass++){
+
             TVector3 pvector_trg = pVect_ref.at(itrg);
             double effweight_trg = effVect_ref.at(itrg);
 
@@ -225,10 +180,16 @@ int main(int argc, char** argv)
             double effweight_ass = effVect_ref.at(iass);
 
             double deltaEta = pvector_ass.Eta() - pvector_trg.Eta();
+
+            // reflect deltaPhi around 0, since one pair is filled twice
             double deltaPhi = pvector_ass.DeltaPhi(pvector_trg);
+            double negDeltaPhi = -1* deltaPhi;
             if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
+            if(negDeltaPhi>-ana::PI && negDeltaPhi<-ana::PI/2.) negDeltaPhi += 2*ana::PI;
 
             hSignal_Ref->Fill(deltaEta, deltaPhi, 
+                  1./nMult_eff_ref/effweight_trg/effweight_ass);
+            hSignal_Ref->Fill(deltaEta, negDeltaPhi, 
                   1./nMult_eff_ref/effweight_trg/effweight_ass);
          }
       }
@@ -279,9 +240,6 @@ int main(int argc, char** argv)
          pVectList_ref[iz].push_back(pVect_ref);
          effVectList_ref[iz].push_back(effVect_ref);
       }
-      pVect_d0.clear();
-      pVect_dau1_d0.clear();
-      pVect_dau2_d0.clear();
       pVect_ref.clear();
       effVect_ref.clear();
    }
@@ -294,49 +252,23 @@ int main(int argc, char** argv)
    fout.cd();
 
    // start writing output
-   TH2D* hCorrected_Ref;
-
-   hCorrected_Ref = (TH2D*) hSignal_Ref->Clone();
-   hCorrected_Ref->SetName("hCorrected_Ref");
-
-
-   int etaBin = hBackground_Ref->GetXaxis()->FindBin(0.);
-   int phiBin = hBackground_Ref->GetYaxis()->FindBin(0.);
-   hCorrected_Ref->Divide(hBackground_Ref);
-   hCorrected_Ref->Scale(hBackground_Ref->GetBinContent(etaBin, phiBin));
    
    hMult->Write();
    hSignal_Ref->Write();
    hBackground_Ref->Write();
-   hCorrected_Ref->Write();
 
    delete hMult;
    delete hSignal_Ref;
    delete hBackground_Ref;
-   delete hCorrected_Ref;
 
    delete evt;
-
 
    return 0;
 }
 
 void setBranchStatus(Event* evt)
 {
-   evt->SetBranchStatus("candSize", 1);
-   evt->SetBranchStatus("pT", 1);
-   evt->SetBranchStatus("mass", 1);
-   evt->SetBranchStatus("mva", 1);
-   evt->SetBranchStatus("y", 1);
-   evt->SetBranchStatus("3DPointingAngle", 1);
-   evt->SetBranchStatus("3DDecayLength", 1);
-   evt->SetBranchStatus("3DDecayLengthSignificance", 1);
-   evt->SetBranchStatus("*D1*", 1);
-   evt->SetBranchStatus("*D2*", 1);
-   evt->SetBranchStatus("*Daugther1", 1); // mistype daughter... the writer of TTree
-   evt->SetBranchStatus("*Daugther2", 1);
-   evt->SetBranchStatus("dedx*", 0);
-
+   evt->SetBranchStatus("Ntrkoffline", 1);
    evt->SetBranchStatus("tracks.candSizeTRK", 1);
    evt->SetBranchStatus("tracks.pTTRK", 1);
    evt->SetBranchStatus("tracks.etaTRK", 1);
@@ -347,34 +279,6 @@ void setBranchStatus(Event* evt)
 bool checkBranchStatus(Event* event)
 {
    bool check =
-      event->GetBranchStatus("candSize")&&
-
-      event->GetBranchStatus("pT");
-      event->GetBranchStatus("mass")&&
-      event->GetBranchStatus("mva")&&
-      event->GetBranchStatus("y")&&
-      event->GetBranchStatus("3DPointingAngle")&&
-      event->GetBranchStatus("3DDecayLength")&&
-      event->GetBranchStatus("3DDecayLengthSignificance")&&
-
-      event->GetBranchStatus("pTD1")&&
-      event->GetBranchStatus("pTerrD1")&&
-      event->GetBranchStatus("EtaD1")&&
-      event->GetBranchStatus("PhiD1")&&
-      event->GetBranchStatus("zDCASignificanceDaugther1")&&
-      event->GetBranchStatus("xyDCASignificanceDaugther1")&&
-      event->GetBranchStatus("NHitD1")&&
-      event->GetBranchStatus("HighPurityDaugther1")&&
-
-      event->GetBranchStatus("pTD2")&&
-      event->GetBranchStatus("pTerrD2")&&
-      event->GetBranchStatus("EtaD2")&&
-      event->GetBranchStatus("PhiD2")&&
-      event->GetBranchStatus("zDCASignificanceDaugther2")&&
-      event->GetBranchStatus("xyDCASignificanceDaugther2")&&
-      event->GetBranchStatus("NHitD2")&&
-      event->GetBranchStatus("HighPurityDaugther2")&&
-
       event->GetBranchStatus("tracks.bestvtxX")&&
       event->GetBranchStatus("tracks.bestvtxY")&&
       event->GetBranchStatus("tracks.bestvtxZ")&&
@@ -385,41 +289,6 @@ bool checkBranchStatus(Event* event)
       event->GetBranchStatus("tracks.weightTRK");
 
    return check;
-}
-
-inline bool passD0Selections(Event* event, const int& icand, const int& ipt)
-{
-   if(!passD0PreSelections(event, icand)) return false;
-   if(!passD0KinematicCuts(event, icand)) return false;
-   if(!passD0MVA(event, icand, ipt)) return false;
-   return true;
-}
-
-bool passD0PreSelections(Event* event, const int& icand)
-{
-   bool passPointingAngle = std::fabs(event->PointingAngle3D(icand)) < 1;
-   bool passTrkEta = std::fabs(event->etaD1(icand)) < 2.4 && std::fabs(event->etaD2(icand)) < 2.4;
-   bool passTrkPt = event->PtD1(icand) > 0.7 && event->PtD2(icand) > 0.7;
-   bool passTrkPtErr = event->PtErrD1(icand)/event->PtD1(icand) < 0.1 && event->PtErrD2(icand)/event->PtD2(icand) < 0.1;
-   bool passTrkPurity = event->highPurityD1(icand) && event->highPurityD2(icand);
-   bool passTrkNhits = event->nHitD1(icand) >=11 && event->nHitD2(icand) >=11; 
-   bool passDeltaEta = std::fabs(event->etaD1(icand) - event->etaD2(icand)) < 1;
-
-   if(passPointingAngle && passTrkEta && passDeltaEta
-         && passTrkPt && passTrkPtErr && passTrkPurity && passTrkNhits
-         ) return true;
-   return false;
-}
-
-bool passD0KinematicCuts(Event* event, const int& icand)
-{
-   bool passEta = fabs(event->Eta(icand)<1000.);
-   return passEta;
-}
-
-inline bool passD0MVA(Event* event, const int& icand, const int& ipt)
-{
-   return event->Mva(icand) > ana::mvaCut[ipt];
 }
 
 inline bool passGoodVtx(Event* event)
