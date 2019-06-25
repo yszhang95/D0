@@ -515,14 +515,14 @@ inline bool passGoodVtx(Event* event)
    return true;
 }
 
-bool passGoodTrack(Event* event, const unsigned int& icand)
-{
-   bool passHighPurity = true;
-   bool passDzErr = true;
-   bool passDxyErr = true;
-   bool passPt = event->PtTrk(icand) > 0.4;
-   bool passPtError = true;
-   bool passEta = fabs(event->EtaTrk(icand)) < 2.4;
-   return passHighPurity && passDzErr && passDxyErr &&
-      passPt && passPtError && passEta;
-}
+//bool passGoodTrack(Event* event, const unsigned int& icand)
+//{
+   //bool passHighPurity = true;
+   //bool passDzErr = true;
+   //bool passDxyErr = true;
+   //bool passPt = event->PtTrk(icand) > 0.4;
+   //bool passPtError = true;
+   //bool passEta = fabs(event->EtaTrk(icand)) < 2.4;
+   //return passHighPurity && passDzErr && passDxyErr &&
+      //passPt && passPtError && passEta;
+//}
