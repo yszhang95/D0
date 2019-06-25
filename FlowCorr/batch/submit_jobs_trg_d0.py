@@ -9,6 +9,7 @@ arguments  = 00 0
 log        = log/submit_corr2D_trg_d0.$(Process).log
 output     = out/submit_corr2D_trg_d0.$(Process).out
 error      = err/submit_corr2D_trg_d0.$(Process).err
+requirements = (OpSysAndVer =?= "CentOS7")
 +JobFlavour           = "workday"
 queue
 '''
