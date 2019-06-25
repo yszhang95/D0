@@ -42,10 +42,15 @@ namespace ana{
    //const double massbin[nMass+1] = {1.86, 1.865};
    const double ptbin[nPt+1] = {2., 4., 6., 8.};
    const double ybin[nY+1] = {0., 1.};
-   const double mvaCut[nPt] = {
+   const double mvaCut_PD0[nPt] = {
       0.58, // 2 - 4 GeV
       0.46, // 4 - 6 GeV
       0.28  // 6 - 8 GeV
+   };
+   const double mvaCut_NPD0[nPt] = {
+      0.52, // 2 - 4 GeV
+      0.44, // 4 - 6 GeV
+      0.32  // 6 - 8 GeV
    };
 
    const double dcaSep = 0.008;
@@ -58,7 +63,11 @@ namespace ana{
       1, 3, 5, 7, 9, 11, 13, 15
    };
 
-   std::string findDCA(const double&);
+   const std::string treeName[] = {
+      "d0ana", "npd0ana", "npd0ana1"
+   };
+
+   std::string findDCA(const double&, const bool&);
    int findMassBin(const double&);
    int findPtBin(const double&);
    int findYBin(const double&);

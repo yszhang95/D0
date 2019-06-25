@@ -1,11 +1,15 @@
 #include "myAnaConsts.h"
 
 using namespace std;
-string ana::findDCA(const double& DCA)
+string ana::findDCA(const double& DCA, const bool& isPromptD0)
 {
-   bool isLarge = DCA > ana::dcaSep;
-   if(isLarge) return "largeDCA";
-   if(!isLarge) return "smallDCA";
+   if(isPromptD0) {
+      return "smallDCA";
+   }else{
+      bool isLarge = DCA > ana::dcaSep;
+      if(isLarge) return "largeDCA";
+      if(!isLarge) return "smallDCA";
+   }
    return "";
 }
 
