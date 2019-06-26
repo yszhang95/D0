@@ -179,9 +179,9 @@ int main(int argc, char** argv)
             TVector3 pvector_ass = pVect_ref.at(iass);
             double effweight_ass = effVect_ref.at(iass);
 
+            // reflect delta around 0, since one pair is filled twice
             double deltaEta = pvector_ass.Eta() - pvector_trg.Eta();
-
-            // reflect deltaPhi around 0, since one pair is filled twice
+            double negDeltaEta = -1* deltaEta;
             double deltaPhi = pvector_ass.DeltaPhi(pvector_trg);
             double negDeltaPhi = -1* deltaPhi;
             if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 
             hSignal_Ref->Fill(deltaEta, deltaPhi, 
                   1./nMult_eff_ref/effweight_trg/effweight_ass);
-            hSignal_Ref->Fill(deltaEta, negDeltaPhi, 
+            hSignal_Ref->Fill(negDeltaEta, negDeltaPhi, 
                   1./nMult_eff_ref/effweight_trg/effweight_ass);
          }
       }
