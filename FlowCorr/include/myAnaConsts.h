@@ -19,20 +19,27 @@ namespace ana{
    const double phiBegin = -0.5*PI;
    const double phiEnd = 1.5*PI;
 
+   //begin
    const double etaMin_ass_ = -2.4;
    const double etaMax_ass_ = 2.4;
+   //end
+   //begin
    const double ptMin_ass_ = 0.3;
    const double ptMax_ass_ = 3.0;
+   //end
+   //begin
    const double multMin_ = 185;
    const double multMax_ = 250;
+   //end
+   //begin
    const bool   rejectDaughter_ = true;
-   const double d0_eta_ = 9999.0;
-   const double d0_dau_eta_ = 1.5;
-   const int    d0_dau_nhit_ = 11;
-   const double d0_dau_pterr_ = 0.1;
-   const double d0_dau_pt_ = 0.7;
-   const double d0_rapidity_min_ = -1.;
-   const double d0_rapidity_max_ = 1;
+   //end
+   //begin
+   const double d0_dau_abs_eta_max_ = 2.4;
+   const int    d0_dau_nhit_min_ = 11;
+   const double d0_dau_pterr_max_ = 0.1;
+   const double d0_dau_pt_min_ = 0.7;
+   //end
 
    const int nMass = 14;
    const int nPt = 3;

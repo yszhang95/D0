@@ -46,10 +46,8 @@ int main(int argc, char** argv)
    std::cout << datalist << std::endl;
 
    bool isPromptD0 = false;
-   long int tree = strtol(argv[2], NULL, 1);
-   if(tree == 0)  isPromptD0 = true;
-
-   TFile fout(TString::Format("fout%s.root", datalist.c_str()), "recreate");
+   long int tree = strtol(argv[2], NULL, 10);
+   if(tree == 0) isPromptD0 = true;
 
    TChain *chain_d0 = new TChain(TString::Format("%s/VertexCompositeNtuple", ana::treeName[tree].c_str()));
    TChain *chain_tracks = new TChain("track_ana/trackTree");
@@ -57,7 +55,7 @@ int main(int argc, char** argv)
    TFileCollection* fcData = new TFileCollection(datalist.c_str(), "", datalist.c_str());
 
    chain_d0->AddFileInfoList(fcData->GetList());
-   std::cout << "d0 ready" << std::endl;
+   std::cout << ana::treeName[tree] << " d0 ready" << std::endl;
 
    chain_tracks->AddFileInfoList(fcData->GetList());
    std::cout << "tracks ready" << std::endl;
@@ -90,7 +88,6 @@ int main(int argc, char** argv)
    hMult_ass = new TH1D("hMult_ass", "", 600, 0, 600);
 
    hNtrkofflineVsNtrkgood = new TH2D("hNtrkofflineVsNtrkgood", "", 150, 151, 300, 150, 151, 300);
-
 
    for(int ipt=0; ipt<ana::nPt; ipt++){
       hKET_D0[ipt] = new TH1D(Form("hKET_pt%d", ipt), "", 3000, 0, 30);
@@ -324,10 +321,10 @@ int main(int argc, char** argv)
                         double effweight_ass = ievt_eff_ass->at(iass);
                         if(ana::rejectDaughter_){
                            if(fabs(pvector_ass.Eta() - pVect_dau1_d0[imass][ipt].at(id0).Eta())<0.03
-                                 && fabs(pvector_ass.Phi() - pVect_dau1_d0[imass][ipt].at(id0).Phi())<0.03)
+                                 && fabs(pvector_ass.DeltaPhi( pVect_dau1_d0[imass][ipt].at(id0) ) )<0.03)
                               continue;
                            if(fabs(pvector_ass.Eta() - pVect_dau2_d0[imass][ipt].at(id0).Eta())<0.03
-                                 && fabs(pvector_ass.Phi() - pVect_dau2_d0[imass][ipt].at(id0).Phi())<0.03)
+                                 && fabs(pvector_ass.DeltaPhi( pVect_dau2_d0[imass][ipt].at(id0) ) )<0.03)
                               continue;
                         }
 
@@ -379,6 +376,13 @@ int main(int argc, char** argv)
    ts.Stop();
    ts.Print();
 
+   TString outName; 
+   if(isPromptD0){
+      outName = TString::Format("fout%s_%s_%.1f.root", datalist.c_str(), ana::treeName[tree].c_str(), ana::ybin[1]).Data();
+   } else{
+      outName = TString::Format("fout%s_%s_dca%2.0lf_%.1f.root", datalist.c_str(), ana::treeName[tree].c_str(), ana::dcaSep*1000, ana::ybin[1]);
+   }
+   TFile fout(outName.Data(), "recreate");
    fout.cd();
 
    // start writing output
@@ -501,11 +505,11 @@ inline bool passD0Selections(Event* event, const int& icand, const int& ipt, con
 bool passD0PreSelections(Event* event, const int& icand)
 {
    bool passPointingAngle = std::fabs(event->PointingAngle3D(icand)) < 1;
-   bool passTrkEta = std::fabs(event->etaD1(icand)) < 2.4 && std::fabs(event->etaD2(icand)) < 2.4;
-   bool passTrkPt = event->PtD1(icand) > 0.7 && event->PtD2(icand) > 0.7;
-   bool passTrkPtErr = event->PtErrD1(icand)/event->PtD1(icand) < 0.1 && event->PtErrD2(icand)/event->PtD2(icand) < 0.1;
+   bool passTrkEta = std::fabs(event->etaD1(icand)) < ana::d0_dau_abs_eta_max_ && std::fabs(event->etaD2(icand)) < ana::d0_dau_abs_eta_max_;
+   bool passTrkPt = event->PtD1(icand) > ana::d0_dau_pt_min_ && event->PtD2(icand) > ana::d0_dau_pt_min_;
+   bool passTrkPtErr = event->PtErrD1(icand)/event->PtD1(icand) < ana::d0_dau_pterr_max_ && event->PtErrD2(icand)/event->PtD2(icand) < ana::d0_dau_pterr_max_;
    bool passTrkPurity = event->highPurityD1(icand) && event->highPurityD2(icand);
-   bool passTrkNhits = event->nHitD1(icand) >=11 && event->nHitD2(icand) >=11; 
+   bool passTrkNhits = event->nHitD1(icand) >=ana::d0_dau_nhit_min_ && event->nHitD2(icand) >= ana::d0_dau_nhit_min_; 
    bool passDeltaEta = std::fabs(event->etaD1(icand) - event->etaD2(icand)) < 1;
 
    if(passPointingAngle && passTrkEta && passDeltaEta
