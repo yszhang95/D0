@@ -42,13 +42,19 @@ namespace ana{
    //end
 
    const int nMass = 14;
-   const int nPt = 3;
+   //const int nPt = 3;
+   const int nPt = 8;
    const int nY = 1;
+
    const double massbin[nMass+1] = {1.70, 1.74, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
       1.87, 1.88, 1.9, 1.92, 1.96, 2.0};
-   //const double massbin[nMass+1] = {1.86, 1.865};
-   const double ptbin[nPt+1] = {2., 4., 6., 8.};
-   const double ybin[nY+1] = {0., 1.};
+   //const double ptbin[nPt+1] = {2., 4., 6., 8.};
+   const double ptbin[nPt+1] = {1.5, 2.4, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0};
+   
+//   const double ybin[nY+1] = {0., 1.};
+   //const double ybin[nY+1] = {0., 1.2};
+   //const double ybin[nY+1] = {0., 1.5};
+   const double ybin[nY+1] = {0., 2.0};
    const double mvaCut_PD0[nPt] = {
       0.58, // 2 - 4 GeV
       0.46, // 4 - 6 GeV
@@ -60,7 +66,9 @@ namespace ana{
       0.32  // 6 - 8 GeV
    };
 
-   const double dcaSep = 0.008;
+   //const double dcaSep = 0.008;
+   //const double dcaSep = 0.012;
+   const double dcaSep = 0.016;
 
    const unsigned int nMixedEvts = 10;
 

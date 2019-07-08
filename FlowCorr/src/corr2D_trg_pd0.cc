@@ -23,6 +23,14 @@
 
 using namespace std;
 
+//const int nDca = 13;
+//const double dcaBin[nDca] = {0., 0.005, 0.006, 0.007, 0.008, 0.009, 0.010, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016};
+
+const int nDca = 1;
+const double dcaBin[nDca+1] = {0., 10000.};
+
+int findDcaBin(const double&);
+
 void setBranchStatus(Event*);
 bool checkBranchStatus(Event*);
 
@@ -68,21 +76,21 @@ int main(int argc, char** argv)
    TH1D* hMult;
    TH1D* hMult_ass;
 
-   TH1D* hKET_D0[ana::nPt];
-   TH1D* hPt_D0[ana::nPt];
-   TH1D* hEta_D0[ana::nPt];
-   TH1D* hRapidity_D0[ana::nPt];
+   TH1D* hKET_D0[ana::nPt][nDca];
+   TH1D* hPt_D0[ana::nPt][nDca];
+   TH1D* hEta_D0[ana::nPt][nDca];
+   TH1D* hRapidity_D0[ana::nPt][nDca];
 
-   TH1D* hMass_D0[ana::nMass][ana::nPt];
+   TH1D* hMass_D0[ana::nMass][ana::nPt][nDca];
 
    TH2D* hNtrkofflineVsNtrkgood;
 
    TH3D* hDcaVsMassAndMva[ana::nPt];
 
-   map<string, TH1*> hMult_raw_D0[ana::nMass][ana::nPt];
-   map<string, TH1*> hMult_eff_D0[ana::nMass][ana::nPt];
-   map<string, TH2*> hSignal_D0[ana::nMass][ana::nPt];
-   map<string, TH2*> hBackground_D0[ana::nMass][ana::nPt];
+   TH1D* hMult_raw_D0[ana::nMass][ana::nPt][nDca];
+   TH1D* hMult_eff_D0[ana::nMass][ana::nPt][nDca];
+   TH2D* hSignal_D0[ana::nMass][ana::nPt][nDca];
+   TH2D* hBackground_D0[ana::nMass][ana::nPt][nDca];
 
    hMult = new TH1D("hMult", "", 600, 0, 600);
    hMult_ass = new TH1D("hMult_ass", "", 600, 0, 600);
@@ -90,34 +98,28 @@ int main(int argc, char** argv)
    hNtrkofflineVsNtrkgood = new TH2D("hNtrkofflineVsNtrkgood", "", 150, 151, 300, 150, 151, 300);
 
    for(int ipt=0; ipt<ana::nPt; ipt++){
-      hKET_D0[ipt] = new TH1D(Form("hKET_pt%d", ipt), "", 3000, 0, 30);
-      hPt_D0[ipt] = new TH1D(Form("hPt_pt%d", ipt), "", 3000, 0, 30);
-      hEta_D0[ipt] = new TH1D(Form("hEta_pt%d", ipt), "", 24, -2.4, 2.4);
-      hRapidity_D0[ipt] = new TH1D(Form("hRapidity_pt%d", ipt), "", 24, -2.4, 2.4);
-      hDcaVsMassAndMva[ipt] = new TH3D(Form("hDcaVsMassAndMva_pt%d", ipt), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 160, 0, 0.08);
+      for(int idca=0; idca<nDca; idca++){
+         hKET_D0[ipt][idca] = new TH1D(Form("hKET_pt%d_dca%d", ipt, idca), "", 3000, 0, 30);
+         hPt_D0[ipt][idca] = new TH1D(Form("hPt_pt%d_dca%d", ipt, idca), "", 3000, 0, 30);
+         hEta_D0[ipt][idca] = new TH1D(Form("hEta_pt%d_dca%d", ipt, idca), "", 24, -2.4, 2.4);
+         hRapidity_D0[ipt][idca] = new TH1D(Form("hRapidity_pt%d_dca%d", ipt, idca), "", 24, -2.4, 2.4);
+      }
+      hDcaVsMassAndMva[ipt] = new TH3D(Form("hDcaVsMassAndMva_pt%d", ipt), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 800, 0, 0.08);
       for(int imass=0; imass<ana::nMass; imass++){
-         hMass_D0[imass][ipt] = new TH1D(Form("hMassD0_mass%d_pt%d", imass, ipt),
-               "", 200, 1.5, 2.5);
-         (hMult_raw_D0[imass][ipt])["largeDCA"] = new TH1D(Form("hMult_raw_D0_mass%d_pt%d_largeDCA", imass, ipt),
-               "", 50, 0, 50);
-         (hMult_eff_D0[imass][ipt])["largeDCA"] = new TH1D(Form("hMult_eff_D0_mass%d_pt%d_largeDCA", imass, ipt),
-               "", 50, 0, 50);
-         (hMult_raw_D0[imass][ipt])["smallDCA"] = new TH1D(Form("hMult_raw_D0_mass%d_pt%d_smallDCA", imass, ipt),
-               "", 50, 0, 50);
-         (hMult_eff_D0[imass][ipt])["smallDCA"] = new TH1D(Form("hMult_eff_D0_mass%d_pt%d_smallDCA", imass, ipt),
-               "", 50, 0, 50);
-         (hSignal_D0[imass][ipt])["largeDCA"] = new TH2D(Form("hSignal_mass%d_pt%d_largeDCA", imass, ipt),
-               "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
-               ana::nPhiBin, ana::phiBegin, ana::phiEnd);
-         (hBackground_D0[imass][ipt])["largeDCA"] = new TH2D(Form("hBackground_mass%d_pt%d_largeDCA", imass, ipt),
-               "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
-               ana::nPhiBin, ana::phiBegin, ana::phiEnd);
-         (hSignal_D0[imass][ipt])["smallDCA"] = new TH2D(Form("hSignal_mass%d_pt%d_smallDCA", imass, ipt),
-               "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
-               ana::nPhiBin, ana::phiBegin, ana::phiEnd);
-         (hBackground_D0[imass][ipt])["smallDCA"] = new TH2D(Form("hBackground_mass%d_pt%d_smallDCA", imass, ipt),
-               "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
-               ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+         for(int idca=0; idca<nDca; idca++){
+            hMass_D0[imass][ipt][idca] = new TH1D(Form("hMassD0_mass%d_pt%d_dca%d", imass, ipt, idca),
+                  "", 200, 1.5, 2.5);
+            hMult_raw_D0[imass][ipt][idca] = new TH1D(Form("hMult_raw_D0_mass%d_pt%d_dca%d", imass, ipt, idca),
+                  "", 50, 0, 50);
+            hMult_eff_D0[imass][ipt][idca] = new TH1D(Form("hMult_eff_D0_mass%d_pt%d_dca%d", imass, ipt, idca),
+                  "", 50, 0, 50);
+            hSignal_D0[imass][ipt][idca] = new TH2D(Form("hSignal_mass%d_pt%d_dca%d", imass, ipt, idca),
+                  "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
+                  ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+            hBackground_D0[imass][ipt][idca] = new TH2D(Form("hBackground_mass%d_pt%d_dca%d", imass, ipt, idca),
+                  "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
+                  ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+         }
       }
    }
 
@@ -175,7 +177,6 @@ int main(int argc, char** argv)
 
       hNtrkofflineVsNtrkgood->Fill(evt->nTrkOffline(), nMult_ass_good);
 
-      //if(nMult_ass_good<ana::multMax_ && nMult_ass_good>=ana::multMin_){
       if(evt->nTrkOffline()<ana::multMax_ && evt->nTrkOffline()>=ana::multMin_){
 
          for(int id0=0; id0<evt->CandSize(); id0++){
@@ -197,13 +198,15 @@ int main(int argc, char** argv)
 
             double effks = 1.0;
 
-            hMass_D0[imass][ipt]->Fill(evt->Mass(id0));
-            hPt_D0[ipt]->Fill(evt->Pt(id0), 1./effks);
-            hEta_D0[ipt]->Fill(p_d0.Eta(), 1./effks);
-            hRapidity_D0[ipt]->Fill(evt->Y(id0), 1./effks);
             double KET = sqrt(pow(evt->Mass(id0), 2) + pow(evt->Pt(id0), 2)
                   - evt->Mass(id0));
-            hKET_D0[ipt]->Fill(KET, 1./effks);
+
+            auto dcaIndex = findDcaBin(DCA);
+            hMass_D0[imass][ipt][dcaIndex]->Fill(evt->Mass(id0));
+            hPt_D0[ipt][dcaIndex]->Fill(evt->Pt(id0), 1./effks);
+            hEta_D0[ipt][dcaIndex]->Fill(p_d0.Eta(), 1./effks);
+            hRapidity_D0[ipt][dcaIndex]->Fill(evt->Y(id0), 1./effks);
+            hKET_D0[ipt][dcaIndex]->Fill(KET, 1./effks);
 
             pVect_trg_d0[imass][ipt].push_back(p_d0);
             pVect_dau1_d0[imass][ipt].push_back(p_dau1);
@@ -212,6 +215,16 @@ int main(int argc, char** argv)
          }
       }else{
          //std::cout << "multiplicity wrong" << std::endl;
+         for(int imass=0; imass<ana::nMass; imass++){
+            for(int ipt=0; ipt<ana::nPt; ipt++){
+               pVect_trg_d0[imass][ipt].clear();
+               pVect_dau1_d0[imass][ipt].clear();
+               pVect_dau2_d0[imass][ipt].clear();
+               indexVect_d0[imass][ipt].clear();
+            }
+         }
+         pVect_ass.clear();
+         effVect_ass.clear();
          continue;
       }
 
@@ -237,15 +250,15 @@ int main(int argc, char** argv)
       unsigned int nMult_ass = (unsigned int) pVect_ass.size();
       hMult_ass->Fill(nMult_ass);
       
-      map<string, unsigned int> nMult_trg_raw_d0[ana::nMass][ana::nPt]; // Ntrig for mass & pt bins
-      map<string, double> nMult_trg_eff_d0[ana::nMass][ana::nPt]; // eff corrected Ntrig for mass & pt bins
+      unsigned int nMult_trg_raw_d0[ana::nMass][ana::nPt][nDca]; // Ntrig for mass & pt bins
+      double nMult_trg_eff_d0[ana::nMass][ana::nPt][nDca]; // eff corrected Ntrig for mass & pt bins
 
       for(int imass=0; imass<ana::nMass; imass++){
          for(int ipt=0; ipt<ana::nPt; ipt++){
-            (nMult_trg_raw_d0[imass][ipt])["largeDCA"] = 0;
-            (nMult_trg_eff_d0[imass][ipt])["largeDCA"] = 0;
-            (nMult_trg_raw_d0[imass][ipt])["smallDCA"] = 0;
-            (nMult_trg_eff_d0[imass][ipt])["smallDCA"] = 0;
+            for(int idca=0; idca<nDca; idca++){
+               nMult_trg_raw_d0[imass][ipt][idca] = 0;
+               nMult_trg_eff_d0[imass][ipt][idca] = 0;
+            }
          }
       }
 
@@ -257,14 +270,14 @@ int main(int argc, char** argv)
                double effks = 1.0;
                int index = indexVect_d0[imass][ipt].at(id0);
                const double DCA = evt->DecayL3D(index) * sin(evt->PointingAngle3D(index));
-               string strDCA = ana::findDCA(DCA, isPromptD0);
-               nMult_trg_raw_d0[imass][ipt].at(strDCA) += 1;
-               nMult_trg_eff_d0[imass][ipt].at(strDCA) += 1./effks;
+               auto dcaIndex = findDcaBin(DCA);
+               nMult_trg_raw_d0[imass][ipt][dcaIndex] += 1;
+               nMult_trg_eff_d0[imass][ipt][dcaIndex] += 1./effks;
             }
-            hMult_raw_D0[imass][ipt].at("largeDCA")->Fill(nMult_trg_raw_d0[imass][ipt].at("largeDCA"));
-            hMult_eff_D0[imass][ipt].at("largeDCA")->Fill(nMult_trg_eff_d0[imass][ipt].at("largeDCA"));
-            hMult_raw_D0[imass][ipt].at("smallDCA")->Fill(nMult_trg_raw_d0[imass][ipt].at("smallDCA"));
-            hMult_eff_D0[imass][ipt].at("smallDCA")->Fill(nMult_trg_eff_d0[imass][ipt].at("smallDCA"));
+            for(int idca=0; idca<nDca; idca++){
+               hMult_raw_D0[imass][ipt][idca]->Fill(nMult_trg_raw_d0[imass][ipt][idca]);
+               hMult_eff_D0[imass][ipt][idca]->Fill(nMult_trg_eff_d0[imass][ipt][idca]);
+            }
 
             for(unsigned int id0=0; id0<nMult_trg_d0; id0++){
                if(ipt!=ana::findPtBin(pVect_trg_d0[imass][ipt].at(id0).Pt())) std::cout << "pT bin error" << std::endl;
@@ -287,9 +300,9 @@ int main(int argc, char** argv)
 
                   int index = indexVect_d0[imass][ipt].at(id0);
                   const double DCA = evt->DecayL3D(index) * sin(evt->PointingAngle3D(index));
-                  string strDCA = ana::findDCA(DCA, isPromptD0);
-                  (hSignal_D0[imass][ipt])[strDCA]->Fill(deltaEta, deltaPhi, 
-                        1./nMult_trg_eff_d0[imass][ipt].at(strDCA)/effks/effweight_ass);
+                  auto dcaIndex = findDcaBin(DCA);
+                  hSignal_D0[imass][ipt][dcaIndex]->Fill(deltaEta, deltaPhi, 
+                           1./nMult_trg_eff_d0[imass][ipt][dcaIndex]/effks/effweight_ass);
                }
             }
          }
@@ -319,6 +332,7 @@ int main(int argc, char** argv)
                      for(unsigned int iass=0; iass<n_ass; iass++){
                         TVector3 pvector_ass = ievt_p_ass.at(iass);
                         double effweight_ass = ievt_eff_ass->at(iass);
+                        /*
                         if(ana::rejectDaughter_){
                            if(fabs(pvector_ass.Eta() - pVect_dau1_d0[imass][ipt].at(id0).Eta())<0.03
                                  && fabs(pvector_ass.DeltaPhi( pVect_dau1_d0[imass][ipt].at(id0) ) )<0.03)
@@ -327,6 +341,7 @@ int main(int argc, char** argv)
                                  && fabs(pvector_ass.DeltaPhi( pVect_dau2_d0[imass][ipt].at(id0) ) )<0.03)
                               continue;
                         }
+                        */
 
                         double deltaEta = pvector_ass.Eta() - pVect_trg_d0[imass][ipt].at(id0).Eta();
                         double deltaPhi = pvector_ass.DeltaPhi(pVect_trg_d0[imass][ipt].at(id0));
@@ -334,9 +349,9 @@ int main(int argc, char** argv)
 
                         int index = indexVect_d0[imass][ipt].at(id0);
                         const double DCA = evt->DecayL3D(index) * sin(evt->PointingAngle3D(index));
-                        string strDCA = ana::findDCA(DCA, isPromptD0);
-                        (hBackground_D0[imass][ipt])[strDCA]->Fill(deltaEta, deltaPhi, 
-                           1./nMult_trg_eff_d0[imass][ipt].at(strDCA)/effks/effweight_ass);
+                        auto dcaIndex = findDcaBin(DCA);
+                        hBackground_D0[imass][ipt][dcaIndex]->Fill(deltaEta, deltaPhi, 
+                              1./nMult_trg_eff_d0[imass][ipt][dcaIndex]/effks/effweight_ass);
                      }
                      ievt_eff_ass++;
                   }
@@ -380,7 +395,7 @@ int main(int argc, char** argv)
    if(isPromptD0){
       outName = TString::Format("fout%s_%s_%.1f.root", datalist.c_str(), ana::treeName[tree].c_str(), ana::ybin[1]).Data();
    } else{
-      outName = TString::Format("fout%s_%s_dca%02.0lf_%.1f.root", datalist.c_str(), ana::treeName[tree].c_str(), ana::dcaSep*1000, ana::ybin[1]);
+      outName = TString::Format("fout%s_%s_dcaFull_y%.1f.root", datalist.c_str(), ana::treeName[tree].c_str(), ana::ybin[1]);
    }
    TFile fout(outName.Data(), "recreate");
    fout.cd();
@@ -390,17 +405,21 @@ int main(int argc, char** argv)
    hMult_ass->Write();
    hNtrkofflineVsNtrkgood->Write();
    for(int ipt=0; ipt<ana::nPt; ipt++){
-      hKET_D0[ipt]->Write(); 
-      hPt_D0[ipt]->Write();
-      hEta_D0[ipt]->Write();
-      hRapidity_D0[ipt]->Write();
+      for(int idca=0; idca<nDca; idca++){
+         hKET_D0[ipt][idca]->Write(); 
+         hPt_D0[ipt][idca]->Write();
+         hEta_D0[ipt][idca]->Write();
+         hRapidity_D0[ipt][idca]->Write();
+      }
       hDcaVsMassAndMva[ipt]->Write();
       for(int imass=0; imass<ana::nMass; imass++){
-         hMass_D0[imass][ipt]->Write();
-         for(auto& h : hMult_raw_D0[imass][ipt]) h.second->Write();
-         for(auto& h : hMult_eff_D0[imass][ipt]) h.second->Write();
-         for(auto& h : hSignal_D0[imass][ipt]) h.second->Write();
-         for(auto& h : hBackground_D0[imass][ipt]) h.second->Write();
+         for(int idca=0; idca<nDca; idca++){
+            hMass_D0[imass][ipt][idca]->Write();
+            hMult_raw_D0[imass][ipt][idca]->Write();
+            hMult_eff_D0[imass][ipt][idca]->Write();
+            hSignal_D0[imass][ipt][idca]->Write();
+            hBackground_D0[imass][ipt][idca]->Write();
+         }
       }
    }
 
@@ -408,17 +427,21 @@ int main(int argc, char** argv)
    delete hMult_ass;
    delete hNtrkofflineVsNtrkgood;
    for(int ipt=0; ipt<ana::nPt; ipt++){
-      delete hKET_D0[ipt]; 
-      delete hPt_D0[ipt];
-      delete hEta_D0[ipt];
-      delete hRapidity_D0[ipt];
+      for(int idca=0; idca<nDca; idca++){
+         delete hKET_D0[ipt][idca]; 
+         delete hPt_D0[ipt][idca];
+         delete hEta_D0[ipt][idca];
+         delete hRapidity_D0[ipt][idca];
+      }
       delete hDcaVsMassAndMva[ipt];
       for(int imass=0; imass<ana::nMass; imass++){
-         delete hMass_D0[imass][ipt];
-         for(auto& h : hMult_raw_D0[imass][ipt]) delete h.second;
-         for(auto& h : hMult_eff_D0[imass][ipt]) delete h.second;
-         for(auto& h : hSignal_D0[imass][ipt]) delete h.second;
-         for(auto& h : hBackground_D0[imass][ipt]) delete h.second;
+         for(int idca=0; idca<nDca; idca++){
+            delete hMass_D0[imass][ipt][idca];
+            delete hMult_raw_D0[imass][ipt][idca];
+            delete hMult_eff_D0[imass][ipt][idca];
+            delete hSignal_D0[imass][ipt][idca];
+            delete hBackground_D0[imass][ipt][idca];
+         }
       }
    }
 
@@ -552,4 +575,17 @@ bool passGoodTrack(Event* event, const unsigned int& icand)
    bool passEta = fabs(event->EtaTrk(icand)) < 2.4;
    return passHighPurity && passDzErr && passDxyErr &&
       passPt && passPtError && passEta;
+}
+
+int findDcaBin(const double& dca)
+{
+//   for(int idca=0; idca<nDca; idca++){
+//      if(dca>=dcaBin[nDca-1-idca]) return nDca-1-idca;
+//   }
+//   return 0;
+   //return -1;
+   for(int idca=0; idca<nDca; idca++){
+      if(dca<dcaBin[idca+1] && dca>=dcaBin[idca]) return idca;
+   }
+   return nDca-1;
 }

@@ -10,7 +10,7 @@ f = open(name, "w")
 command_lines = '''universe   = vanilla
 getenv     = True
 executable = submit_corr2D_trg_d0.sh
-arguments  = 00 %d
+arguments  = 000 %d
 log        = log/submit_corr2D_trg_d0_%s.$(Process).log
 output     = out/submit_corr2D_trg_d0_%s.$(Process).out
 error      = err/submit_corr2D_trg_d0_%s.$(Process).err
@@ -19,9 +19,9 @@ requirements = (OpSysAndVer =?= "CentOS7")
 queue
 ''' % (treeNumber, tree[treeNumber],tree[treeNumber],tree[treeNumber])
 
-for i in range(1, 89):
+for i in range(1, 168):
    temp = '''
-arguments  = %02d %d
+arguments  = %03d %d
 queue
    ''' % (i, treeNumber)
    command_lines += temp
