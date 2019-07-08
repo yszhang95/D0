@@ -14,7 +14,7 @@ requirements = (OpSysAndVer =?= "CentOS7")
 queue
 '''
 
-for i in range(1, 89):
+for i in range(1, 64):
    temp = '''
 arguments  = %02d 0
 queue
