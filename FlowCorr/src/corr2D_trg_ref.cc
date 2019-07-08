@@ -46,10 +46,9 @@ int main(int argc, char** argv)
    string datalist(argv[1]);
    std::cout << datalist << std::endl;
 
-   TFile fout(TString::Format("fout_ref_%s.root", datalist.c_str()), "recreate");
 
    //bool isPromptD0 = false;
-   long int tree = strtol(argv[2], NULL, 1);
+   long int tree = strtol(argv[2], NULL, 10);
    //if(tree == 0)  isPromptD0 = true;
 
    TChain *chain_d0 = new TChain(TString::Format("%s/VertexCompositeNtuple", ana::treeName[tree].c_str()));
@@ -58,14 +57,14 @@ int main(int argc, char** argv)
    TFileCollection* fcData = new TFileCollection(datalist.c_str(), "", datalist.c_str());
 
    chain_d0->AddFileInfoList(fcData->GetList());
-   std::cout << "d0 ready" << std::endl;
+   std::cout << ana::treeName[tree] << " event tree ready" << std::endl;
 
    chain_tracks->AddFileInfoList(fcData->GetList());
    std::cout << "tracks ready" << std::endl;
 
    Event* evt = new Event(chain_d0, chain_tracks);
    setBranchStatus(evt);
-   if(!checkBranchStatus(evt)) return 0;
+   if(!checkBranchStatus(evt)) return -1;
 
    // declare hists
    TH1D* hMult;
@@ -179,9 +178,9 @@ int main(int argc, char** argv)
             TVector3 pvector_ass = pVect_ref.at(iass);
             double effweight_ass = effVect_ref.at(iass);
 
+            // reflect delta around 0, since one pair is filled twice
             double deltaEta = pvector_ass.Eta() - pvector_trg.Eta();
-
-            // reflect deltaPhi around 0, since one pair is filled twice
+            double negDeltaEta = -1* deltaEta;
             double deltaPhi = pvector_ass.DeltaPhi(pvector_trg);
             double negDeltaPhi = -1* deltaPhi;
             if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
@@ -189,7 +188,7 @@ int main(int argc, char** argv)
 
             hSignal_Ref->Fill(deltaEta, deltaPhi, 
                   1./nMult_eff_ref/effweight_trg/effweight_ass);
-            hSignal_Ref->Fill(deltaEta, negDeltaPhi, 
+            hSignal_Ref->Fill(negDeltaEta, negDeltaPhi, 
                   1./nMult_eff_ref/effweight_trg/effweight_ass);
          }
       }
@@ -201,11 +200,11 @@ int main(int argc, char** argv)
       if(pVectList_ref[iz].size() == ana::nMixedEvts){
          for(unsigned int itrg=0; itrg<nMult_ref; itrg++){
             // simultaneously read momentum and efficiency
+            TVector3 pvector_trg = pVect_ref.at(itrg);
+            double effweight_trg = effVect_ref.at(itrg);
+
             auto ievt_eff_ass = effVectList_ref[iz].begin();
             for(auto ievt_p_ass= pVectList_ref[iz].begin(); ievt_p_ass != pVectList_ref[iz].end(); ievt_p_ass++){
-
-               TVector3 pvector_trg = pVect_ref.at(itrg);
-               double effweight_trg = effVect_ref.at(itrg);
 
                unsigned int n_ass = ievt_p_ass->size();
                if(n_ass!=ievt_eff_ass->size()){
@@ -249,6 +248,7 @@ int main(int argc, char** argv)
    ts.Stop();
    ts.Print();
 
+   TFile fout(TString::Format("fout_ref_%s_%s.root", datalist.c_str(), ana::treeName[tree].c_str()), "recreate");
    fout.cd();
 
    // start writing output

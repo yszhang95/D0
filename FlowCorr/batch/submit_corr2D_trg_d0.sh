@@ -9,4 +9,4 @@ cd D0/FlowCorr/batch
 echo PWD: $PWD
 
 #../bin/corr2D_trg_d0 list/data.list.$1 $2
-./corr2D_trg_d0 list/data.list.$1 $2
+./corr2D_trg_d0 list/data_full.list.$1 $2
