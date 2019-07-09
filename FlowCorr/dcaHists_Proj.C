@@ -109,9 +109,9 @@ void hDcaDataSignal(TH3* hData, std::map<std::string, TH3*> hNP, std::map<std::s
       TFitResultPtr fitResultPtr;
       TF1 f;
       if(isPrompt) {
-         f = massfitting(hTemp, hMCNonPromptMass, hMCNonPromptMassAll, TString::Format("iDca%d", iDca), fitResultPtr);
-      } else {
          f = massfitting(hTemp, hMCPromptMass, hMCPromptMassAll, TString::Format("iDca%d", iDca), fitResultPtr);
+      } else {
+         f = massfitting(hTemp, hMCNonPromptMass, hMCNonPromptMassAll, TString::Format("iDca%d", iDca), fitResultPtr);
       }
       drawMassFitting(hTemp, f, TString::Format("%s%d.png", tmpName.c_str(), iDca), false, label,
             TString::Format("%2.f < DCA <%2.fmm", dcaBin[iDca]*1e3, dcaBin[iDca+1]*1e3));
