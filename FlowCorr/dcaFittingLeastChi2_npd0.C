@@ -26,6 +26,9 @@
 
 #include <vector>
 
+
+const double ptbin[] = {2., 4., 6., 8.};
+
 const bool isUseMassFit = true;
 
 //const int nuofDca = 23;
@@ -83,7 +86,7 @@ Double_t funPrompt(Double_t* x_, Double_t* para)
     float x = x_[0];
     float APrompt = para[0];
     float ANonPrompt = para[1];
-    float nonPromptYield = 0;
+    float promptYield = 0;
     promptYield = hD0DcaMCPSignal->GetBinContent(hD0DcaMCPSignal->GetXaxis()->FindBin(x));
     return APrompt*promptYield;
 }
@@ -143,7 +146,7 @@ void dcaFractionFitting(
    fMix.SetRange(fitRangeL,fitRangeH);
    hD0DcaData->SetMarkerStyle(20);
    hD0DcaData->GetXaxis()->SetRangeUser(fitRangeL, fitRangeH);
-   hD0DcaData->GetYaxis()->SetRangeUser(hD0DcaData->GetMinimum()*0.5, hD0DcaData->GetMaximum()*1.5);
+   //hD0DcaData->GetYaxis()->SetRangeUser(hD0DcaData->GetMinimum()*0.5, hD0DcaData->GetMaximum()*1.5);
    hD0DcaData->SetTitle(";;dN/dDca (cm^{-1})");
    hD0DcaData->GetYaxis()->SetTitleSize(0.05);
    hD0DcaData->Draw();
@@ -215,7 +218,7 @@ void dcaFractionFitting(
    
    cFit.Print(picName.at("noLog").c_str());
 
-   hD0DcaData->GetYaxis()->SetRangeUser(hD0DcaData->GetMinimum()*0.5, hD0DcaData->GetMaximum()*10.);
+   //hD0DcaData->GetYaxis()->SetRangeUser(hD0DcaData->GetMinimum()*0.5, hD0DcaData->GetMaximum()*10.);
    pad1->SetLogy();
    pad1->Update();
    cFit.Print(picName.at("log").c_str());
@@ -263,10 +266,11 @@ void dcaFittingLeastChi2_npd0(int mode = 2, const float y_Max=2.0, const char* i
    gStyle->SetOptStat(0);
    TFile* f1= new TFile(input);
    TFile f2("data/fraction.root", "recreate");
-   for(int idca=0; idca<nDca; idca++){
+//   for(int idca=0; idca<nDca; idca++){
+   for(int idca=0; idca<3; idca++){
    //for(int idca=0; idca<1; idca++){
-      TH1D hFractionNPD0(Form("hFractionNPD0_dca%d",idca), "", ana::nPt, ana::ptbin);
-      for(int ipt=0; ipt<ana::nPt; ipt++){
+      TH1D hFractionNPD0(Form("hFractionNPD0_dca%d",idca), "", 3, ptbin);
+      for(int ipt=0; ipt<3; ipt++){
          TH1D* hData = (TH1D*) f1->Get(Form("hDcaData_pt%d", ipt));
          hD0DcaData = (TH1D*) hData->Clone();
          hD0DcaData->SetName(Form("hDcaData_pt%d_dca%d", ipt, idca));
@@ -309,8 +313,8 @@ void dcaFittingLeastChi2_npd0(int mode = 2, const float y_Max=2.0, const char* i
 
          const float yMin=0;
          const float yMax = y_Max;
-         const float pTMin = ana::ptbin[ipt];
-         const float pTMax = ana::ptbin[ipt+1];
+         const float pTMin = ptbin[ipt];
+         const float pTMax = ptbin[ipt+1];
          const float dcaMin = dcaCut[idca]+0.000000001;
          const float dcaMax = dcaCut[idca+1]-0.000000001;
          auto npfrac =dcaFittingLeastChi2_EachPtAndY(mode, pTMin, pTMax, yMin, yMax, dcaMin, dcaMax);
