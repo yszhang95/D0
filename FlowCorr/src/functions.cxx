@@ -46,3 +46,24 @@ int ana::findZVtxBin(const float& z_vtx)
    }
    return -1;
 }
+
+bool ana::pass_PD0_MVA(const float& pT, const float& mva){
+   if(pT<4.) return mva > 0.58;
+   else if(pT < 6. && pT >= 4.) return mva > 0.46;
+   else if(pT < 8. && pT >= 6.) return mva > 0.28;
+   else if(pT < 20. & pT >= 8.) return mva > 0.1;
+   return false;
+}
+
+bool pass_NPD0_MVA(const float& pT, const float& mva){
+   if(pT<4.) return mva > 0.52;
+   else if(pT < 6. && pT >= 4.) return mva > 0.44;
+   else if(pT < 8. && pT >= 6.) return mva > 0.32;
+   else if(pT < 20. & pT >= 8.) return mva > 0.2;
+   return false;
+}
+
+unsigned int findNtrkBin(const unsigned int& n_trk_bin)
+{
+}
+

@@ -19,58 +19,39 @@ namespace ana{
    const double phiBegin = -0.5*PI;
    const double phiEnd = 1.5*PI;
 
-   //begin
    const double etaMin_ass_ = -2.4;
    const double etaMax_ass_ = 2.4;
-   //end
-   //begin
    const double ptMin_ass_ = 0.3;
    const double ptMax_ass_ = 3.0;
-   //end
-   //begin
+
    const double multMin_ = 185;
    const double multMax_ = 250;
-   //end
-   //begin
+
    const bool   rejectDaughter_ = true;
-   //end
-   //begin
+
    const double d0_dau_abs_eta_max_ = 2.4;
    const int    d0_dau_nhit_min_ = 11;
    const double d0_dau_pterr_max_ = 0.1;
    const double d0_dau_pt_min_ = 0.7;
-   //end
+
+   const double d0_pt_min_ = 1.5;
+   const double d0_pt_max_ = 8.0;
+
+   const double d0_y_min_  = -2;
+   const double d0_y_max_  = 2;
 
    const int nMass = 14;
-
    const double massbin[nMass+1] = {1.70, 1.74, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
       1.87, 1.88, 1.9, 1.92, 1.96, 2.0};
-   //const double massbin[nMass+1] = {1.86, 1.865};
-   //
+   
    //const int nPt = 3;
    const int nPt = 8;
    //const double ptbin[nPt+1] = {2., 4., 6., 8.};
    const double ptbin[nPt+1] = {1.5, 2.4, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0};
    
    const int nY = 1;
-//   const double ybin[nY+1] = {0., 1.};
-   //const double ybin[nY+1] = {0., 1.2};
-   //const double ybin[nY+1] = {0., 1.5};
    const double ybin[nY+1] = {0., 2.0};
 
-   const double mvaCut_PD0[nPt] = {
-      0.58, // 2 - 4 GeV
-      0.46, // 4 - 6 GeV
-      0.28  // 6 - 8 GeV
-   };
-   const double mvaCut_NPD0[nPt] = {
-      0.52, // 2 - 4 GeV
-      0.44, // 4 - 6 GeV
-      0.32  // 6 - 8 GeV
-   };
-
-   //const double dcaSep = 0.008;
-   //const double dcaSep = 0.012;
    const double dcaSep = 0.016;
 
    const unsigned int nMixedEvts = 10;
@@ -90,6 +71,13 @@ namespace ana{
    int findPtBin(const double&);
    int findYBin(const double&);
    int findZVtxBin(const float&);
+
+   int findNtrkBin(const unsigned int);
+
+   bool pass_PD0_MVA(const float&, const float&);
+   bool pass_NPD0_MVA(const float&, const float&);
+
+   unsigned int findNtrkBin(const unsigned int&);
 };
 
 #endif
