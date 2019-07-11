@@ -187,7 +187,7 @@ void dcaFractionFitting(
    ltx.DrawLatexNDC(0.55, 0.45, cut.c_str());
    ltx.DrawLatexNDC(0.55, 0.35, label.c_str());
    ltx.DrawLatexNDC(0.3, 0.8, Form("chi2/ndf: %f/ %d", fitResult->Chi2(), fitResult->Ndf()));
-   ltx.DrawLatexNDC(0.5, 0.2, Form("%.1f<=DCA<%.1fum", fitRangeL*1000, fitRangeH*1000));
+   ltx.DrawLatexNDC(0.5, 0.2, Form("%.3f<=DCA<%.3fmm", fitRangeL*10, fitRangeH*10));
 
    auto pad2 = cFit.cd(2);
    pad2->SetTopMargin(0);
@@ -228,10 +228,10 @@ std::pair<double, double>
 dcaFittingLeastChi2_EachPtAndY(int mode, const float& pTMin, const float& pTMax, const float& yMin, const float& yMax, const float& fitRangeL, const float&fitRangeH)
 {
    std::map<std::string, std::string> name;
-   if(isUseMassFit) name["noLog"] = Form("plots/dcaFull/%s_pT%.1f-%.1f_y%.1f-%.1f_final_DcaFitting_DCA%2f-%2f_MassFit.png", 
-         ana::treeName[mode].c_str(),pTMin,pTMax,yMin,yMax, fitRangeL*1000, fitRangeH*1000);
-   if(isUseMassFit) name["log"] = Form("plots/dcaFull/%s_pT%.1f-%.1f_y%.1f-%.1f_fianl_DcaFitting_DCA%2f-%2f_MassFit_LogScale.png", 
-         ana::treeName[mode].c_str(),pTMin,pTMax,yMin,yMax,  fitRangeL*1000, fitRangeH*1000);
+   if(isUseMassFit) name["noLog"] = Form("plots/dcaFull/%s_pT%.1f-%.1f_y%.1f-%.1f_final_DcaFitting_DCA%.04f-%.04fcm_MassFit.png", 
+         ana::treeName[mode].c_str(),pTMin,pTMax,yMin,yMax, fitRangeL, fitRangeH);
+   if(isUseMassFit) name["log"] = Form("plots/dcaFull/%s_pT%.1f-%.1f_y%.1f-%.1f_fianl_DcaFitting_DCA%.04f-%.04fcm_MassFit_LogScale.png", 
+         ana::treeName[mode].c_str(),pTMin,pTMax,yMin,yMax,  fitRangeL, fitRangeH);
 
    std::string cut = "";
    std::string label(TString::Format("%.1f<p_{T}<%.1fGeV, %.1f#leq|y|<%.1f",pTMin,pTMax,yMin,yMax));
