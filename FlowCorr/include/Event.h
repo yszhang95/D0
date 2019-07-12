@@ -76,10 +76,10 @@ public:
    virtual UInt_t    lsNb()         const {return LSNb;}
    virtual UInt_t    eventNb()      const {return EventNb;}
    virtual UInt_t    CandSizeTrk()  const {return candSizeTRK;}
-   virtual Float_t   PtTrk(const unsigned int icand)        const {return (float)pTTRK[icand]/100.;}
-   virtual Float_t   EtaTrk(const unsigned int icand)       const {return (float)etaTRK[icand]/100.;}
-   virtual Float_t   PhiTrk(const unsigned int icand)       const {return (float)phiTRK[icand]/100.;}
-   virtual Float_t   WeightTrk(const unsigned int icand)    const {return (float)weightTRK[icand]/100.;}
+   virtual Float_t   PtTrk(const unsigned int icand)        const {return pTTRK[icand];}
+   virtual Float_t   EtaTrk(const unsigned int icand)       const {return etaTRK[icand];}
+   virtual Float_t   PhiTrk(const unsigned int icand)       const {return phiTRK[icand];}
+   virtual Float_t   WeightTrk(const unsigned int icand)    const {return weightTRK[icand];}
 
 protected :
    TTree          *fChain_D0;   //!pointer to the analyzed TTree or TChain of D0 candidates
@@ -138,10 +138,10 @@ protected :
    Float_t         bestvtxY_trk;
    Float_t         bestvtxZ_trk;
    UInt_t          candSizeTRK;
-   UInt_t          pTTRK[800];   //[candSizeTRK]
-   Short_t         etaTRK[800];   //[candSizeTRK]
-   Short_t         phiTRK[800];   //[candSizeTRK]
-   UInt_t          weightTRK[800];   //[candSizeTRK]
+   Float_t         pTTRK[800];   //[candSizeTRK]
+   Float_t         etaTRK[800];   //[candSizeTRK]
+   Float_t         phiTRK[800];   //[candSizeTRK]
+   Float_t         weightTRK[800];   //[candSizeTRK]
 
    // List of branches
    TBranch        *b_Ntrkoffline;   //!

@@ -47,23 +47,74 @@ int ana::findZVtxBin(const float& z_vtx)
    return -1;
 }
 
-bool ana::pass_PD0_MVA(const float& pT, const float& mva){
+bool ana::pass_pPb2016_8TeV_PD0_MVA(const float& pT, const float& mva)
+{
    if(pT<4.) return mva > 0.58;
    else if(pT < 6. && pT >= 4.) return mva > 0.46;
    else if(pT < 8. && pT >= 6.) return mva > 0.28;
-   else if(pT < 20. & pT >= 8.) return mva > 0.1;
+   else if(pT < 20. && pT >= 8.) return mva > 0.1;
    return false;
 }
 
-bool pass_NPD0_MVA(const float& pT, const float& mva){
+bool ana::pass_pPb2016_8TeV_NPD0_MVA(const float& pT, const float& mva)
+{
    if(pT<4.) return mva > 0.52;
    else if(pT < 6. && pT >= 4.) return mva > 0.44;
    else if(pT < 8. && pT >= 6.) return mva > 0.32;
-   else if(pT < 20. & pT >= 8.) return mva > 0.2;
+   else if(pT < 20. && pT >= 8.) return mva > 0.2;
    return false;
 }
 
-unsigned int findNtrkBin(const unsigned int& n_trk_bin)
+bool ana::pass_pp2018_13TeV_PD0_MVA(const float& mva)
 {
+   return mva > 0.52;
+}
+
+int ana::Get_Trigger(const std::string& dataset)
+{
+   auto it = ana::dataset_trigger.find(dataset);
+   if(it != ana::dataset_trigger.end()) return it->second;
+   cerr << "type in the correct dataset!" << endl;
+   return -1;
+}
+
+int ana::Get_N_nTrkBin(const std::string& dataset)
+{
+   auto it = ana::dataset_N_nTrkBin.find(dataset);
+   if(it != ana::dataset_N_nTrkBin.end()) return it->second;
+   cerr << "type in the correct dataset!" << endl;
+   return -1;
+}
+
+int ana::findNtrkBin(const double& nTrkOffline, const int& trigger)
+{
+   switch(trigger) {
+     case 0 :
+        if(nTrkOffline<35 && nTrkOffline>=0) return 0;
+        else if(nTrkOffline<90 && nTrkOffline>=35) return 1;
+        else if(nTrkOffline<150 && nTrkOffline>=90) return 2;
+        break;
+     case 1 :
+        if(nTrkOffline<185 && nTrkOffline>=150) return 0;
+        break;
+     case 2 :
+        if(nTrkOffline<250 && nTrkOffline>=185) return 0;
+        break;
+     case 3 :
+        if(nTrkOffline>=250) return 0;
+        break;
+     case 4:
+        if(nTrkOffline<20) return 0;
+        else if(nTrkOffline<40 && nTrkOffline>=20) return 1;
+        else if(nTrkOffline<80 && nTrkOffline>=40) return 2;
+        break;
+     case 5 :
+        if(nTrkOffline<100 && nTrkOffline>=80) return 0;
+        break;
+     case 6 :
+        if(nTrkOffline>100) return 0;
+         break;
+   }
+   return -1;
 }
 
