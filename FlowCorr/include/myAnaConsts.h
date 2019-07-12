@@ -45,10 +45,12 @@ namespace ana{
    const double massbin[nMass+1] = {1.70, 1.74, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
       1.87, 1.88, 1.9, 1.92, 1.96, 2.0};
    
-   //const int nPt = 3;
-   const int nPt = 8;
-   //const double ptbin[nPt+1] = {2., 4., 6., 8.};
-   const double ptbin[nPt+1] = {1.5, 2.4, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0};
+   const int nPt_NPD0_pPb = 3;
+   const double ptbin_NPD0_pPb[nPt+1] = {2., 4., 6., 8.};
+   const int nPt_PD0_pPb = 8;
+   const double ptbin_PD0_pPb[nPt+1] = {1.5, 2.4, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0};
+   const int nPt_PD0_pp = 3;
+   const double ptbin_PD0_pp[nPt+1] = {2., 4., 6., 8.};
    
    const int nY = 1;
    const double ybin[nY+1] = {0., 2.0};
@@ -87,10 +89,8 @@ namespace ana{
       {"PPMB_2", 1}
    };
 
-   std::string findDCA(const double&, const bool&);
    int findMassBin(const double&);
-   int findPtBin(const double&);
-   int findYBin(const double&);
+   int findPtBin(const double&, const std::vector<double>&);
    int findZVtxBin(const float&);
 
    bool pass_pPb2016_8TeV_PD0_MVA(const float&, const float&);

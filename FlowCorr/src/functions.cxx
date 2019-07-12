@@ -1,17 +1,6 @@
 #include "myAnaConsts.h"
 
 using namespace std;
-string ana::findDCA(const double& DCA, const bool& isPromptD0)
-{
-   if(isPromptD0) {
-      return "smallDCA";
-   }else{
-      bool isLarge = DCA > ana::dcaSep;
-      if(isLarge) return "largeDCA";
-      if(!isLarge) return "smallDCA";
-   }
-   return "";
-}
 
 int ana::findMassBin(const double& mass)
 {
@@ -21,18 +10,11 @@ int ana::findMassBin(const double& mass)
    return -1;
 }
 
-int ana::findPtBin(const double& pT)
+int ana::findPtBin(const double& pT, const vector<double>& ptbin)
 {
-   for(int ipt=0; ipt<ana::nPt; ipt++){
-      if(ana::ptbin[ipt]<=pT && pT<ana::ptbin[ipt+1]) return ipt;
-   }
-   return -1;
-}
-
-int ana::findYBin(const double& y)
-{
-   for(int iy=0; iy<ana::nY; iy++){
-      if(ana::ybin[iy]<=fabs(y) && fabs(y)<ybin[iy+1]) return iy;
+   const unsigned int nPt = ptbin.size();
+   for(unsigned int ipt=0; ipt<nPt; ipt++){
+      if(ptbin[ipt]<=pT && pT<ptbin[ipt+1]) return ipt;
    }
    return -1;
 }
