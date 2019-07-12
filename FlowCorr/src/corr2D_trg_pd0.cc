@@ -394,8 +394,12 @@ int main(int argc, char** argv)
    TString outName; 
    if(isPromptD0){
       string prefix(argv[4]);
-      size_t found = datalist.find("/");
-      if (found!=std::string::npos) datalist.replace(found, 1, "_");
+      size_t found_slash = datalist.find("/");
+      while(found_slash!=std::string::npos) {
+         datalist.replace(found_slash, 1, "_");
+         found_slash = datalist.find("/");
+      }
+
       if(prefix.size())
          outName = TString::Format("%s/fout_%s_d0ana_HM_%.1f.root", prefix.c_str(), datalist.c_str(), ana::d0_y_max_);
       else

@@ -107,6 +107,8 @@ int main(int argc, char** argv)
    TH1D* hEta_D0[nTrkBin];
    TH1D* hRapidity_D0[nTrkBin];
 
+   TH1D* hNtrk_D0[nTrkBin];
+
    TH1D* hMass_D0[ana::nMass][nTrkBin];
 
    TH2D* hNtrkofflineVsNtrkgood;
@@ -128,6 +130,7 @@ int main(int argc, char** argv)
       hPt_D0[iTrkBin] = new TH1D(Form("hPt_trk%d", iTrkBin), "", 3000, 0, 30);
       hEta_D0[iTrkBin] = new TH1D(Form("hEta_trk%d", iTrkBin), "", 24, -2.4, 2.4);
       hRapidity_D0[iTrkBin] = new TH1D(Form("hRapidity_trk%d", iTrkBin), "", 24, -2.4, 2.4);
+      hNtrk_D0[iTrkBin] = new TH1D(Form("hNtrk_trk%d", iTrkBin), "", 3000, 0, 30);
       hDcaVsMassAndMva[iTrkBin] = new TH3D(Form("hDcaVsMassAndMva_trk%d", iTrkBin), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 160, 0, 0.08);
       for(int imass=0; imass<ana::nMass; imass++){
          hMass_D0[imass][iTrkBin] = new TH1D(Form("hMassD0_mass%d_trk%d", imass, iTrkBin),
@@ -201,7 +204,7 @@ int main(int argc, char** argv)
             nMult_ass_good++;
       }
 
-      hMult->Fill(nMult_ass_good);
+      hMult->Fill(evt->nTrkOffline());
 
       hNtrkofflineVsNtrkgood->Fill(nMult_ass_good, evt->nTrkOffline());
 
@@ -232,6 +235,13 @@ int main(int argc, char** argv)
          indexVect_d0[imass].push_back(id0);
          pVect_dau1_d0[imass].push_back(p_dau1);
          pVect_dau2_d0[imass].push_back(p_dau2);
+      }
+
+      for(int imass=0; imass<ana::nMass; imass++){
+         if(!pVect_trg_d0[imass].size()){
+            hNtrk_D0[iTrkBin]->Fill(evt->nTrkOffline());
+            break;
+         }
       }
 
       for(unsigned int itrack=0; itrack<evt->CandSizeTrk(); itrack++){
@@ -367,8 +377,13 @@ int main(int argc, char** argv)
    TString outName; 
    if(isPromptD0){
       string prefix(argv[4]);
-      size_t found = datalist.find("/");
-      if (found!=std::string::npos) datalist.replace(found, 1, "_");
+
+      size_t found_slash = datalist.find("/");
+      while(found_slash!=std::string::npos) {
+         datalist.replace(found_slash, 1, "_");
+         found_slash = datalist.find("/");
+      }
+
       if(prefix.size())
          outName = TString::Format("%s/fout_%s_d0ana_ntrk_%.1f.root", prefix.c_str(), datalist.c_str(), ana::d0_y_max_);
       else
@@ -388,6 +403,7 @@ int main(int argc, char** argv)
       hPt_D0[iTrkBin]->Write();
       hEta_D0[iTrkBin]->Write();
       hRapidity_D0[iTrkBin]->Write();
+      hNtrk_D0[iTrkBin]->Write();
       hDcaVsMassAndMva[iTrkBin]->Write();
       for(int imass=0; imass<ana::nMass; imass++){
          hMass_D0[imass][iTrkBin]->Write();
@@ -406,6 +422,7 @@ int main(int argc, char** argv)
       delete hPt_D0[iTrkBin];
       delete hEta_D0[iTrkBin];
       delete hRapidity_D0[iTrkBin];
+      delete hNtrk_D0[iTrkBin];
       delete hDcaVsMassAndMva[iTrkBin];
       for(int imass=0; imass<ana::nMass; imass++){
          delete hMass_D0[imass][iTrkBin];
