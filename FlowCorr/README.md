@@ -23,8 +23,8 @@ PAHM0   // 150-185
 PAHM1-6 // 185-250
 PAHM7   // 250-inf
 PPMB    // MB 0-20, 20-40, 40-80
-PPHM    // high mult 80-100 
-PPHM    // high mult > 100
+PPHM_1    // high mult 80-100 
+PPHM_2    // high mult > 100
 ```
 
 # Batch jobs
