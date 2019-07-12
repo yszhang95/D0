@@ -18,9 +18,9 @@ PAHM7   // 250-inf
 
 PPMB    // MB 0-20, 20-40, 40-80
 
-PPHM    // high mult 80-100 \n"
+PPHM    // high mult 80-100 
 
-PPHM    // high mult > 100\n"
+PPHM    // high mult > 100
 
 # Batch jobs
 ## out-dated
