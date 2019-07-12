@@ -273,6 +273,7 @@ int main(int argc, char** argv)
    else return -1;
 
    // start writing output
+   TFile ofile(outName.Data(), "recreate");
    
    for(int ibin=0; ibin<nTrkBin; ibin++){
       hMult[ibin]->Write();

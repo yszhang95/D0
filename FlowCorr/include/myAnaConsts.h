@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <array>
+
 #include "TMath.h"
 
 namespace ana{
@@ -25,8 +27,11 @@ namespace ana{
    const double ptMin_ass_ = 0.3;
    const double ptMax_ass_ = 3.0;
 
-   const double multMin_ = 185;
-   const double multMax_ = 250;
+   const int    multMin_PA_ = 185;
+   const int    multMax_PA_ = 250;
+
+   const int    multMin_PP_ = 100;
+   const int    multMax_PP_ = 250;
 
    const bool   rejectDaughter_ = true;
 
@@ -79,6 +84,9 @@ namespace ana{
       {"PPHM_2", 6}  //>100
    };
 
+   const std::array<std::string, 2> dataset_HM_PD0 = {"PAHM1-6", "PPHM_2"};
+   const std::array<std::string, 1> dataset_HM_NPD0 = {"PAHM1-6"};
+
    const std::map<std::string, int> dataset_N_nTrkBin = {
       {"PAMB", 3},
       {"PAHM0", 1},
@@ -100,6 +108,8 @@ namespace ana{
    int Get_Trigger(const std::string&);
    int Get_N_nTrkBin(const std::string&);
    int findNtrkBin(const double&, const int&);
+
+   bool isHM_PD0_DataSet(const std::string&);
 };
 
 #endif

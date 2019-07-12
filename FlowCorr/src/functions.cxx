@@ -1,5 +1,7 @@
 #include "myAnaConsts.h"
 
+#include <algorithm>
+
 using namespace std;
 
 int ana::findMassBin(const double& mass)
@@ -12,7 +14,7 @@ int ana::findMassBin(const double& mass)
 
 int ana::findPtBin(const double& pT, const vector<double>& ptbin)
 {
-   const unsigned int nPt = ptbin.size();
+   const unsigned int nPt = ptbin.size() - 1;
    for(unsigned int ipt=0; ipt<nPt; ipt++){
       if(ptbin[ipt]<=pT && pT<ptbin[ipt+1]) return ipt;
    }
@@ -100,3 +102,9 @@ int ana::findNtrkBin(const double& nTrkOffline, const int& trigger)
    return -1;
 }
 
+bool ana::isHM_PD0_DataSet(const string& dataset_name)
+{
+   auto it = find(ana::dataset_HM_PD0.begin(), ana::dataset_HM_PD0.end(), dataset_name);
+   if(it != ana::dataset_HM_PD0.end()) return true;
+   return false;
+}
