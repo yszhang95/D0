@@ -34,6 +34,8 @@ bool checkBranchStatus(Event*);
 bool passGoodTrack(Event*, const unsigned int&);
 inline bool passGoodVtx(Event* event);
 
+inline bool passNtrkoffline(const double&, const int&);
+
 // par0, main
 // par1, datalist
 // par2, dataset
