@@ -319,14 +319,6 @@ int main(int argc, char** argv)
                   for(unsigned int iass=0; iass<n_ass; iass++){
                      TVector3 pvector_ass = ievt_p_ass.at(iass);
                      double effweight_ass = ievt_eff_ass->at(iass);
-                     if(ana::rejectDaughter_){
-                        if(fabs(pvector_ass.Eta() - pVect_dau1_d0[imass].at(id0).Eta())<0.03
-                              && fabs(pvector_ass.DeltaPhi( pVect_dau1_d0[imass].at(id0) ) )<0.03)
-                           continue;
-                        if(fabs(pvector_ass.Eta() - pVect_dau2_d0[imass].at(id0).Eta())<0.03
-                              && fabs(pvector_ass.DeltaPhi( pVect_dau2_d0[imass].at(id0) ) )<0.03)
-                           continue;
-                        }
 
                      double deltaEta = pvector_ass.Eta() - pVect_trg_d0[imass].at(id0).Eta();
                      double deltaPhi = pvector_ass.DeltaPhi(pVect_trg_d0[imass].at(id0));
