@@ -3,8 +3,17 @@ Makefile help one compile the source codes.
 
 Before compiling, make sure dir, include, src, bin, lib, exist
 # Executables 
-Exes are in the dir bin, `corr2D_trg_pd0_mult` give the 2D correlation functions seperately,
+Exes are in the dir bin, `corr2D_trg_pd0_mult` give the 2D correlation functions of prompt d0,
 input parameters are the list of the ROOT files, dataset, effciency file, output dir
+
+`corr2D_trg_ref_mult` give the 2D correlation functions  of ref particles, 
+input parameters are the list of the ROOT files, dataset, output dir
+
+`corr2D_trg_pd0` give the 2D correlation functions  of prompt-d0s, 
+input parameters are the list of the ROOT files, dataset, effciency file, output dir 
+
+`corr2D_trg_ref` give the 2D correlation functions  of ref particles, 
+input parameters are the list of the ROOT files, dataset, output dir, d0 tree index
 
 datasets are listed, comments follows `//`:
 
