@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <map>
 #include "TMath.h"
 
 namespace ana{
@@ -66,18 +67,39 @@ namespace ana{
       "d0ana", "npd0ana", "npd0ana1"
    };
 
+   const std::map<std::string, int> dataset_trigger = {
+      {"PAMB", 0},
+      {"PAHM0", 1},
+      {"PAHM1-6", 2},
+      {"PAHM7", 3},
+      {"PPMB", 4},
+      {"PPHM_1", 5}, //80-100
+      {"PPHM_2", 6}  //>100
+   };
+
+   const std::map<std::string, int> dataset_N_nTrkBin = {
+      {"PAMB", 3},
+      {"PAHM0", 1},
+      {"PAHM1-6", 1},
+      {"PAHM7", 1},
+      {"PPMB", 3},
+      {"PPMB_1", 1},
+      {"PPMB_2", 1}
+   };
+
    std::string findDCA(const double&, const bool&);
    int findMassBin(const double&);
    int findPtBin(const double&);
    int findYBin(const double&);
    int findZVtxBin(const float&);
 
-   int findNtrkBin(const unsigned int);
+   bool pass_pPb2016_8TeV_PD0_MVA(const float&, const float&);
+   bool pass_pPb2016_8TeV_NPD0_MVA(const float&, const float&);
+   bool pass_pp2018_13TeV_PD0_MVA(const float&);
 
-   bool pass_PD0_MVA(const float&, const float&);
-   bool pass_NPD0_MVA(const float&, const float&);
-
-   unsigned int findNtrkBin(const unsigned int&);
+   int Get_Trigger(const std::string&);
+   int Get_N_nTrkBin(const std::string&);
+   int findNtrkBin(const double&, const int&);
 };
 
 #endif
