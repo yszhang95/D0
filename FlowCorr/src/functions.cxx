@@ -108,3 +108,10 @@ bool ana::isHM_PD0_DataSet(const string& dataset_name)
    if(it != ana::dataset_HM_PD0.end()) return true;
    return false;
 }
+
+bool ana::isHM_NPD0_DataSet(const string& dataset_name)
+{
+   auto it = find(ana::dataset_HM_NPD0.begin(), ana::dataset_HM_NPD0.end(), dataset_name);
+   if(it != ana::dataset_HM_NPD0.end()) return true;
+   return false;
+}
