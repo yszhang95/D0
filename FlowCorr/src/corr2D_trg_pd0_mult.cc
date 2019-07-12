@@ -371,7 +371,7 @@ int main(int argc, char** argv)
       if(prefix.size())
          outName = TString::Format("%s/fout_%s_d0ana_ntrk_%.1f.root", prefix.c_str(), datalist.c_str(), ana::d0_y_max_);
       else
-         outName = TString::Format("fout%s_d0ana_ntrk_%.1f.root", datalist.c_str(), ana::d0_y_max_);
+         outName = TString::Format("fout_%s_d0ana_ntrk_%.1f.root", datalist.c_str(), ana::d0_y_max_);
    }
    else return -1;
 
