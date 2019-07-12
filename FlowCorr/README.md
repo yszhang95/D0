@@ -17,19 +17,15 @@ input parameters are the list of the ROOT files, dataset, output dir, d0 tree in
 
 datasets are listed, comments follows `//`:
 
+```
 PAMB    // 0-35, 35-90, 90-150
-
 PAHM0   // 150-185
-
 PAHM1-6 // 185-250
-
 PAHM7   // 250-inf
-
 PPMB    // MB 0-20, 20-40, 40-80
-
 PPHM    // high mult 80-100 
-
 PPHM    // high mult > 100
+```
 
 # Batch jobs
 ## out-dated
