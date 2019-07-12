@@ -40,6 +40,7 @@ public:
    virtual Float_t   Mva(const unsigned int icand)          const {return mva[icand];}
    virtual Float_t   Flavor(const unsigned int icand)       const {return flavor[icand];}
    virtual Float_t   Eta(const unsigned int icand)          const {return eta[icand];}
+   virtual Float_t   Phi(const unsigned int icand)          const {return phi[icand];}
    virtual Float_t   vtxProb(const unsigned int icand)      const {return VtxProb[icand];}
    virtual Float_t   CosPointingAngle3D(const unsigned int icand) 
                                     const {return m3DCosPointingAngle[icand];}
@@ -153,6 +154,7 @@ protected :
    TBranch        *b_candSize;   //!
    TBranch        *b_pT;   //!
    TBranch        *b_y;   //!
+   TBranch        *b_eta;   //!
    TBranch        *b_phi;   //!
    TBranch        *b_mass;   //!
    TBranch        *b_mva;   //!

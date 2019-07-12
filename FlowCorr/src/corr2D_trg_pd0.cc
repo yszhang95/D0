@@ -223,13 +223,13 @@ int main(int argc, char** argv)
 
          if(!passD0Selections(dataset_trigger, evt, id0, isPromptD0)) continue;
 
-         double effks = h_eff->FindBin(evt->Pt(id0), evt->Y(id0));
+         double effks = h_eff->GetBinContent(h_eff->FindBin(evt->Pt(id0), evt->Y(id0)));
 
-         hDcaVsMassAndMva[ipt]->Fill(evt->Mass(id0), evt->Mva(id0), 0.);
+         hDcaVsMassAndMva[ipt]->Fill(evt->Mass(id0), evt->Mva(id0), 0., 1./effks);
 
          p_dau1.SetPtEtaPhi(evt->PtD1(id0), evt->etaD1(id0), evt->phiD1(id0));
          p_dau2.SetPtEtaPhi(evt->PtD2(id0), evt->etaD2(id0), evt->phiD2(id0));
-         p_d0 = p_dau1 + p_dau2;
+         p_d0.SetPtEtaPhi(evt->Pt(id0), evt->Eta(id0), evt->Phi(id0));
 
          double KET = sqrt(pow(evt->Mass(id0), 2) + pow(evt->Pt(id0), 2)
                   - evt->Mass(id0));
@@ -460,6 +460,8 @@ void setBranchStatus(Event* evt)
    evt->SetBranchStatus("mass", 1);
    evt->SetBranchStatus("mva", 1);
    evt->SetBranchStatus("y", 1);
+   evt->SetBranchStatus("eta", 1);
+   evt->SetBranchStatus("phi", 1);
    evt->SetBranchStatus("3DPointingAngle", 1);
    evt->SetBranchStatus("3DDecayLength", 1);
    evt->SetBranchStatus("3DDecayLengthSignificance", 1);
@@ -485,6 +487,8 @@ bool checkBranchStatus(Event* event)
       event->GetBranchStatus("mass")&&
       event->GetBranchStatus("mva")&&
       event->GetBranchStatus("y")&&
+      event->GetBranchStatus("eta")&&
+      event->GetBranchStatus("phi")&&
       event->GetBranchStatus("3DPointingAngle")&&
       event->GetBranchStatus("3DDecayLength")&&
       event->GetBranchStatus("3DDecayLengthSignificance")&&

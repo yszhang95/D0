@@ -84,6 +84,7 @@ void Event::Init(TTree *d0Collection, TTree *trackCollection)
    fChain_D0->SetBranchAddress("candSize", &candSize, &b_candSize);
    fChain_D0->SetBranchAddress("pT", pT, &b_pT);
    fChain_D0->SetBranchAddress("y", y, &b_y);
+   fChain_D0->SetBranchAddress("eta", eta, &b_eta);
    fChain_D0->SetBranchAddress("phi", phi, &b_phi);
    fChain_D0->SetBranchAddress("mass", mass, &b_mass);
    fChain_D0->SetBranchAddress("mva", mva, &b_mva);
