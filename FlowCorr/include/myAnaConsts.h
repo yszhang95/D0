@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <array>
+#include <limits>
 
 #include "TMath.h"
 
@@ -97,6 +98,35 @@ namespace ana{
       {"PPMB_2", 1}
    };
 
+   const std::map<std::string, int> dataset_PA_N_nTrkBin = {
+      {"PAMB", 3},
+      {"PAHM0", 1},
+      {"PAHM1-6", 1},
+      {"PAHM7", 1},
+   };
+
+   const std::map<std::string, int> dataset_PP_N_nTrkBin = {
+      {"PPMB", 3},
+      {"PPMB_1", 1},
+      {"PPMB_2", 1}
+   };
+
+   const unsigned int PA_Mult_Edges[] = {
+      0, 35, 90, 150, 185, 250, std::numeric_limits<unsigned int>::max()
+   };
+   const unsigned int PP_Mult_Edges[] = {
+      0, 20, 40, 80, 100, std::numeric_limits<unsigned int>::max()
+   };
+
+   const unsigned int PA_Mult_N = 4;
+   const unsigned int PP_Mult_N = 3;
+   const std::array<std::string, PA_Mult_N>PA_Mult_Order = {
+      "PAMB", "PAHM0", "PAHM1-6", "PAHM7"
+   };
+   const std::array<std::string, PP_Mult_N>PP_Mult_Order = {
+      "PPMB", "PAHM_1", "PAHM_2"
+   };
+
    int findMassBin(const double&);
    int findPtBin(const double&, const std::vector<double>&);
    int findZVtxBin(const float&);
@@ -111,6 +141,8 @@ namespace ana{
 
    bool isHM_PD0_DataSet(const std::string&);
    bool isHM_NPD0_DataSet(const std::string&);
+
+   vector<unsigned int> get_Mult_Edges(const std::string&);
 };
 
 #endif

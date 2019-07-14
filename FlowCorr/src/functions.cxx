@@ -1,6 +1,7 @@
 #include "myAnaConsts.h"
 
 #include <algorithm>
+#include <iterator>
 
 using namespace std;
 
@@ -114,4 +115,31 @@ bool ana::isHM_NPD0_DataSet(const string& dataset_name)
    auto it = find(ana::dataset_HM_NPD0.begin(), ana::dataset_HM_NPD0.end(), dataset_name);
    if(it != ana::dataset_HM_NPD0.end()) return true;
    return false;
+}
+
+
+vector<unsigned int> ana::get_Mult_Edges(const std::string& dataset){
+   vector<int> n_PA;
+   for(auto& element: PA_Mult_Order) n_PA.push_back(ana::Get_N_nTrkBin(element));
+   auto it_PA = find(ana::PA_Mult_Order.begin(), ana::PA_Mult_Order.end(), dataset);
+   auto index_PA = distance(it_PA, ana::PA_Mult_Order.begin());
+   int offset_PA = 0;
+   for(int i_offset=0; i_offset<index_PA; i_offset++)
+      offset_PA += n_PA.at(i_offset);
+   if(index_PA !=ana::PA_Mult_N) return 
+      vector<unsigned int>(PA_Mult_Edges+offset_PA, 
+            PA_Mult_Edges+offset_PA+n_PA.at(index_PA)+1);
+
+   vector<int> n_PP;
+   for(auto& element: PP_Mult_Order) n_PP.push_back(ana::Get_N_nTrkBin(element));
+   auto it_PP = find(ana::PP_Mult_Order.begin(), ana::PP_Mult_Order.end(), dataset);
+   auto index_PP = distance(it_PP, ana::PP_Mult_Order.begin());
+   int offset_PP = 0;
+   for(int i_offset=0; i_offset<index_PP; i_offset++)
+      offset_PP += n_PP.at(i_offset);
+   if(index_PP !=ana::PP_Mult_N) return 
+      vector<unsigned int>(PP_Mult_Edges+offset_PP, 
+            PP_Mult_Edges+offset_PP+n_PP.at(index_PP)+1);
+
+   return vector<unsigned int>();
 }
