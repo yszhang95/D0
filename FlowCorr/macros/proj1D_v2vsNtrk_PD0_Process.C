@@ -236,7 +236,7 @@ const float y=0.0, const string dataset="")
       g_v2_[i_trk_bin_] = new TGraphErrors(ana::nMass);
       g_v2_[i_trk_bin_]->SetName(Form("g_v2_trk%d", i_trk_bin_));
       for(int imass=0; imass<ana::nMass; imass++){
-         double temp = v2_PD0[imass][i_trk_bin_]/ sqrt(V2_REF[i_trk_bin_]);
+         double temp = V2_PD0[imass][i_trk_bin_]/ sqrt(V2_REF[i_trk_bin_]);
          double temp_err = temp* sqrt(pow(V2_PD0_err[imass][i_trk_bin_]/ V2_PD0[imass][i_trk_bin_], 2) 
                + pow(0.5*V2_REF[i_trk_bin_]/ V2_REF[i_trk_bin_], 2));
 
@@ -253,12 +253,28 @@ const float y=0.0, const string dataset="")
       hMass[i_trk_bin_] = hDcaVsMassAndMva[i_trk_bin_]->ProjectionX(Form("hmass_trk%d", i_trk_bin_));
    }
 
+   TH1D* hNtrk[n_trk_bin_];
+   TH1D* hKET[n_trk_bin_];
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      hNtrk[i_trk_bin_] = (TH1D*) f1->Get(Form("hNtrk_trk%d", i_trk_bin_));
+      hKET[i_trk_bin_] = (TH1D*) f1->Get(Form("hKET_trk%d", i_trk_bin_));
+   }
+
    TFile f3(Form("%s_v2.root", input_d0), "recreate");
 
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-         g_v2_[i_trk_bin_]->Write();
-         hMass[i_trk_bin_]->Write();
+      g_v2_[i_trk_bin_]->Write();
+      hMass[i_trk_bin_]->Write();
+      hNtrk[i_trk_bin_]->Write();
+      hKET[i_trk_bin_]->Write();
    }
+   f3.Close();
+
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      delete g_v2_[i_trk_bin_];
+   }
+   delete f1;
+   delete f2;
    
    return;
 }
