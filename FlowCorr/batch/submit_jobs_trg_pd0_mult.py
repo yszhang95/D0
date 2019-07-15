@@ -5,8 +5,8 @@ treeNumber = 0
 
 #dataset_name = 'PAHM1-6'
 #dataset_name = 'PAHM0'
-dataset_name = 'PAHM7'
-#dataset_name = 'PAMB'
+#dataset_name = 'PAHM7'
+dataset_name = 'PAMB'
 
 dataset = {
       'PAMB'    : 'PAMB0-150.list',

@@ -142,7 +142,7 @@ namespace ana{
    bool isHM_PD0_DataSet(const std::string&);
    bool isHM_NPD0_DataSet(const std::string&);
 
-   vector<unsigned int> get_Mult_Edges(const std::string&);
+   std::vector<unsigned int> get_Mult_Edges(const std::string&);
 };
 
 #endif
