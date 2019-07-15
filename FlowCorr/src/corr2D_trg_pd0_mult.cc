@@ -119,7 +119,7 @@ int main(int argc, char** argv)
    // declare hists
    TH1D* hEvt;
    TH1D* hMult;
-   TH1D* hMult_ass[nTrkBin];
+   TH1D* hMult_ass[ana::nMass][nTrkBin];
 
    TH1D* hKET_D0[nTrkBin];
    TH1D* hPt_D0[nTrkBin];
@@ -154,8 +154,8 @@ int main(int argc, char** argv)
       hDcaVsMassAndMva[iTrkBin] = new TH3D(Form("hDcaVsMassAndMva_trk%d", iTrkBin), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 160, 0, 0.08);
       hMass[iTrkBin] = new TH1D(Form("hMass_%d", iTrkBin), "", 60, 1.7, 2.0);
 
-      hMult_ass[iTrkBin] = new TH1D(Form("hMult_ass_trk%d", iTrkBin), "", 600, 0, 600);
       for(int imass=0; imass<ana::nMass; imass++){
+         hMult_ass[imass][iTrkBin] = new TH1D(Form("hMult_ass_mass%d_trk%d", imass, iTrkBin), "", 600, 0, 600);
          hMass_D0[imass][iTrkBin] = new TH1D(Form("hMassD0_mass%d_trk%d", imass, iTrkBin),
                "", 200, 1.5, 2.5);
          hMult_raw_D0[imass][iTrkBin] = new TH1D(Form("hMult_raw_D0_mass%d_trk%d", imass, iTrkBin),
@@ -287,7 +287,9 @@ int main(int argc, char** argv)
 
       // calculate signal
       unsigned int nMult_ass = (unsigned int) pVect_ass.size();
-      hMult_ass[iTrkBin]->Fill(nMult_ass);
+      for(int imass=0; imass<ana::nMass; imass++){
+         if(pVect_trg_d0[imass].size()) hMult_ass[imass][iTrkBin]->Fill(nMult_ass);
+      }
       
       unsigned int nMult_trg_raw_d0[ana::nMass]; // Ntrig for mass & pt bins
       double nMult_trg_eff_d0[ana::nMass]; // eff corrected Ntrig for mass & pt bins
@@ -424,7 +426,6 @@ int main(int argc, char** argv)
    hMult->Write();
    hNtrkofflineVsNtrkgood->Write();
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
-      hMult_ass[iTrkBin]->Write();
       hKET_D0[iTrkBin]->Write(); 
       hPt_D0[iTrkBin]->Write();
       hEta_D0[iTrkBin]->Write();
@@ -433,6 +434,7 @@ int main(int argc, char** argv)
       hDcaVsMassAndMva[iTrkBin]->Write();
       hMass[iTrkBin]->Write();
       for(int imass=0; imass<ana::nMass; imass++){
+         hMult_ass[imass][iTrkBin]->Write();
          hMass_D0[imass][iTrkBin]->Write();
          hMult_raw_D0[imass][iTrkBin]->Write();
          hMult_eff_D0[imass][iTrkBin]->Write();
@@ -445,7 +447,6 @@ int main(int argc, char** argv)
    delete hMult;
    delete hNtrkofflineVsNtrkgood;
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
-      delete hMult_ass[iTrkBin];
       delete hKET_D0[iTrkBin]; 
       delete hPt_D0[iTrkBin];
       delete hEta_D0[iTrkBin];
@@ -454,6 +455,7 @@ int main(int argc, char** argv)
       delete hDcaVsMassAndMva[iTrkBin];
       delete hMass[iTrkBin];
       for(int imass=0; imass<ana::nMass; imass++){
+         delete hMult_ass[imass][iTrkBin];
          delete hMass_D0[imass][iTrkBin];
          delete hMult_raw_D0[imass][iTrkBin];
          delete hMult_eff_D0[imass][iTrkBin];

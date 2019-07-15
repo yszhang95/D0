@@ -95,10 +95,8 @@ int ana::findNtrkBin(const double& nTrkOffline, const int& trigger)
         break;
      case 5 :
         if(nTrkOffline<100 && nTrkOffline>=80) return 0;
+        else if(nTrkOffline>100) return 1;
         break;
-     case 6 :
-        if(nTrkOffline>100) return 0;
-         break;
    }
    return -1;
 }

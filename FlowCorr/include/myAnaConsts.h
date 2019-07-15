@@ -81,11 +81,10 @@ namespace ana{
       {"PAHM1-6", 2},
       {"PAHM7", 3},
       {"PPMB", 4},
-      {"PPHM_1", 5}, //80-100
-      {"PPHM_2", 6}  //>100
+      {"PPHM", 5}, //80-100, >100
    };
 
-   const std::array<std::string, 2> dataset_HM_PD0 = {"PAHM1-6", "PPHM_2"};
+   const std::array<std::string, 2> dataset_HM_PD0 = {"PAHM1-6", "PPHM"};
    const std::array<std::string, 1> dataset_HM_NPD0 = {"PAHM1-6"};
 
    const std::map<std::string, int> dataset_N_nTrkBin = {
@@ -94,8 +93,7 @@ namespace ana{
       {"PAHM1-6", 1},
       {"PAHM7", 1},
       {"PPMB", 3},
-      {"PPMB_1", 1},
-      {"PPMB_2", 1}
+      {"PPHM", 2},
    };
 
    const std::map<std::string, int> dataset_PA_N_nTrkBin = {
@@ -107,8 +105,7 @@ namespace ana{
 
    const std::map<std::string, int> dataset_PP_N_nTrkBin = {
       {"PPMB", 3},
-      {"PPMB_1", 1},
-      {"PPMB_2", 1}
+      {"PPHM", 2},
    };
 
    const unsigned int PA_Mult_Edges[] = {
@@ -119,12 +116,12 @@ namespace ana{
    };
 
    const unsigned int PA_Mult_N = 4;
-   const unsigned int PP_Mult_N = 3;
+   const unsigned int PP_Mult_N = 2;
    const std::array<std::string, PA_Mult_N>PA_Mult_Order = {
       "PAMB", "PAHM0", "PAHM1-6", "PAHM7"
    };
    const std::array<std::string, PP_Mult_N>PP_Mult_Order = {
-      "PPMB", "PAHM_1", "PAHM_2"
+      "PPMB", "PPHM" 
    };
 
    int findMassBin(const double&);
