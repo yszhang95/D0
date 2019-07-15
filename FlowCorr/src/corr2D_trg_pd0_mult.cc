@@ -40,12 +40,23 @@ bool passD0MVA(const int&, Event*, const int&, const bool&);
 // par2, dataset
 // par3, efficiency hists
 // par4, output dir
+// par5, pT_Min
+// par6, pT_Max
+// par7, y_Min
+// par8, y_Max
+
+struct kinematicalCuts{
+   float pTMin;
+   float pTMax;
+   float yMin;
+   float yMax;
+} cuts;
 
 int main(int argc, char** argv)
 {
    TH1::SetDefaultSumw2(true);
 
-   if(argc!=5) {
+   if(argc!=9) {
       std::cerr << "The number of arguments is wrong" << std::endl;
       return -1;
    }
@@ -55,8 +66,16 @@ int main(int argc, char** argv)
 
    string dataset(argv[2]);
 
+   // the kinematical cuts
+   cuts.pTMin = stof(argv[5]);
+   cuts.pTMax = stof(argv[6]);
+   cuts.yMin  = stof(argv[7]);
+   cuts.yMax  = stof(argv[8]);
+
    const int dataset_trigger = ana::Get_Trigger(dataset);
+   cout << "dataset number: " << dataset_trigger << endl;
    const int nTrkBin = ana::Get_N_nTrkBin(dataset);
+   cout << "number of bins of ntrk: " <<  nTrkBin << endl;
    if(dataset_trigger<0 || nTrkBin<0){
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
@@ -65,8 +84,7 @@ int main(int argc, char** argv)
          << "PAHM1-6\n"
          << "PAHM7\n"
          << "PPMB\n"
-         << "PPHM_1  //mult 80-100 \n"
-         << "PPHM_2  //mult > 100\n"
+         << "PPHM  //mult 80-100, 100-inf \n"
          << "// means comments"
          << endl;
       return -1;
@@ -99,6 +117,7 @@ int main(int argc, char** argv)
    if(!checkBranchStatus(evt)) return -1;
 
    // declare hists
+   TH1D* hEvt;
    TH1D* hMult;
    TH1D* hMult_ass[nTrkBin];
 
@@ -110,6 +129,7 @@ int main(int argc, char** argv)
    TH1D* hNtrk_D0[nTrkBin];
 
    TH1D* hMass_D0[ana::nMass][nTrkBin];
+   TH1D* hMass[nTrkBin];
 
    TH2D* hNtrkofflineVsNtrkgood;
 
@@ -120,6 +140,7 @@ int main(int argc, char** argv)
    TH2D* hSignal_D0[ana::nMass][nTrkBin];
    TH2D* hBackground_D0[ana::nMass][nTrkBin];
 
+   hEvt  = new TH1D("hEvt", "", 600, 0, 600);
    hMult = new TH1D("hMult", "", 600, 0, 600);
 
    hNtrkofflineVsNtrkgood = new TH2D("hNtrkofflineVsNtrkgood", "", 300, 0, 300, 300, 0, 300);
@@ -129,8 +150,9 @@ int main(int argc, char** argv)
       hPt_D0[iTrkBin] = new TH1D(Form("hPt_trk%d", iTrkBin), "", 3000, 0, 30);
       hEta_D0[iTrkBin] = new TH1D(Form("hEta_trk%d", iTrkBin), "", 24, -2.4, 2.4);
       hRapidity_D0[iTrkBin] = new TH1D(Form("hRapidity_trk%d", iTrkBin), "", 24, -2.4, 2.4);
-      hNtrk_D0[iTrkBin] = new TH1D(Form("hNtrk_trk%d", iTrkBin), "", 3000, 0, 30);
+      hNtrk_D0[iTrkBin] = new TH1D(Form("hNtrk_trk%d", iTrkBin), "", 3000, 0, 3000);
       hDcaVsMassAndMva[iTrkBin] = new TH3D(Form("hDcaVsMassAndMva_trk%d", iTrkBin), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 160, 0, 0.08);
+      hMass[iTrkBin] = new TH1D(Form("hMass_%d", iTrkBin), "", 60, 1.7, 2.0);
 
       hMult_ass[iTrkBin] = new TH1D(Form("hMult_ass_trk%d", iTrkBin), "", 600, 0, 600);
       for(int imass=0; imass<ana::nMass; imass++){
@@ -190,6 +212,8 @@ int main(int argc, char** argv)
          continue;
       }
 
+      hEvt->Fill(evt->nTrkOffline());
+
       if(!passGoodVtx(evt)) continue;
 
       auto iz = ana::findZVtxBin(evt->BestVtxZ());
@@ -214,7 +238,9 @@ int main(int argc, char** argv)
          int imass = ana::findMassBin(evt->Mass(id0));
          if(imass == -1) continue;
 
-         if(!passD0Selections(dataset_trigger, evt, id0, isPromptD0)) continue;
+         if(!passD0PreSelections(evt, id0)) continue;
+         if(!passD0KinematicCuts(evt, id0)) continue;
+         if(!passD0MVA(dataset_trigger, evt, id0, isPromptD0)) continue;
 
          double effks = h_eff->GetBinContent(h_eff->FindBin(evt->Pt(id0), evt->Y(id0)));
          
@@ -231,19 +257,14 @@ int main(int argc, char** argv)
          double KET = sqrt(pow(evt->Mass(id0), 2) + pow(evt->Pt(id0), 2)
                - evt->Mass(id0));
          hKET_D0[iTrkBin]->Fill(KET, 1./effks);
+         hMass[iTrkBin]->Fill(evt->Mass(id0), 1./effks);
+         hNtrk_D0[iTrkBin]->Fill(evt->nTrkOffline());
 
          pVect_trg_d0[imass].push_back(p_d0);
          effVect_trg_d0[imass].push_back(effks);
          indexVect_d0[imass].push_back(id0);
          pVect_dau1_d0[imass].push_back(p_dau1);
          pVect_dau2_d0[imass].push_back(p_dau2);
-      }
-
-      for(int imass=0; imass<ana::nMass; imass++){
-         if(!pVect_trg_d0[imass].size()){
-            hNtrk_D0[iTrkBin]->Fill(evt->nTrkOffline());
-            break;
-         }
       }
 
       for(unsigned int itrack=0; itrack<evt->CandSizeTrk(); itrack++){
@@ -387,9 +408,11 @@ int main(int argc, char** argv)
       }
 
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_d0ana_ntrk_%.1f.root", prefix.c_str(), datalist.c_str(), ana::d0_y_max_);
+         outName = TString::Format("%s/fout_%s_d0ana_ntrk_pT%.1f-%.1f_y%.1f-%.1f.root", prefix.c_str(), 
+               datalist.c_str(), cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
       else
-         outName = TString::Format("fout_%s_d0ana_ntrk_%.1f.root", datalist.c_str(), ana::d0_y_max_);
+         outName = TString::Format("fout_%s_d0ana_ntrk_pT%.1f-%.1f_y%.1f-%.1f.root", datalist.c_str(),
+               cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
    }
    else return -1;
 
@@ -407,6 +430,7 @@ int main(int argc, char** argv)
       hRapidity_D0[iTrkBin]->Write();
       hNtrk_D0[iTrkBin]->Write();
       hDcaVsMassAndMva[iTrkBin]->Write();
+      hMass[iTrkBin]->Write();
       for(int imass=0; imass<ana::nMass; imass++){
          hMass_D0[imass][iTrkBin]->Write();
          hMult_raw_D0[imass][iTrkBin]->Write();
@@ -426,6 +450,7 @@ int main(int argc, char** argv)
       delete hRapidity_D0[iTrkBin];
       delete hNtrk_D0[iTrkBin];
       delete hDcaVsMassAndMva[iTrkBin];
+      delete hMass[iTrkBin];
       for(int imass=0; imass<ana::nMass; imass++){
          delete hMass_D0[imass][iTrkBin];
          delete hMult_raw_D0[imass][iTrkBin];
@@ -511,14 +536,6 @@ bool checkBranchStatus(Event* event)
    return check;
 }
 
-inline bool passD0Selections(const int& trigger, Event* event, const int& icand, const bool& isPromptD0)
-{
-   if(!passD0PreSelections(event, icand)) return false;
-   if(!passD0KinematicCuts(event, icand)) return false;
-   if(!passD0MVA(trigger, event, icand, isPromptD0)) return false;
-   return true;
-}
-
 bool passD0PreSelections(Event* event, const int& icand)
 {
    bool passPointingAngle = std::fabs(event->PointingAngle3D(icand)) < 1;
@@ -539,8 +556,8 @@ bool passD0KinematicCuts(Event* event, const int& icand)
 {
    //bool passEta = fabs(event->Eta(icand)<1000.);
    //bool passEta = fabs(event->Eta(icand)<1.5);
-   bool passPt = event->Pt(icand) < ana::d0_pt_max_ && event->Pt(icand) >= ana::d0_pt_min_;
-   bool passY = event->Y(icand) < ana::d0_y_max_ && event->Y(icand) >= ana::d0_y_min_;
+   bool passPt = event->Pt(icand) < cuts.pTMax && event->Pt(icand) >= cuts.pTMin;
+   bool passY = event->Y(icand) < cuts.yMax && event->Y(icand) >= cuts.yMin;
    return //passEta;
       passY &&
       passPt;

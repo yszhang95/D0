@@ -4,7 +4,7 @@ Makefile help one compile the source codes.
 Before compiling, make sure dir, include, src, bin, lib, exist
 # Executables 
 Exes are in the dir bin, `corr2D_trg_pd0_mult` give the 2D correlation functions of prompt d0,
-input parameters are the list of the ROOT files, dataset, effciency file, output dir
+input parameters are the list of the ROOT files, dataset, effciency file, output dir, pTMin, pTMax, yMin, yMax
 
 `corr2D_trg_ref_mult` give the 2D correlation functions  of ref particles, 
 input parameters are the list of the ROOT files, dataset, output dir
@@ -23,8 +23,7 @@ PAHM0   // 150-185
 PAHM1-6 // 185-250
 PAHM7   // 250-inf
 PPMB    // MB 0-20, 20-40, 40-80
-PPHM_1    // high mult 80-100 
-PPHM_2    // high mult > 100
+PPHM    // high mult 80-100 , 100 - inf
 ```
 
 # Batch jobs
