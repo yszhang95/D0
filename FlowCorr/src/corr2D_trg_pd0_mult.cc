@@ -420,6 +420,7 @@ int main(int argc, char** argv)
    fout.cd();
 
    // start writing output
+   hEvt->Write();
    hMult->Write();
    hNtrkofflineVsNtrkgood->Write();
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
@@ -440,6 +441,7 @@ int main(int argc, char** argv)
       }
    }
 
+   delete hEvt;
    delete hMult;
    delete hNtrkofflineVsNtrkgood;
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
