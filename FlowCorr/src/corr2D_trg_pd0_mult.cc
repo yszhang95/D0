@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 
    // declare hists
    TH1D* hMult;
-   TH1D* hMult_ass;
+   TH1D* hMult_ass[nTrkBin];
 
    TH1D* hKET_D0[nTrkBin];
    TH1D* hPt_D0[nTrkBin];
@@ -121,7 +121,6 @@ int main(int argc, char** argv)
    TH2D* hBackground_D0[ana::nMass][nTrkBin];
 
    hMult = new TH1D("hMult", "", 600, 0, 600);
-   hMult_ass = new TH1D("hMult_ass", "", 600, 0, 600);
 
    hNtrkofflineVsNtrkgood = new TH2D("hNtrkofflineVsNtrkgood", "", 300, 0, 300, 300, 0, 300);
 
@@ -132,6 +131,8 @@ int main(int argc, char** argv)
       hRapidity_D0[iTrkBin] = new TH1D(Form("hRapidity_trk%d", iTrkBin), "", 24, -2.4, 2.4);
       hNtrk_D0[iTrkBin] = new TH1D(Form("hNtrk_trk%d", iTrkBin), "", 3000, 0, 30);
       hDcaVsMassAndMva[iTrkBin] = new TH3D(Form("hDcaVsMassAndMva_trk%d", iTrkBin), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 160, 0, 0.08);
+
+      hMult_ass[iTrkBin] = new TH1D(Form("hMult_ass_trk%d", iTrkBin), "", 600, 0, 600);
       for(int imass=0; imass<ana::nMass; imass++){
          hMass_D0[imass][iTrkBin] = new TH1D(Form("hMassD0_mass%d_trk%d", imass, iTrkBin),
                "", 200, 1.5, 2.5);
@@ -265,7 +266,7 @@ int main(int argc, char** argv)
 
       // calculate signal
       unsigned int nMult_ass = (unsigned int) pVect_ass.size();
-      hMult_ass->Fill(nMult_ass);
+      hMult_ass[iTrkBin]->Fill(nMult_ass);
       
       unsigned int nMult_trg_raw_d0[ana::nMass]; // Ntrig for mass & pt bins
       double nMult_trg_eff_d0[ana::nMass]; // eff corrected Ntrig for mass & pt bins
@@ -397,9 +398,9 @@ int main(int argc, char** argv)
 
    // start writing output
    hMult->Write();
-   hMult_ass->Write();
    hNtrkofflineVsNtrkgood->Write();
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
+      hMult_ass[iTrkBin]->Write();
       hKET_D0[iTrkBin]->Write(); 
       hPt_D0[iTrkBin]->Write();
       hEta_D0[iTrkBin]->Write();
@@ -416,9 +417,9 @@ int main(int argc, char** argv)
    }
 
    delete hMult;
-   delete hMult_ass;
    delete hNtrkofflineVsNtrkgood;
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
+      delete hMult_ass[iTrkBin];
       delete hKET_D0[iTrkBin]; 
       delete hPt_D0[iTrkBin];
       delete hEta_D0[iTrkBin];

@@ -1,6 +1,6 @@
 void proj1D_v2vsNtrk_PD0_Process(const char* input_d0= "",
       const char* input_ref = "", 
-const float y=0.0, const string dataset="")
+const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
 {
    const double deltaEtaBound = 1;
 
@@ -15,10 +15,20 @@ const float y=0.0, const string dataset="")
 
    double v2_PD0[ana::nMass][n_trk_bin_];
    double v2_PD0_err[ana::nMass][n_trk_bin_];
+
    double V2_PD0[ana::nMass][n_trk_bin_];
    double V2_PD0_err[ana::nMass][n_trk_bin_];
    double V2_REF[n_trk_bin_];
    double V2_REF_err[n_trk_bin_];
+
+   double N_ass[n_trk_bin_];
+   double N_ass_low[n_trk_bin_];
+
+   double Upsilon[ana::nMass][n_trk_bin_];
+   double Upsilon_low[ana::nMass][n_trk_bin_];
+
+   double V2_Sub_PD0[ana::nMass][n_trk_bin_];
+   double V2_Sub_PD0_err[ana::nMass][n_trk_bin_];
 
    TFile* f1 = new TFile(input_d0);
    TFile* f2 = new TFile(input_ref);
