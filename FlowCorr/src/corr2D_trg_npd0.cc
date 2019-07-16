@@ -23,7 +23,9 @@
 
 using namespace std;
 
-static bool isPromptD0 = true;
+
+int findDcaBin(const double& dca, const double dcaCut[][ana::nPt_NPD0_pPb], 
+      const int& nDca, const int& ipt);
 
 void setBranchStatus(Event*);
 bool checkBranchStatus(Event*);
@@ -39,13 +41,6 @@ inline bool passNtrkoffline(const double&, const int&);
 vector<double> setPtBin(const string& dataset);
 pair<int, int> ntrkEdges(const string& dataset);
 
-struct kinematicalCuts{
-   float pTMin;
-   float pTMax;
-   float yMin;
-   float yMax;
-} cuts;
-
 // par0, main
 // par1, datalist
 // par2, dataset
@@ -55,19 +50,51 @@ struct kinematicalCuts{
 // par6, pT_Max
 // par7, y_Min
 // par8, y_Max
+// par9, csv of dca cut
+static bool isPromptD0 = false;
+
+struct kinematicalCuts{
+   float pTMin;
+   float pTMax;
+   float yMin;
+   float yMax;
+} cuts;
 
 int main(int argc, char** argv)
 {
    TH1::SetDefaultSumw2(true);
 
-   if(argc!=9) {
+   if(argc!=10) {
       std::cerr << "The number of arguments is wrong" << std::endl;
       return -1;
+   }
+
+   //constrcut ntuple to read dca cut
+   TTree dcaCutTree("dcaCutTree", "tree to read csv of dca cut");
+
+   // try to reaa csv of dca cut
+   dcaCutTree.ReadFile(argv[9]);
+   if(dcaCutTree.GetNbranches() != ana::nPt_NPD0_pPb) {
+      cerr << "nu of ptbin in csv is different from that in myAnaConsts.h" << endl;
+      return -1;
+   }
+
+   const long int nDca = dcaCutTree.GetEntries();
+   double dcaCut[nDca][ana::nPt_NPD0_pPb] = {0.};
+   float  dcaCutTemp[ana::nPt_NPD0_pPb] = {0.};
+
+   // start to fill dca cut
+   for(int ipt=0; ipt<ana::nPt_NPD0_pPb; ipt++){
+      dcaCutTree.SetBranchAddress(Form("pt%d", ipt), &dcaCutTemp[ipt]);
+   }
+   for(int idca=0; idca<nDca; idca++){
+      dcaCutTree.GetEntry(idca);
+      for(int ipt=0; ipt<ana::nPt_NPD0_pPb; ipt++)
+         dcaCut[idca][ipt] = dcaCutTemp[ipt];
    }
    
    string datalist(argv[1]);
    std::cout << datalist << std::endl;
-
    string dataset(argv[2]);
 
    // the kinematical cuts
@@ -77,25 +104,11 @@ int main(int argc, char** argv)
    cuts.yMax  = stof(argv[8]);
 
    const int dataset_trigger = ana::Get_Trigger(dataset);
-   if(dataset_trigger<0 || !ana::isHM_PD0_DataSet(dataset)){
+   cout << "dataset number: " << dataset_trigger << endl;
+   if(dataset_trigger<0){
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
-         << "PAHM1-6\n"
-         << "PPHM  //mult > 100, 80-100 not used\n"
-         << "// means comments"
-         << endl;
-      return -1;
-   }
-
-   const vector<double> ptbin = setPtBin(dataset);
-   const int nPt = ptbin.size()-1;
-
-   if(!ptbin.size() || !nPt) {
-      cerr << "wrong dataset name" << endl;
-      cout << "name should be:\n" 
-         << "PAHM1-6\n"
-         << "PPHM  //mult > 100, 80-100 not used\n"
-         << "// means comments"
+         << "PAHM1-6"
          << endl;
       return -1;
    }
@@ -112,7 +125,10 @@ int main(int argc, char** argv)
       return -1;
    }
 
-   TChain *chain_d0 = new TChain("d0ana/VertexCompositeNtuple");
+   const vector<double> ptbin = setPtBin(dataset);
+   const int nPt = ptbin.size()-1;
+
+   TChain *chain_d0 = new TChain("npd0ana1/VertexCompositeNtuple");
    TChain *chain_tracks = new TChain("track_ana/trackTree");
 
    TFileCollection* fcData = new TFileCollection(datalist.c_str(), "", datalist.c_str());
@@ -120,67 +136,73 @@ int main(int argc, char** argv)
    chain_d0->AddFileInfoList(fcData->GetList());
 
    chain_tracks->AddFileInfoList(fcData->GetList());
+   std::cout << "tracks ready" << std::endl;
 
    Event* evt = new Event(chain_d0, chain_tracks);
    setBranchStatus(evt);
-   if(!checkBranchStatus(evt)) return -1;
+   if(!checkBranchStatus(evt)) return 0;
 
    // declare hists
    TH1D* hEvt;
    TH1D* hMult;
    TH1D* hMult_ass;
 
-   TH1D* hKET_D0[nPt];
-   TH1D* hPt_D0[nPt];
-   TH1D* hEta_D0[nPt];
-   TH1D* hRapidity_D0[nPt];
+   TH1D* hKET_D0[nPt][nDca];
+   TH1D* hPt_D0[nPt][nDca];
+   TH1D* hEta_D0[nPt][nDca];
+   TH1D* hRapidity_D0[nPt][nDca];
+   TH1D* hMass[nPt][nDca];
 
-   TH1D* hMass[nPt];
-
-   TH1D* hMass_D0[ana::nMass][nPt];
+   TH1D* hMass_D0[ana::nMass][nPt][nDca];
 
    TH2D* hNtrkofflineVsNtrkgood;
 
    TH3D* hDcaVsMassAndMva[nPt];
 
-   TH1D* hMult_raw_D0[ana::nMass][nPt];
-   TH1D* hMult_eff_D0[ana::nMass][nPt];
-   TH2D* hSignal_D0[ana::nMass][nPt];
-   TH2D* hBackground_D0[ana::nMass][nPt];
+   TH1D* hMult_raw_D0[ana::nMass][nPt][nDca];
+   TH1D* hMult_eff_D0[ana::nMass][nPt][nDca];
+   TH2D* hSignal_D0[ana::nMass][nPt][nDca];
+   TH2D* hBackground_D0[ana::nMass][nPt][nDca];
+
+   TH1D* hDca[ana::nMass][nPt][nDca];
 
    hEvt = new TH1D("hEvt", "", 600, 0, 600);
    hMult = new TH1D("hMult", "", 600, 0, 600);
    hMult_ass = new TH1D("hMult_ass", "", 600, 0, 600);
 
-   hNtrkofflineVsNtrkgood = new TH2D("hNtrkofflineVsNtrkgood", "", 300, 0, 300, 300, 0, 300);
+   hNtrkofflineVsNtrkgood = new TH2D("hNtrkofflineVsNtrkgood", "", 150, 151, 300, 150, 151, 300);
 
    for(int ipt=0; ipt<nPt; ipt++){
-      hKET_D0[ipt] = new TH1D(Form("hKET_pt%d", ipt), "", 3000, 0, 30);
-      hPt_D0[ipt] = new TH1D(Form("hPt_pt%d", ipt), "", 3000, 0, 30);
-      hEta_D0[ipt] = new TH1D(Form("hEta_pt%d", ipt), "", 24, -2.4, 2.4);
-      hRapidity_D0[ipt] = new TH1D(Form("hRapidity_pt%d", ipt), "", 24, -2.4, 2.4);
+      for(int idca=0; idca<nDca; idca++){
+         hMass[ipt][idca] = new TH1D(Form("hMass_pt%d_dca%d", ipt, idca), "", 60, 1.7, 2.0);
+         hKET_D0[ipt][idca] = new TH1D(Form("hKET_pt%d_dca%d", ipt, idca), "", 3000, 0, 30);
+         hPt_D0[ipt][idca] = new TH1D(Form("hPt_pt%d_dca%d", ipt, idca), "", 3000, 0, 30);
+         hEta_D0[ipt][idca] = new TH1D(Form("hEta_pt%d_dca%d", ipt, idca), "", 24, -2.4, 2.4);
+         hRapidity_D0[ipt][idca] = new TH1D(Form("hRapidity_pt%d_dca%d", ipt, idca), "", 24, -2.4, 2.4);
+      }
       hDcaVsMassAndMva[ipt] = new TH3D(Form("hDcaVsMassAndMva_pt%d", ipt), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 800, 0, 0.08);
-
-      hMass[ipt] = new TH1D(Form("hMass_pt%d", ipt), "", 60, 1.7, 2.0);
       for(int imass=0; imass<ana::nMass; imass++){
-         hMass_D0[imass][ipt] = new TH1D(Form("hMassD0_mass%d_pt%d", imass, ipt),
+         for(int idca=0; idca<nDca; idca++){
+            hMass_D0[imass][ipt][idca] = new TH1D(Form("hMassD0_mass%d_pt%d_dca%d", imass, ipt, idca),
                   "", 200, 1.5, 2.5);
-         hMult_raw_D0[imass][ipt] = new TH1D(Form("hMult_raw_D0_mass%d_pt%d", imass, ipt),
+            hMult_raw_D0[imass][ipt][idca] = new TH1D(Form("hMult_raw_D0_mass%d_pt%d_dca%d", imass, ipt, idca),
                   "", 50, 0, 50);
-         hMult_eff_D0[imass][ipt] = new TH1D(Form("hMult_eff_D0_mass%d_pt%d", imass, ipt),
+            hMult_eff_D0[imass][ipt][idca] = new TH1D(Form("hMult_eff_D0_mass%d_pt%d_dca%d", imass, ipt, idca),
                   "", 50, 0, 50);
-         hSignal_D0[imass][ipt] = new TH2D(Form("hSignal_mass%d_pt%d", imass, ipt),
+            hSignal_D0[imass][ipt][idca] = new TH2D(Form("hSignal_mass%d_pt%d_dca%d", imass, ipt, idca),
                   "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
                   ana::nPhiBin, ana::phiBegin, ana::phiEnd);
-         hBackground_D0[imass][ipt] = new TH2D(Form("hBackground_mass%d_pt%d", imass, ipt),
+            hBackground_D0[imass][ipt][idca] = new TH2D(Form("hBackground_mass%d_pt%d_dca%d", imass, ipt, idca),
                   "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
                   ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+            hDca[imass][ipt][idca] = new TH1D(Form("hDca_mass%d_pt%d_dca%d", imass, ipt, idca), "", 800, 0, 0.08);
+         }
       }
    }
 
    // declare vectors
    vector<TVector3> pVect_trg_d0[ana::nMass][nPt];
-   vector<double>   effVect_trg_d0[ana::nMass][nPt];
+   vector<double> effVect_trg_d0[ana::nMass][nPt];
 
    vector<TVector3> pVect_dau1_d0[ana::nMass][nPt];
 
@@ -222,12 +244,8 @@ int main(int argc, char** argv)
       hEvt->Fill(evt->nTrkOffline());
 
       if(!passGoodVtx(evt)) continue;
-
       auto iz = ana::findZVtxBin(evt->BestVtxZ());
       if(iz == -1) continue;
-
-      // Ntrkoffline cut
-      if(!passNtrkoffline(evt->nTrkOffline(), dataset_trigger)) continue;
 
       // count number of good tracks per event
       unsigned int nMult_ass_good = 0;
@@ -240,6 +258,9 @@ int main(int argc, char** argv)
 
       hNtrkofflineVsNtrkgood->Fill(nMult_ass_good, evt->nTrkOffline());
 
+      // Ntrkoffline cut
+      if(!passNtrkoffline(evt->nTrkOffline(), dataset_trigger)) continue;
+
       for(int id0=0; id0<evt->CandSize(); id0++){
          int imass = ana::findMassBin(evt->Mass(id0));
          int ipt = ana::findPtBin(evt->Pt(id0), ptbin);
@@ -249,24 +270,27 @@ int main(int argc, char** argv)
 
          if(!passD0Selections(dataset_trigger, evt, id0, isPromptD0)) continue;
 
-         double effks = h_eff->GetBinContent(h_eff->FindBin(evt->Pt(id0), evt->Y(id0)));
-
-         hDcaVsMassAndMva[ipt]->Fill(evt->Mass(id0), evt->Mva(id0), 0., 1./effks);
+         const double DCA = evt->DecayL3D(id0) * sin(evt->PointingAngle3D(id0));
+         hDcaVsMassAndMva[ipt]->Fill(evt->Mass(id0), evt->Mva(id0), DCA);
 
          p_dau1.SetPtEtaPhi(evt->PtD1(id0), evt->etaD1(id0), evt->phiD1(id0));
          p_dau2.SetPtEtaPhi(evt->PtD2(id0), evt->etaD2(id0), evt->phiD2(id0));
          p_d0.SetPtEtaPhi(evt->Pt(id0), evt->Eta(id0), evt->Phi(id0));
 
+         //double effks = 1.0;
+         double effks = h_eff->GetBinContent(h_eff->FindBin(evt->Pt(id0), evt->Y(id0)));
+
          double KET = sqrt(pow(evt->Mass(id0), 2) + pow(evt->Pt(id0), 2)
                   - evt->Mass(id0));
 
-         hMass_D0[imass][ipt]->Fill(evt->Mass(id0), 1./effks);
-         hPt_D0[ipt]->Fill(evt->Pt(id0), 1./effks);
-         hEta_D0[ipt]->Fill(p_d0.Eta(), 1./effks);
-         hRapidity_D0[ipt]->Fill(evt->Y(id0), 1./effks);
-         hKET_D0[ipt]->Fill(KET, 1./effks);
-
-         hMass[ipt]->Fill(evt->Mass(id0), 1./effks);
+         auto dcaIndex = findDcaBin(DCA, dcaCut, nDca, ipt);
+         hMass_D0[imass][ipt][dcaIndex]->Fill(evt->Mass(id0));
+         hPt_D0[ipt][dcaIndex]->Fill(evt->Pt(id0), 1./effks);
+         hEta_D0[ipt][dcaIndex]->Fill(p_d0.Eta(), 1./effks);
+         hRapidity_D0[ipt][dcaIndex]->Fill(evt->Y(id0), 1./effks);
+         hKET_D0[ipt][dcaIndex]->Fill(KET, 1./effks);
+         hMass[ipt][dcaIndex]->Fill(evt->Mass(id0));
+         hDca[imass][ipt][dcaIndex]->Fill(DCA);
 
          pVect_trg_d0[imass][ipt].push_back(p_d0);
          effVect_trg_d0[imass][ipt].push_back(effks);
@@ -297,13 +321,15 @@ int main(int argc, char** argv)
       unsigned int nMult_ass = (unsigned int) pVect_ass.size();
       hMult_ass->Fill(nMult_ass);
       
-      unsigned int nMult_trg_raw_d0[ana::nMass][nPt]; // Ntrig for mass & pt bins
-      double nMult_trg_eff_d0[ana::nMass][nPt]; // eff corrected Ntrig for mass & pt bins
+      unsigned int nMult_trg_raw_d0[ana::nMass][nPt][nDca]; // Ntrig for mass & pt bins
+      double nMult_trg_eff_d0[ana::nMass][nPt][nDca]; // eff corrected Ntrig for mass & pt bins
 
       for(int imass=0; imass<ana::nMass; imass++){
          for(int ipt=0; ipt<nPt; ipt++){
-            nMult_trg_raw_d0[imass][ipt] = 0;
-            nMult_trg_eff_d0[imass][ipt] = 0;
+            for(int idca=0; idca<nDca; idca++){
+               nMult_trg_raw_d0[imass][ipt][idca] = 0;
+               nMult_trg_eff_d0[imass][ipt][idca] = 0;
+            }
          }
       }
 
@@ -311,20 +337,19 @@ int main(int argc, char** argv)
          for(int ipt=0; ipt<nPt; ipt++){
             unsigned int nMult_trg_d0 = (unsigned int) pVect_trg_d0[imass][ipt].size();
             for(unsigned int id0=0; id0<nMult_trg_d0; id0++){
-               if(ipt != ana::findPtBin(pVect_trg_d0[imass][ipt].at(id0).Pt(), ptbin)) 
-                  std::cout << "pT bin error" << std::endl;
                double effks = effVect_trg_d0[imass][ipt].at(id0);
-               //int index = indexVect_d0[imass][ipt].at(id0);
-               nMult_trg_raw_d0[imass][ipt] += 1;
-               nMult_trg_eff_d0[imass][ipt] += 1./effks;
+               int index = indexVect_d0[imass][ipt].at(id0);
+               const double DCA = evt->DecayL3D(index) * sin(evt->PointingAngle3D(index));
+               auto dcaIndex = findDcaBin(DCA, dcaCut, nDca, ipt);
+               nMult_trg_raw_d0[imass][ipt][dcaIndex] += 1;
+               nMult_trg_eff_d0[imass][ipt][dcaIndex] += 1./effks;
+            }
+            for(int idca=0; idca<nDca; idca++){
+               hMult_raw_D0[imass][ipt][idca]->Fill(nMult_trg_raw_d0[imass][ipt][idca]);
+               hMult_eff_D0[imass][ipt][idca]->Fill(nMult_trg_eff_d0[imass][ipt][idca]);
             }
 
-            hMult_raw_D0[imass][ipt]->Fill(nMult_trg_raw_d0[imass][ipt]);
-            hMult_eff_D0[imass][ipt]->Fill(nMult_trg_eff_d0[imass][ipt]);
-
             for(unsigned int id0=0; id0<nMult_trg_d0; id0++){
-               if(ipt!=ana::findPtBin(pVect_trg_d0[imass][ipt].at(id0).Pt(), ptbin)) 
-                  std::cerr << "pT bin error" << std::endl;
                double effks = effVect_trg_d0[imass][ipt].at(id0);
                for(unsigned int iass=0; iass<nMult_ass; iass++){
                   TVector3 pvector_ass = pVect_ass.at(iass);
@@ -342,8 +367,11 @@ int main(int argc, char** argv)
                   double deltaPhi = pvector_ass.DeltaPhi(pVect_trg_d0[imass][ipt].at(id0));
                   if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
 
-                  hSignal_D0[imass][ipt]->Fill(deltaEta, deltaPhi, 
-                           1./nMult_trg_eff_d0[imass][ipt]/effks/effweight_ass);
+                  int index = indexVect_d0[imass][ipt].at(id0);
+                  const double DCA = evt->DecayL3D(index) * sin(evt->PointingAngle3D(index));
+                  auto dcaIndex = findDcaBin(DCA, dcaCut, nDca, ipt);
+                  hSignal_D0[imass][ipt][dcaIndex]->Fill(deltaEta, deltaPhi, 
+                           1./nMult_trg_eff_d0[imass][ipt][dcaIndex]/effks/effweight_ass);
                }
             }
          }
@@ -357,13 +385,11 @@ int main(int argc, char** argv)
             for(int ipt=0; ipt<nPt; ipt++){
                unsigned int nMult_trg_d0 = (unsigned int) pVect_trg_d0[imass][ipt].size();
                for(unsigned int id0=0; id0<nMult_trg_d0; id0++){
-                  double effks = effVect_trg_d0[imass][ipt].at(id0);
                   // simultaneously read momentum and efficiency
                   auto ievt_eff_ass = effVectList_ass[iz].begin();
                   for(auto& ievt_p_ass : pVectList_ass[iz]){
 
-                     if(ipt!=ana::findPtBin(pVect_trg_d0[imass][ipt].at(id0).Pt(), ptbin)) 
-                        std::cerr << "pT bin error" << std::endl;
+                     double effks = effVect_trg_d0[imass][ipt].at(id0);
                      unsigned int n_ass = ievt_p_ass.size();
                      if(n_ass!=ievt_eff_ass->size()){
                         cout << "wrong" << endl;
@@ -372,13 +398,15 @@ int main(int argc, char** argv)
                      for(unsigned int iass=0; iass<n_ass; iass++){
                         TVector3 pvector_ass = ievt_p_ass.at(iass);
                         double effweight_ass = ievt_eff_ass->at(iass);
-
                         double deltaEta = pvector_ass.Eta() - pVect_trg_d0[imass][ipt].at(id0).Eta();
                         double deltaPhi = pvector_ass.DeltaPhi(pVect_trg_d0[imass][ipt].at(id0));
                         if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
 
-                        hBackground_D0[imass][ipt]->Fill(deltaEta, deltaPhi, 
-                              1./nMult_trg_eff_d0[imass][ipt]/effks/effweight_ass);
+                        int index = indexVect_d0[imass][ipt].at(id0);
+                        const double DCA = evt->DecayL3D(index) * sin(evt->PointingAngle3D(index));
+                        auto dcaIndex = findDcaBin(DCA, dcaCut, nDca, ipt);
+                        hBackground_D0[imass][ipt][dcaIndex]->Fill(deltaEta, deltaPhi, 
+                              1./nMult_trg_eff_d0[imass][ipt][dcaIndex]/effks/effweight_ass);
                      }
                      ievt_eff_ass++;
                   }
@@ -421,6 +449,9 @@ int main(int argc, char** argv)
 
    TString outName; 
    if(isPromptD0){
+      return -1;
+   } 
+   else{
       string prefix(argv[4]);
       size_t found_slash = datalist.find("/");
       while(found_slash!=std::string::npos) {
@@ -429,16 +460,14 @@ int main(int argc, char** argv)
       }
       auto ntrkBounds = ntrkEdges(dataset);
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+         outName = TString::Format("%s/fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
                prefix.c_str(), datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
       else
-         outName = TString::Format("fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+         outName = TString::Format("fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
                datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
-   } 
-   else return -1;
-
+   }
    TFile fout(outName.Data(), "recreate");
    fout.cd();
 
@@ -448,20 +477,23 @@ int main(int argc, char** argv)
    hMult_ass->Write();
    hNtrkofflineVsNtrkgood->Write();
    for(int ipt=0; ipt<nPt; ipt++){
-      hKET_D0[ipt]->Write(); 
-      hPt_D0[ipt]->Write();
-      hEta_D0[ipt]->Write();
-      hRapidity_D0[ipt]->Write();
+      for(int idca=0; idca<nDca; idca++){
+         hKET_D0[ipt][idca]->Write(); 
+         hPt_D0[ipt][idca]->Write();
+         hEta_D0[ipt][idca]->Write();
+         hRapidity_D0[ipt][idca]->Write();
+         hMass[ipt][idca]->Write();
+      }
       hDcaVsMassAndMva[ipt]->Write();
-      
-      hMass[ipt]->Write();
-
       for(int imass=0; imass<ana::nMass; imass++){
-         hMass_D0[imass][ipt]->Write();
-         hMult_raw_D0[imass][ipt]->Write();
-         hMult_eff_D0[imass][ipt]->Write();
-         hSignal_D0[imass][ipt]->Write();
-         hBackground_D0[imass][ipt]->Write();
+         for(int idca=0; idca<nDca; idca++){
+            hMass_D0[imass][ipt][idca]->Write();
+            hMult_raw_D0[imass][ipt][idca]->Write();
+            hMult_eff_D0[imass][ipt][idca]->Write();
+            hSignal_D0[imass][ipt][idca]->Write();
+            hBackground_D0[imass][ipt][idca]->Write();
+            hDca[imass][ipt][idca]->Write();
+         }
       }
    }
 
@@ -470,18 +502,23 @@ int main(int argc, char** argv)
    delete hMult_ass;
    delete hNtrkofflineVsNtrkgood;
    for(int ipt=0; ipt<nPt; ipt++){
-      delete hKET_D0[ipt]; 
-      delete hPt_D0[ipt];
-      delete hEta_D0[ipt];
-      delete hRapidity_D0[ipt];
+      for(int idca=0; idca<nDca; idca++){
+         delete hKET_D0[ipt][idca]; 
+         delete hPt_D0[ipt][idca];
+         delete hEta_D0[ipt][idca];
+         delete hRapidity_D0[ipt][idca];
+         delete hMass[ipt][idca];
+      }
       delete hDcaVsMassAndMva[ipt];
-      delete hMass[ipt];
       for(int imass=0; imass<ana::nMass; imass++){
-         delete hMass_D0[imass][ipt];
-         delete hMult_raw_D0[imass][ipt];
-         delete hMult_eff_D0[imass][ipt];
-         delete hSignal_D0[imass][ipt];
-         delete hBackground_D0[imass][ipt];
+         for(int idca=0; idca<nDca; idca++){
+            delete hMass_D0[imass][ipt][idca];
+            delete hMult_raw_D0[imass][ipt][idca];
+            delete hMult_eff_D0[imass][ipt][idca];
+            delete hSignal_D0[imass][ipt][idca];
+            delete hBackground_D0[imass][ipt][idca];
+            delete hDca[imass][ipt][idca];
+         }
       }
    }
 
@@ -498,8 +535,6 @@ void setBranchStatus(Event* evt)
    evt->SetBranchStatus("mass", 1);
    evt->SetBranchStatus("mva", 1);
    evt->SetBranchStatus("y", 1);
-   evt->SetBranchStatus("eta", 1);
-   evt->SetBranchStatus("phi", 1);
    evt->SetBranchStatus("3DPointingAngle", 1);
    evt->SetBranchStatus("3DDecayLength", 1);
    evt->SetBranchStatus("3DDecayLengthSignificance", 1);
@@ -525,8 +560,6 @@ bool checkBranchStatus(Event* event)
       event->GetBranchStatus("mass")&&
       event->GetBranchStatus("mva")&&
       event->GetBranchStatus("y")&&
-      event->GetBranchStatus("eta")&&
-      event->GetBranchStatus("phi")&&
       event->GetBranchStatus("3DPointingAngle")&&
       event->GetBranchStatus("3DDecayLength")&&
       event->GetBranchStatus("3DDecayLengthSignificance")&&
@@ -588,8 +621,6 @@ bool passD0PreSelections(Event* event, const int& icand)
 bool passD0KinematicCuts(Event* event, const int& icand)
 {
    // eta is not available in the TTree
-   //bool passEta = fabs(event->Eta(icand)<1000.);
-//   bool passEta = fabs(event->Eta(icand)<1.5);
    bool passPt = event->Pt(icand) >= cuts.pTMin && event->Pt(icand) < cuts.pTMax;
    bool passY = event->Y(icand) > cuts.yMin && event->Y(icand) < cuts.yMax;
    return passY && passPt;
@@ -599,16 +630,16 @@ bool passD0MVA(const int& trigger, Event* event, const int& icand,
       const bool& isPrompt)
 {
    if(isPrompt){
-      switch(trigger){
-         case 2: return ana::pass_pPb2016_8TeV_PD0_MVA(event->Pt(icand), event->Mva(icand));
-                 break;
-         case 5: return ana::pass_pp2018_13TeV_PD0_MVA(event->Mva(icand));
-                 break;
-         default: return false;
-      }
-   } else{
       // non-prompt would not be measured
       return false;
+   } else{
+      switch(trigger){
+         case 2: 
+            return ana::pass_pPb2016_8TeV_NPD0_MVA(event->Pt(icand), event->Mva(icand));
+            break;
+         default: 
+            return false;
+      }
    }
    return false;
 }
@@ -631,28 +662,30 @@ bool passGoodTrack(Event* event, const unsigned int& icand)
       passPt && passPtError && passEta;
 }
 
+int findDcaBin(const double& dca, const double dcaCut[][ana::nPt_NPD0_pPb], const int& nDca, const int& ipt)
+{
+   for(int idca=0; idca<nDca; idca++){
+      if(dca>=dcaCut[nDca-idca-1][ipt]) return nDca-idca-1;
+   }
+   return 0;
+}
+
 inline bool passNtrkoffline(const double& Ntrkoffline, const int& dataset_trigger)
 {
    if(dataset_trigger == ana::dataset_trigger.at("PAHM1-6")) 
       return Ntrkoffline >= ana::multMin_PA_ && Ntrkoffline < ana::multMax_PA_;
-   if(dataset_trigger == ana::dataset_trigger.at("PPHM")) 
-      return Ntrkoffline >= ana::multMin_PP_ && Ntrkoffline < ana::multMax_PP_;
    return false;
 }
 
 pair<int, int> ntrkEdges(const std::string& dataset){
    if(dataset == "PAHM1-6") return pair<int, int>(ana::multMin_PA_, ana::multMax_PA_);
-   if(dataset == "PPHM") return pair<int, int>(ana::multMin_PP_, ana::multMax_PP_);
    return pair<int, int>(0, 0);
 }
 
 vector<double> setPtBin(const string& dataset)
 {
    if(dataset == "PAHM1-6"){
-      return vector<double>(ana::ptbin_PD0_pPb, ana::ptbin_PD0_pPb+ana::nPt_PD0_pPb+1);
-   }
-   if(dataset == "PPHM"){
-      return vector<double>(ana::ptbin_PD0_pp, ana::ptbin_PD0_pp+ana::nPt_PD0_pp+1);
+      return vector<double>(ana::ptbin_NPD0_pPb, ana::ptbin_NPD0_pPb+ana::nPt_NPD0_pPb+1);
    }
    return vector<double>();
 }

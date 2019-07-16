@@ -57,6 +57,8 @@ namespace ana{
    const double ptbin_PD0_pPb[nPt_PD0_pPb+1] = {1.5, 2.4, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0};
    const int nPt_PD0_pp = 3;
    const double ptbin_PD0_pp[nPt_PD0_pp+1] = {2., 4., 6., 8.};
+
+   const int nDca = 2;
    
    const int nY = 1;
    const double ybin[nY+1] = {0., 2.0};
