@@ -36,7 +36,8 @@ bool passD0KinematicCuts(Event*, const int&);
 bool passD0MVA(const int&, Event*, const int&, const bool&);
 inline bool passNtrkoffline(const double&, const int&);
 
-vector<double> setPtBin(string& dataset);
+vector<double> setPtBin(const string& dataset);
+pair<int, int> ntrkEdges(const string& dataset);
 
 struct kinematicalCuts{
    float pTMin;
@@ -80,7 +81,7 @@ int main(int argc, char** argv)
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAHM1-6\n"
-         << "PPHM  //mult > 100\n"
+         << "PPHM  //mult > 100, 80-100 not used\n"
          << "// means comments"
          << endl;
       return -1;
@@ -93,7 +94,7 @@ int main(int argc, char** argv)
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAHM1-6\n"
-         << "PPHM  //mult > 100, 80-100 not included\n"
+         << "PPHM  //mult > 100, 80-100 not used\n"
          << "// means comments"
          << endl;
       return -1;
@@ -426,11 +427,15 @@ int main(int argc, char** argv)
          datalist.replace(found_slash, 1, "_");
          found_slash = datalist.find("/");
       }
-
+      auto ntrkBounds = ntrkEdges(dataset);
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_d0ana_HM_pT%.1f-%.1f_y%.1f-%.1f.root", prefix.c_str(), datalist.c_str(), cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
+         outName = TString::Format("%s/fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+               prefix.c_str(), datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
+               cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
       else
-         outName = TString::Format("fout_%s_d0ana_HM_pT%.1f-%.1f_y%.1f-%.1f.root", datalist.c_str(), cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
+         outName = TString::Format("fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+               datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
+               cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
    } 
    else return -1;
 
@@ -585,8 +590,9 @@ bool passD0KinematicCuts(Event* event, const int& icand)
    // eta is not available in the TTree
    //bool passEta = fabs(event->Eta(icand)<1000.);
 //   bool passEta = fabs(event->Eta(icand)<1.5);
-   bool passY = event->Y(icand) > ana::d0_y_min_ && event->Y(icand) < ana::d0_y_max_;
-   return passY;
+   bool passPt = event->Pt(icand) >= cuts.pTMin && event->Pt(icand) < cuts.pTMax;
+   bool passY = event->Y(icand) > cuts.yMin && event->Y(icand) < cuts.yMax;
+   return passY && passPt;
 }
 
 bool passD0MVA(const int& trigger, Event* event, const int& icand, 
@@ -634,7 +640,13 @@ inline bool passNtrkoffline(const double& Ntrkoffline, const int& dataset_trigge
    return false;
 }
 
-vector<double> setPtBin(string& dataset)
+pair<int, int> ntrkEdges(const std::string& dataset){
+   if(dataset == "PAHM1-6") return pair<int, int>(ana::multMin_PA_, ana::multMax_PA_);
+   if(dataset == "PPHM") return pair<int, int>(ana::multMin_PP_, ana::multMax_PP_);
+   return pair<int, int>(0, 0);
+}
+
+vector<double> setPtBin(const string& dataset)
 {
    if(dataset == "PAHM1-6"){
       return vector<double>(ana::ptbin_PD0_pPb, ana::ptbin_PD0_pPb+ana::nPt_PD0_pPb+1);
