@@ -35,6 +35,7 @@ bool passGoodTrack(Event*, const unsigned int&);
 inline bool passGoodVtx(Event* event);
 
 inline bool passNtrkoffline(const double&, const int&);
+pair<int, int> ntrkEdges(const string& dataset);
 
 // par0, main
 // par1, datalist
@@ -275,10 +276,13 @@ int main(int argc, char** argv)
       datalist.replace(found_slash, 1, "_");
       found_slash = datalist.find("/");
    }
+   auto ntrkBounds = ntrkEdges(dataset);
    if(prefix.size())
-      outName = TString::Format("%s/fout_ref_%s_%s_y%.1f.root", prefix.c_str(), datalist.c_str(), ana::treeName[tree].c_str(), ana::d0_y_max_);
+      outName = TString::Format("%s/fout_ref_%s_%s_HM%3d-%3d.root", prefix.c_str(), datalist.c_str(), ana::treeName[tree].c_str(),
+            ntrkBounds.first, ntrkBounds.second);
    else
-      outName = TString::Format("fout_ref_%s_%s_y%.1f.root", datalist.c_str(), ana::treeName[tree].c_str(), ana::d0_y_max_);
+      outName = TString::Format("fout_ref_%s_%s_HM%3d-%3d.root", datalist.c_str(), ana::treeName[tree].c_str(),
+            ntrkBounds.first, ntrkBounds.second);
 
 
    // start writing output
@@ -345,7 +349,13 @@ inline bool passNtrkoffline(const double& Ntrkoffline, const int& dataset_trigge
 {
    if(dataset_trigger == ana::dataset_trigger.at("PAHM1-6")) 
       return Ntrkoffline >= ana::multMin_PA_ && Ntrkoffline < ana::multMax_PA_;
-   if(dataset_trigger == ana::dataset_trigger.at("PPHM_2")) 
+   if(dataset_trigger == ana::dataset_trigger.at("PPHM")) 
       return Ntrkoffline >= ana::multMin_PP_ && Ntrkoffline < ana::multMax_PP_;
    return false;
+}
+
+pair<int, int> ntrkEdges(const std::string& dataset){
+   if(dataset == "PAHM1-6") return pair<int, int>(ana::multMin_PA_, ana::multMax_PA_);
+   if(dataset == "PPHM") return pair<int, int>(ana::multMin_PP_, ana::multMax_PP_);
+   return pair<int, int>(0, 0);
 }
