@@ -3,16 +3,28 @@ Makefile help one compile the source codes.
 
 Before compiling, make sure dir, include, src, bin, lib, exist
 # Executables 
-Exes are in the dir bin, `corr2D_trg_pd0_mult` give the 2D correlation functions of prompt d0,
+Exes are in the dir bin, 
+1. `corr2D_trg_pd0_mult` give the 2D correlation functions of prompt d0,
 input parameters are the list of the ROOT files, dataset, effciency file, output dir, pTMin, pTMax, yMin, yMax
 
-`corr2D_trg_ref_mult` give the 2D correlation functions  of ref particles, 
+2. `corr2D_trg_ref_mult` give the 2D correlation functions  of ref particles, 
 input parameters are the list of the ROOT files, dataset, output dir
 
-`corr2D_trg_pd0` give the 2D correlation functions  of prompt-d0s, 
-input parameters are the list of the ROOT files, dataset, effciency file, output dir 
+3. `corr2D_trg_pd0` give the 2D correlation functions  of prompt-d0s, 
+input parameters are the list of the ROOT files, dataset, effciency file, output dir, pTMin, pTMax, yMin, yMax
 
-`corr2D_trg_ref` give the 2D correlation functions  of ref particles, 
+4. `corr2D_trg_npd0` give the 2D correlation functions  of non-prompt-d0s, 
+input parameters are the list of the ROOT files, dataset, effciency file, output dir, pTMin, pTMax, yMin, yMax, csv file for dca cut
+
+dcafile follows the format
+```
+pt0:pt1:pt2:
+dcaCut0_0, dcaCut1_0, dcaCut2_0
+dcaCut0_1, dcaCut1_1, dcaCut2_1
+```
+dcaCutX_X split the samples into different bin, (dcaCut0_0, dcaCut0_1)...(dcaCut0_X, inf), pt%d means different ptbin, defined in myAnaConsts.h
+
+5. `corr2D_trg_ref` give the 2D correlation functions  of ref particles, 
 input parameters are the list of the ROOT files, dataset, output dir, d0 tree index
 
 datasets are listed, comments follows `//`:
