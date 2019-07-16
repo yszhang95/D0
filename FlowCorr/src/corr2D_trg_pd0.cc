@@ -38,17 +38,28 @@ inline bool passNtrkoffline(const double&, const int&);
 
 vector<double> setPtBin(string& dataset);
 
+struct kinematicalCuts{
+   float pTMin;
+   float pTMax;
+   float yMin;
+   float yMax;
+} cuts;
+
 // par0, main
 // par1, datalist
 // par2, dataset
 // par3, efficiency hists
 // par4, output dir
+// par5, pT_Min
+// par6, pT_Max
+// par7, y_Min
+// par8, y_Max
 
 int main(int argc, char** argv)
 {
    TH1::SetDefaultSumw2(true);
 
-   if(argc!=5) {
+   if(argc!=9) {
       std::cerr << "The number of arguments is wrong" << std::endl;
       return -1;
    }
@@ -58,12 +69,18 @@ int main(int argc, char** argv)
 
    string dataset(argv[2]);
 
+   // the kinematical cuts
+   cuts.pTMin = stof(argv[5]);
+   cuts.pTMax = stof(argv[6]);
+   cuts.yMin  = stof(argv[7]);
+   cuts.yMax  = stof(argv[8]);
+
    const int dataset_trigger = ana::Get_Trigger(dataset);
    if(dataset_trigger<0 || !ana::isHM_PD0_DataSet(dataset)){
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAHM1-6\n"
-         << "PPHM_2  //mult > 100\n"
+         << "PPHM  //mult > 100\n"
          << "// means comments"
          << endl;
       return -1;
@@ -72,11 +89,11 @@ int main(int argc, char** argv)
    const vector<double> ptbin = setPtBin(dataset);
    const int nPt = ptbin.size()-1;
 
-   if(!ptbin.size()) {
+   if(!ptbin.size() || !nPt) {
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAHM1-6\n"
-         << "PPHM_2  //mult > 100\n"
+         << "PPHM  //mult > 100, 80-100 not included\n"
          << "// means comments"
          << endl;
       return -1;
@@ -108,6 +125,7 @@ int main(int argc, char** argv)
    if(!checkBranchStatus(evt)) return -1;
 
    // declare hists
+   TH1D* hEvt;
    TH1D* hMult;
    TH1D* hMult_ass;
 
@@ -115,6 +133,8 @@ int main(int argc, char** argv)
    TH1D* hPt_D0[nPt];
    TH1D* hEta_D0[nPt];
    TH1D* hRapidity_D0[nPt];
+
+   TH1D* hMass[nPt];
 
    TH1D* hMass_D0[ana::nMass][nPt];
 
@@ -127,6 +147,7 @@ int main(int argc, char** argv)
    TH2D* hSignal_D0[ana::nMass][nPt];
    TH2D* hBackground_D0[ana::nMass][nPt];
 
+   hEvt = new TH1D("hEvt", "", 600, 0, 600);
    hMult = new TH1D("hMult", "", 600, 0, 600);
    hMult_ass = new TH1D("hMult_ass", "", 600, 0, 600);
 
@@ -138,6 +159,8 @@ int main(int argc, char** argv)
       hEta_D0[ipt] = new TH1D(Form("hEta_pt%d", ipt), "", 24, -2.4, 2.4);
       hRapidity_D0[ipt] = new TH1D(Form("hRapidity_pt%d", ipt), "", 24, -2.4, 2.4);
       hDcaVsMassAndMva[ipt] = new TH3D(Form("hDcaVsMassAndMva_pt%d", ipt), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 800, 0, 0.08);
+
+      hMass[ipt] = new TH1D(Form("hMass_pt%d", ipt), "", 60, 1.7, 2.0);
       for(int imass=0; imass<ana::nMass; imass++){
          hMass_D0[imass][ipt] = new TH1D(Form("hMassD0_mass%d_pt%d", imass, ipt),
                   "", 200, 1.5, 2.5);
@@ -195,6 +218,8 @@ int main(int argc, char** argv)
          continue;
       }
 
+      hEvt->Fill(evt->nTrkOffline());
+
       if(!passGoodVtx(evt)) continue;
 
       auto iz = ana::findZVtxBin(evt->BestVtxZ());
@@ -239,6 +264,8 @@ int main(int argc, char** argv)
          hEta_D0[ipt]->Fill(p_d0.Eta(), 1./effks);
          hRapidity_D0[ipt]->Fill(evt->Y(id0), 1./effks);
          hKET_D0[ipt]->Fill(KET, 1./effks);
+
+         hMass[ipt]->Fill(evt->Mass(id0), 1./effks);
 
          pVect_trg_d0[imass][ipt].push_back(p_d0);
          effVect_trg_d0[imass][ipt].push_back(effks);
@@ -401,9 +428,9 @@ int main(int argc, char** argv)
       }
 
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_d0ana_HM_%.1f.root", prefix.c_str(), datalist.c_str(), ana::d0_y_max_);
+         outName = TString::Format("%s/fout_%s_d0ana_HM_pT%.1f-%.1f_y%.1f-%.1f.root", prefix.c_str(), datalist.c_str(), cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
       else
-         outName = TString::Format("fout_%s_d0ana_HM_%.1f.root", datalist.c_str(), ana::d0_y_max_);
+         outName = TString::Format("fout_%s_d0ana_HM_pT%.1f-%.1f_y%.1f-%.1f.root", datalist.c_str(), cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
    } 
    else return -1;
 
@@ -411,6 +438,7 @@ int main(int argc, char** argv)
    fout.cd();
 
    // start writing output
+   hEvt->Write();
    hMult->Write();
    hMult_ass->Write();
    hNtrkofflineVsNtrkgood->Write();
@@ -420,6 +448,9 @@ int main(int argc, char** argv)
       hEta_D0[ipt]->Write();
       hRapidity_D0[ipt]->Write();
       hDcaVsMassAndMva[ipt]->Write();
+      
+      hMass[ipt]->Write();
+
       for(int imass=0; imass<ana::nMass; imass++){
          hMass_D0[imass][ipt]->Write();
          hMult_raw_D0[imass][ipt]->Write();
@@ -429,6 +460,7 @@ int main(int argc, char** argv)
       }
    }
 
+   delete hEvt;
    delete hMult;
    delete hMult_ass;
    delete hNtrkofflineVsNtrkgood;
@@ -438,6 +470,7 @@ int main(int argc, char** argv)
       delete hEta_D0[ipt];
       delete hRapidity_D0[ipt];
       delete hDcaVsMassAndMva[ipt];
+      delete hMass[ipt];
       for(int imass=0; imass<ana::nMass; imass++){
          delete hMass_D0[imass][ipt];
          delete hMult_raw_D0[imass][ipt];
