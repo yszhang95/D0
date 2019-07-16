@@ -18,7 +18,7 @@ input parameters are the list of the ROOT files, dataset, effciency file, output
 
 dcafile follows the format
 ```
-pt0:pt1:pt2:
+pt0:pt1:pt2
 dcaCut0_0, dcaCut1_0, dcaCut2_0
 dcaCut0_1, dcaCut1_1, dcaCut2_1
 ```
