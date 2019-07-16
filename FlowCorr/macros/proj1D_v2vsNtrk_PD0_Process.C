@@ -1,10 +1,19 @@
+const double deltaEtaBound = 1;
+
+TH1D* proj1D_longrange(TH2*, TH2*, const char*);
+TH1D* proj1D_shortrange(TH2*, TH2*);
+
+TF1 draw1D_longrange(TH1*, const char*, 
+      const char*, const char* , const char* );
+
 void proj1D_v2vsNtrk_PD0_Process(const char* input_d0= "",
       const char* input_ref = "", 
-const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
+const string dataset="", const char* input_d0_low_mult="", 
+const float pTMin=0., const float pTMax=0., 
+const float yMin =0., const float yMax =0.)
 {
-   const double deltaEtaBound = 1;
 
-   gErrorIgnoreLevel = kWarning;
+   //gErrorIgnoreLevel = kWarning;
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111);
 
@@ -26,6 +35,7 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
    double N_ass_low;
 
    double Upsilon[ana::nMass][n_trk_bin_];
+   double Upsilon_err[ana::nMass][n_trk_bin_];
    double Upsilon_low[ana::nMass];
 
    double V2_PD0_low[ana::nMass];
@@ -61,21 +71,30 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
    if(dataset != "PAMB"){
       f3 = new TFile(input_d0_low_mult);
       if(!f3->IsOpen()) {
-         //cout << "not found" << endl;
+         cout << "not found" << endl;
          return;
       }
       f3->GetObject("hMult_ass_trk0", hMult_ass_low);
-      if(!hMult_ass_low) return;
+      if(!hMult_ass_low) {
+         cout << "not found" << endl;
+         return;
+      }
       for(int imass=0; imass<ana::nMass; imass++){
-         f3->GetObject(Form("hSignal_D0_mass%d_trk0", imass), h2DSignal_D0_low[imass]);
-         f3->GetObject(Form("hBackground_D0_mass%d_trk0", imass), h2DBackground_D0_low[imass]);
-         if(!h2DSignal_D0_low[imass]) return;
-         if(!h2DBackground_D0_low[imass]) return;
+         f3->GetObject(Form("hSignal_mass%d_trk0", imass), h2DSignal_D0_low[imass]);
+         f3->GetObject(Form("hBackground_mass%d_trk0", imass), h2DBackground_D0_low[imass]);
+         if(!h2DSignal_D0_low[imass]) {
+            cout << "not found hSignal_low" << endl;
+            return;
+         }
+         if(!h2DBackground_D0_low[imass]) {
+            cout << "not found hBackground_low" << endl;
+            return;
+         }
       }
    }else{
       f1->GetObject("hMult_ass_trk0", hMult_ass_low);
       if(!hMult_ass_low) {
-         //cout << "not found" << endl;
+         cout << "not found" << endl;
          return;
       }
       for(int imass=0; imass<ana::nMass; imass++){
@@ -96,10 +115,10 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       f1->GetObject(Form("hMult_ass_trk%d", i_trk_bin_), hMult_ass[i_trk_bin_]);
       if(!hMult_ass[i_trk_bin_]) {
-         cout << "not found" << endl;
-         return;
+         //cout << "not found " << Form("hMult_ass_trk%d", i_trk_bin_) << endl;
+         //return;
       }
-      N_ass[i_trk_bin_] = hMult_ass[i_trk_bin_]->Integral();
+      //N_ass[i_trk_bin_] = hMult_ass[i_trk_bin_]->Integral();
    }
    N_ass_low = hMult_ass_low->Integral();
 
@@ -132,65 +151,12 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
    TH1D* hDeltaPhi[ana::nMass][n_trk_bin_];
    TH1D* hDeltaPhi_low[ana::nMass];
 
-   int negBinMin = 0;
-   int negBinMax = h2DSignal_D0[0][0]->GetXaxis()->FindBin(-1.* deltaEtaBound)-1 ;
-   int posBinMin = h2DSignal_D0[0][0]->GetXaxis()->FindBin(1.* deltaEtaBound)+1 ;
-   int posBinMax = h2DSignal_D0[0][0]->GetXaxis()->GetNbins()+1;
-
    for(int imass=0; imass<ana::nMass; imass++){
       for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-         hNeg[imass][i_trk_bin_] = h2DSignal_D0[imass][i_trk_bin_]->ProjectionY(
-                  Form("neg_mass%d_trk%d", imass, i_trk_bin_), negBinMin, negBinMax);
-         hPos[imass][i_trk_bin_] = h2DSignal_D0[imass][i_trk_bin_]->ProjectionY(
-                  Form("pos_mass%d_trk%d", imass, i_trk_bin_), posBinMin, posBinMax);
-         hDeltaPhi[imass][i_trk_bin_] = (TH1D*) hNeg[imass][i_trk_bin_]->Clone();
-         hDeltaPhi[imass][i_trk_bin_]->SetName(Form("deltaPhi_mass%d_trk%d", imass, i_trk_bin_));
-         hDeltaPhi[imass][i_trk_bin_]->Add(hPos[imass][i_trk_bin_]);
-
-         TH1D* temp_neg = h2DBackground_D0[imass][i_trk_bin_]->ProjectionY(
-               Form("neg_mass%d_trk%d_temp", imass, i_trk_bin_), negBinMin, negBinMax);
-         TH1D* temp_pos = h2DBackground_D0[imass][i_trk_bin_]->ProjectionY(
-               Form("pos_mass%d_trk%d__temp", imass, i_trk_bin_), posBinMin, posBinMax);
-         TH1D* temp = (TH1D*) temp_neg->Clone();
-         temp->SetName(Form("mass%d_trk%d_temp", imass, i_trk_bin_));
-         temp->Add(temp_pos);
-
-         int center = h2DBackground_D0[imass][i_trk_bin_]->FindBin(0., 0.);
-         hDeltaPhi[imass][i_trk_bin_]->Divide(temp);
-         hDeltaPhi[imass][i_trk_bin_]->Scale(h2DBackground_D0[imass][i_trk_bin_]->GetBinContent(center) / temp->GetBinWidth(1));
-
-         delete hNeg[imass][i_trk_bin_];
-         delete hPos[imass][i_trk_bin_];
-         delete temp_neg;
-         delete temp_pos;
-         delete temp;
+         hDeltaPhi[imass][i_trk_bin_] = proj1D_longrange(h2DSignal_D0[imass][i_trk_bin_], h2DBackground_D0[imass][i_trk_bin_], Form("deltaPhi_mass%d_trk%d", imass, i_trk_bin_));
       }
 
-      TH1D* hNeg_low = h2DSignal_D0_low[imass]->ProjectionY(
-                  Form("neg_mass%d_low", imass), negBinMin, negBinMax);
-      TH1D* hPos_low = h2DSignal_D0_low[imass]->ProjectionY(
-                  Form("pos_mass%d_low", imass), posBinMin, posBinMax);
-      hDeltaPhi_low[imass] = (TH1D*) hNeg_low->Clone();
-      hDeltaPhi_low[imass]->SetName(Form("deltaPhi_mass%d_low", imass));
-      hDeltaPhi_low[imass]->Add(hPos_low);
-
-      TH1D* temp_neg = h2DBackground_D0_low[imass]->ProjectionY(
-               Form("neg_mass%d_low_temp", imass), negBinMin, negBinMax);
-      TH1D* temp_pos = h2DBackground_D0_low[imass]->ProjectionY(
-               Form("pos_mass%d_low__temp", imass), posBinMin, posBinMax);
-      TH1D* temp = (TH1D*) temp_neg->Clone();
-      temp->SetName(Form("mass%d_low_temp", imass));
-      temp->Add(temp_pos);
-
-      int center = h2DBackground_D0_low[imass]->FindBin(0., 0.);
-      hDeltaPhi_low[imass]->Divide(temp);
-      hDeltaPhi_low[imass]->Scale(h2DBackground_D0_low[imass]->GetBinContent(center) / temp->GetBinWidth(1));
-
-      delete hNeg_low;
-      delete hPos_low;
-      delete temp_neg;
-      delete temp_pos;
-      delete temp;
+      hDeltaPhi_low[imass] = proj1D_longrange(h2DSignal_D0_low[imass], h2DBackground_D0_low[imass], Form("deltaPhi_mass%d_low", imass));
    }
 
    TH2D* h2DSignal_Ref[n_trk_bin_];
@@ -200,75 +166,16 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
       h2DSignal_Ref[i_trk_bin_] = (TH2D*) f2->Get(Form("hSignal_Ref_trk%d", i_trk_bin_));
       h2DBackground_Ref[i_trk_bin_] = (TH2D*) f2->Get(Form("hBackground_Ref_trk%d", i_trk_bin_));
       TH1D* hMult = (TH1D*) f2->Get(Form("hMult_trk%d", i_trk_bin_));
+      long int nevents = hMult->GetEntries();
 
-      int negBinMin_Ref = 0;
-      int negBinMax_Ref = h2DSignal_Ref[i_trk_bin_]->GetXaxis()->FindBin(-1.*deltaEtaBound)-1 ;
-      int posBinMin_Ref = h2DSignal_Ref[i_trk_bin_]->GetXaxis()->FindBin(1.*deltaEtaBound)+1 ;
-      int posBinMax_Ref = h2DSignal_Ref[i_trk_bin_]->GetXaxis()->GetNbins()+1;
-
-      TH1D* hNeg_Ref_Signal;
-      TH1D* hPos_Ref_Signal;
-      hNeg_Ref_Signal = h2DSignal_Ref[i_trk_bin_]->ProjectionY("neg_ref_signal", negBinMin, negBinMax);
-      hPos_Ref_Signal = h2DSignal_Ref[i_trk_bin_]->ProjectionY("pos_ref_signal", posBinMin, posBinMax);
-
-      hDeltaPhi_Ref[i_trk_bin_] = (TH1D*) hNeg_Ref_Signal->Clone();
-      hDeltaPhi_Ref[i_trk_bin_]->SetName(Form("deltaPhi_Ref_trk%d", i_trk_bin_));
-      hDeltaPhi_Ref[i_trk_bin_]->Add(hPos_Ref_Signal);
-
-      TH1D* hNeg_Ref_Background;
-      TH1D* hPos_Ref_Background;
-      hNeg_Ref_Background = h2DBackground_Ref[i_trk_bin_]->ProjectionY("neg_ref_background", negBinMin, negBinMax);
-      hPos_Ref_Background = h2DBackground_Ref[i_trk_bin_]->ProjectionY("pos_ref_background", posBinMin, posBinMax);
-
-      TH1D* hDeltaPhi_Ref_bkg = (TH1D*) hNeg_Ref_Background->Clone();
-      hDeltaPhi_Ref_bkg->SetName("deltaPhi_Ref_bkg");
-      hDeltaPhi_Ref_bkg->Add(hPos_Ref_Background);
-
-      int center = h2DBackground_Ref[i_trk_bin_]->FindBin(0., 0.);
-      hDeltaPhi_Ref[i_trk_bin_]->Divide(hDeltaPhi_Ref_bkg);
-      hDeltaPhi_Ref[i_trk_bin_]->Scale(h2DBackground_Ref[i_trk_bin_]->GetBinContent(center)/hDeltaPhi_Ref_bkg->GetBinWidth(1));
-
-      delete hNeg_Ref_Signal;
-      delete hPos_Ref_Signal;
-      delete hNeg_Ref_Background;
-      delete hPos_Ref_Background;
-      delete hDeltaPhi_Ref_bkg;
+      hDeltaPhi_Ref[i_trk_bin_] = proj1D_longrange(h2DSignal_Ref[i_trk_bin_], h2DBackground_Ref[i_trk_bin_], Form("deltaPhi_Ref_trk%d", i_trk_bin_));
+      hDeltaPhi_Ref[i_trk_bin_]->Scale(1./nevents);
    }
    
-   std::string function = "[0]/(TMath::Pi()*2)*(1+2*([1]*TMath::Cos(x)+[2]*TMath::Cos(2*x)+[3]*TMath::Cos(3*x)))";
 
-   TCanvas* c_deltaPhi[ana::nMass][n_trk_bin_];
+   std::string function = "[0]/(TMath::Pi()*2)*(1+2*([1]*TMath::Cos(x)+[2]*TMath::Cos(2*x)+[3]*TMath::Cos(3*x)))";
    for(int imass=0; imass<ana::nMass; imass++){
       for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-         c_deltaPhi[imass][i_trk_bin_] = new TCanvas("c_deltaPhi", "", 550, 450);
-         TF1 func("deltaPhi", function.c_str(), -3.14159*0.5, 3.14159*1.5);
-         func.SetParameter(0, hDeltaPhi[imass][i_trk_bin_]->GetMaximum());
-         func.SetParameter(1, 0.1);
-         func.SetParameter(2, 0.1);
-         func.SetParameter(3, 0.1);
-
-         hDeltaPhi[imass][i_trk_bin_]->SetMarkerStyle(20);
-
-         hDeltaPhi[imass][i_trk_bin_]->Fit(&func, "q");
-         hDeltaPhi[imass][i_trk_bin_]->Fit(&func, "q");
-         hDeltaPhi[imass][i_trk_bin_]->Fit(&func, "m q");
-         hDeltaPhi[imass][i_trk_bin_]->Fit(&func, "m q E");
-         auto fitResult = hDeltaPhi[imass][i_trk_bin_]->Fit(&func, "m S E q");
-
-         V2_PD0[imass][i_trk_bin_] = func.GetParameter(2);
-         V2_PD0_err[imass][i_trk_bin_] = func.GetParError(2);
-
-         hDeltaPhi[imass][i_trk_bin_]->SetTitle(";#Delta#phi;");
-
-         TLatex ltx;
-         ltx.DrawLatexNDC(0.16, 0.85, "1.5<pT<8GeV, |y|<2");
-         ltx.DrawLatexNDC(0.16, 0.75, Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1]));
-         auto trkRange = ana::get_Mult_Edges(dataset);
-         if(trkRange.size() && trkRange[trkRange.size()]!=std::numeric_limits<unsigned int>::max()) 
-            ltx.DrawLatexNDC(0.16, 0.68, Form("%u<Ntrkoffline<%u", trkRange[i_trk_bin_], trkRange[i_trk_bin_+1]));
-         if(trkRange.size() && trkRange[trkRange.size()]==std::numeric_limits<unsigned int>::max()) 
-            ltx.DrawLatexNDC(0.16, 0.68, Form("Ntrkoffline>%u", trkRange[i_trk_bin_]));
-
          std::string str = input_d0;
          auto found = str.find("/");
          while(found!=std::string::npos){
@@ -281,48 +188,25 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
          while(str.at(0) == '_'){
             str.erase(0, 1);
          }
-
-         hDeltaPhi[imass][i_trk_bin_]->Draw();
-         gPad->Update();
-         TPaveStats* pave = (TPaveStats*) hDeltaPhi[imass][i_trk_bin_]->FindObject("stats");
-         pave->SetX1NDC(0.16);
-         pave->SetX2NDC(0.56);
-         gPad->Modified();
-         gPad->Update();
-         c_deltaPhi[imass][i_trk_bin_]->Print(Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_mass%d_trk%d.png", 
-                  y, dataset.c_str(), str.c_str(), imass, i_trk_bin_));
-
-         delete c_deltaPhi[imass][i_trk_bin_];
+         std::string ntrk;
+         auto trkRange = ana::get_Mult_Edges(dataset);
+         if(trkRange.size() && trkRange[trkRange.size()]!=std::numeric_limits<unsigned int>::max()) 
+            ntrk = std::string(Form("%u#leqN_{trk}^{offline}<%u", trkRange[i_trk_bin_], trkRange[i_trk_bin_+1]));
+         if(trkRange.size() && trkRange[trkRange.size()]==std::numeric_limits<unsigned int>::max()) 
+            ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
+         auto func = draw1D_longrange(hDeltaPhi[imass][i_trk_bin_],
+               Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_mass%d_trk%d.png", 
+                  yMax, dataset.c_str(), str.c_str(), imass, i_trk_bin_),
+               ntrk.c_str(),
+               Form("%.1f<p_{T}<%.1fGeV, %.1f<y<%.1f", pTMin, pTMax, yMin, yMax), 
+               Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1])
+               );
+         V2_PD0[imass][i_trk_bin_] = func.GetParameter(2);
+         V2_PD0_err[imass][i_trk_bin_] = func.GetParError(2);
       }
    }
 
-   TCanvas* c_low[ana::nMass];
    for(int imass=0; imass<ana::nMass; imass++){
-      c_low[imass] = new TCanvas("c_deltaPhi", "", 550, 450);
-      TF1 func("deltaPhi", function.c_str(), -3.14159*0.5, 3.14159*1.5);
-      func.SetParameter(0, hDeltaPhi_low[imass]->GetMaximum());
-      func.SetParameter(1, 0.1);
-      func.SetParameter(2, 0.1);
-      func.SetParameter(3, 0.1);
-
-      hDeltaPhi_low[imass]->SetMarkerStyle(20);
-
-      hDeltaPhi_low[imass]->Fit(&func, "q");
-      hDeltaPhi_low[imass]->Fit(&func, "q");
-      hDeltaPhi_low[imass]->Fit(&func, "m q");
-      hDeltaPhi_low[imass]->Fit(&func, "m q E");
-      auto fitResult = hDeltaPhi_low[imass]->Fit(&func, "m S E q");
-
-      V2_PD0_low[imass] = func.GetParameter(2);
-      V2_PD0_low_err[imass] = func.GetParError(2);
-
-      hDeltaPhi_low[imass]->SetTitle(";#Delta#phi;");
-
-      TLatex ltx;
-      ltx.DrawLatexNDC(0.16, 0.85, "1.5<pT<8GeV, |y|<2");
-      ltx.DrawLatexNDC(0.16, 0.75, Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1]));
-      ltx.DrawLatexNDC(0.16, 0.68, "0<Ntrkoffline<35");
-
       std::string str = input_d0;
       auto found = str.find("/");
       while(found!=std::string::npos){
@@ -335,36 +219,19 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
       while(str.at(0) == '_'){
          str.erase(0, 1);
       }
-
-      hDeltaPhi_low[imass]->Draw();
-      gPad->Update();
-      TPaveStats* pave = (TPaveStats*) hDeltaPhi_low[imass]->FindObject("stats");
-      pave->SetX1NDC(0.16);
-      pave->SetX2NDC(0.56);
-      gPad->Modified();
-      gPad->Update();
-      c_low[imass]->Print(Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_mass%d_low.png", 
-                  y, dataset.c_str(), str.c_str(), imass));
-
-      delete c_low[imass];
+      std::string ntrk;
+      auto func = draw1D_longrange(hDeltaPhi_low[imass],
+            Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_mass%d_low.png", 
+               yMax, dataset.c_str(), str.c_str(), imass),
+            "N_{trk}^{offline} < 35",
+            Form("%.1f<p_{T}<%.1fGeV, %.1f<y<%.1f", pTMin, pTMax, yMin, yMax), 
+            Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1])
+            );
+      V2_PD0_low[imass] = func.GetParameter(2);
+      V2_PD0_low_err[imass] = func.GetParError(2);
    }
 
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-      TCanvas* cRef = new TCanvas("cRef", "", 550, 450);
-      TF1 func_ref("deltaPhi_Ref", function.c_str(), -3.14159*0.5, 3.14159*1.5);
-      func_ref.SetParameter(0, hDeltaPhi_Ref[i_trk_bin_]->GetMaximum());
-      func_ref.SetParameter(1, 0.1); 
-      func_ref.SetParameter(2, 0.1);
-      func_ref.SetParameter(3, 0.1);
-
-      V2_REF[i_trk_bin_] = func_ref.GetParameter(2);
-      V2_REF_err[i_trk_bin_] = func_ref.GetParError(2);
-
-      hDeltaPhi_Ref[i_trk_bin_]->SetMarkerStyle(20);
-      hDeltaPhi_Ref[i_trk_bin_]->Fit(&func_ref, "q");
-      hDeltaPhi_Ref[i_trk_bin_]->Fit(&func_ref, "q");
-      hDeltaPhi_Ref[i_trk_bin_]->Fit(&func_ref, "m q");
-      auto fitResult = hDeltaPhi_Ref[i_trk_bin_]->Fit(&func_ref, "m q S E");
       std::string str = input_d0;
       auto found = str.find("/");
       while(found!=std::string::npos){
@@ -377,15 +244,21 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
       while(str.at(0) == '_'){
          str.erase(0, 1);
       }
-      hDeltaPhi_Ref[i_trk_bin_]->Draw();
-      gPad->Update();
-      TPaveStats* pave = (TPaveStats*) hDeltaPhi_Ref[i_trk_bin_]->FindObject("stats");
-      pave->SetX1NDC(0.16);
-      pave->SetX2NDC(0.56);
-      gPad->Modified();
-      gPad->Update();
-      cRef->Print(Form("../plots/v2vsNtrk/%s_ref_trk%d_V2.png", str.c_str(), i_trk_bin_));
-      delete cRef;
+      std::string ntrk;
+      auto trkRange = ana::get_Mult_Edges(dataset);
+      if(trkRange.size() && trkRange[trkRange.size()-1]!=std::numeric_limits<unsigned int>::max()) 
+         ntrk = std::string(Form("%u#leqN_{trk}^{offline}<%u", trkRange[i_trk_bin_], trkRange[i_trk_bin_+1]));
+      if(trkRange.size() && trkRange[trkRange.size()-1]==std::numeric_limits<unsigned int>::max()) 
+            ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
+      auto func_ref = draw1D_longrange(hDeltaPhi_Ref[i_trk_bin_],
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d.png", 
+            str.c_str(), i_trk_bin_),
+            ntrk.c_str(),
+            "0.3<p_{T}<3.0GeV |#eta|<2.4", 
+            ""
+            );
+      V2_REF[i_trk_bin_] = func_ref.GetParameter(2);
+      V2_REF_err[i_trk_bin_] = func_ref.GetParError(2);
    }
 
    TGraphErrors* g_v2_[n_trk_bin_];
@@ -395,7 +268,7 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
       for(int imass=0; imass<ana::nMass; imass++){
          double temp = V2_PD0[imass][i_trk_bin_]/ sqrt(V2_REF[i_trk_bin_]);
          double temp_err = temp* sqrt(pow(V2_PD0_err[imass][i_trk_bin_]/ V2_PD0[imass][i_trk_bin_], 2) 
-               + pow(0.5*V2_REF[i_trk_bin_]/ V2_REF[i_trk_bin_], 2));
+               + pow(0.5*V2_REF_err[i_trk_bin_]/ V2_REF[i_trk_bin_], 2));
 
          v2_PD0[imass][i_trk_bin_] = temp;
          v2_PD0_err[imass][i_trk_bin_] = temp_err;
@@ -428,6 +301,10 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
    fout_v2.Close();
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       delete g_v2_[i_trk_bin_];
+      delete hDeltaPhi_Ref[i_trk_bin_];
+      for(int imass=0; imass<ana::nMass; imass++){
+         delete hDeltaPhi[imass][i_trk_bin_];
+      }
    }
 
    // jet correlation
@@ -446,7 +323,7 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
          hDeltaPhi_jet->Divide(temp);
          hDeltaPhi_jet->Scale(h2DBackground_D0[imass][i_trk_bin_]->GetBinContent(center) / temp->GetBinWidth(1));
 
-         Upsilon[imass][i_trk_bin_] = hDeltaPhi_jet->Integral("width");
+         Upsilon[imass][i_trk_bin_] = hDeltaPhi_jet->IntegralAndError(0, 10000, Upsilon_err[imass][i_trk_bin_], "width");
 
          delete hDeltaPhi_jet;
          delete temp;
@@ -497,6 +374,42 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       delete g_v2_sub[i_trk_bin_];
    }
+
+   // ugly
+   /*
+   TFile fout_consts("consts.root", "recreate");
+   TTree t("t", "");
+   double upsilon[3];
+   upsilon[0]= Upsilon[0][7] + Upsilon[0][8];
+   upsilon[1]= Upsilon[1][7] + Upsilon[1][8];
+   upsilon[2]= Upsilon[2][7] + Upsilon[2][8];
+   t.Branch("Upsilon", upsilon, "Upsilon[3]/D");
+   t.Branch("Upsilon_low", &Upsilon_low, "Upsilon_low/D");
+   t.Branch("N_ass", N_ass, "N_ass[3]/D");
+   t.Branch("N_ass_low", &N_ass_low, "N_ass_low/D");
+   t.Fill();
+   t.Write();
+
+   TGraphErrors* g_jets[3];
+   for(int i=0; i<3; i++){
+      cout << "test" << endl;
+      g_jets[i] = new TGraphErrors(14);
+      g_jets[i]->SetName(Form("g_v2_trk%d", i));
+      for(int j=0; j<14; j++){
+         g_jets[i]->SetPoint(i, hMass_D0[j][i]->GetMean(), Upsilon[j][i]);
+         g_jets[i]->SetPointError(i, 0, Upsilon_err[j][i]);
+      }
+      g_jets[i]->Write();
+      hMass[i]->Write();
+      hNtrk[i]->Write();
+      hKET[i]->Write();
+      delete g_jets[i];
+   }
+
+
+   fout_consts.Close();
+   */
+
    delete f1;
    delete f2;
    if(f3) delete f3;
@@ -504,3 +417,81 @@ const float y=0.0, const string dataset="", const char* input_d0_low_mult="")
    return;
 }
 
+TH1D* proj1D_longrange(TH2* h2DSignal, TH2* h2DBackground, const char* name)
+{
+   int negBinMin = 0;
+   int negBinMax = h2DSignal->GetXaxis()->FindBin(-1.* deltaEtaBound)-1 ;
+   int posBinMin = h2DSignal->GetXaxis()->FindBin(1.* deltaEtaBound)+1 ;
+   int posBinMax = h2DSignal->GetXaxis()->GetNbins()+1;
+   TH1D* hNeg = h2DSignal->ProjectionY("hneg", negBinMin, negBinMax);
+   TH1D* hPos = h2DSignal->ProjectionY("hpos", posBinMin, posBinMax);
+   hNeg->Add(hPos);
+
+   TH1D* temp_neg = h2DBackground->ProjectionY("hneg_bkg", negBinMin, negBinMax);
+   TH1D* temp_pos = h2DBackground->ProjectionY("hpos_bkg", posBinMin, posBinMax);
+   temp_neg->Add(temp_pos);
+
+   //int center = h2DBackground->FindBin(0., 0.);
+   int center = temp_neg->FindBin(0.);
+   hNeg->Divide(temp_neg);
+   //hNeg->Scale(h2DBackground->GetBinContent(center) / temp_neg->GetBinWidth(1));
+   hNeg->Scale(temp_neg->GetBinContent(center) / temp_neg->GetBinWidth(1));
+
+   delete hPos;
+   delete temp_neg;
+   delete temp_pos;
+
+   hNeg->SetName(name);
+
+   return hNeg;
+}
+
+TF1 draw1D_longrange(TH1* hDeltaPhi, const char* name, 
+      const char* cut1, const char* cut2, const char* cut3)
+{
+   std::string function = "[0]/(TMath::Pi()*2)*(1+2*([1]*TMath::Cos(x)+[2]*TMath::Cos(2*x)+[3]*TMath::Cos(3*x)))";
+   TCanvas* c_deltaPhi = new TCanvas("c_deltaPhi", "", 550, 450);
+   c_deltaPhi->SetBottomMargin(0.14);
+   TF1 func("deltaPhi", function.c_str(), -3.14159*0.5, 3.14159*1.5);
+   func.SetParameter(0, hDeltaPhi->GetMaximum());
+   func.SetParameter(1, 0.1);
+   func.SetParameter(2, 0.1);
+   func.SetParameter(3, 0.1);
+
+   hDeltaPhi->SetMarkerStyle(20);
+
+   hDeltaPhi->Fit(&func, "q");
+   hDeltaPhi->Fit(&func, "q");
+   hDeltaPhi->Fit(&func, "m q");
+   hDeltaPhi->Fit(&func, "m q E");
+   auto fitResult = hDeltaPhi->Fit(&func, "m S E q");
+
+   hDeltaPhi->SetTitle(";#Delta#phi;");
+   hDeltaPhi->GetXaxis()->CenterTitle();
+   hDeltaPhi->GetXaxis()->SetTitleSize(0.05);
+
+   hDeltaPhi->Draw();
+   gPad->Update();
+   TPaveStats* pave = (TPaveStats*) hDeltaPhi->FindObject("stats");
+   pave->SetX1NDC(0.16);
+   pave->SetX2NDC(0.56);
+   gPad->Modified();
+   gPad->Update();
+
+   TLatex ltx;
+   ltx.SetTextSize(0.035);
+   ltx.SetTextFont(42);
+   ltx.DrawLatexNDC(0.58, 0.42, cut1);
+   ltx.DrawLatexNDC(0.58, 0.34, cut2);
+   ltx.DrawLatexNDC(0.58, 0.26, cut3);
+
+   c_deltaPhi->Print(name);
+
+   delete c_deltaPhi;
+   return func;
+}
+
+TH1D* proj1D_shortrange(TH2* h2DSignal, TH2* h2DBackground)
+{
+   return nullptr;
+}

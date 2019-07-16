@@ -56,9 +56,9 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
       )
 {
    gStyle->SetOptStat(0);
-   //double fit_range_low = 1.7;
+   double fit_range_low = 1.7;
    //double fit_range_low = 1.76;
-   double fit_range_low = 1.72;
+   //double fit_range_low = 1.72;
    double fit_range_high = 2.0;
    double D0_mass = 1.8648;
    TFile* file0 = TFile::Open(input_mc);
@@ -130,30 +130,12 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
     //for(int i=0;i<1;i++)
     {
 
+       /*
        if(dataset == "PAMB" && i==0) fit_range_low = 1.76;
-       else fit_range_low = 1.72;
+       else if(dataset == "PAMB" && i==1) fit_range_low = 1.75;
+       else if(dataset == "PAMB" && i==2) fit_range_low = 1.72;
+       */
        
-      TH1D* hist = new TH1D("hist","",10,1.7,2.0);
-      hist->SetLineWidth(0);
-      hist->GetYaxis()->SetRangeUser(0,0.3);
-      hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
-      hist->GetYaxis()->SetTitle("v_{2}");
-      hist->GetXaxis()->CenterTitle();
-      hist->GetYaxis()->CenterTitle();
-      hist->GetXaxis()->SetTitleOffset(1.3);
-      hist->GetYaxis()->SetTitleOffset(2);
-      hist->GetXaxis()->SetLabelOffset(0.007);
-      hist->GetYaxis()->SetLabelOffset(0.007);
-      hist->GetXaxis()->SetTitleSize(0.045);
-      hist->GetYaxis()->SetTitleSize(0.045);
-      hist->GetXaxis()->SetTitleFont(42);
-      hist->GetYaxis()->SetTitleFont(42);
-      hist->GetXaxis()->SetLabelFont(42);
-      hist->GetYaxis()->SetLabelFont(42);
-      hist->GetXaxis()->SetLabelSize(0.04);
-      hist->GetYaxis()->SetLabelSize(0.04);
-      hist->SetMinimum(0.001);
-      hist->SetMaximum(0.3);
 
         TH1D* h_mc_match_signal = (TH1D*)file0->Get("hMassPD0");
         TH1D* h_mc_match_all = (TH1D*)file0->Get("hMassPD0_All");
@@ -281,7 +263,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         f->ReleaseParameter(1); //allow data to have different mass peak mean than MC
         f->ReleaseParameter(6); //allow data to have different peak width than MC
         f->SetParameter(6,0);
-        f->SetParLimits(6,-1.0,1.0);
+        //f->SetParLimits(6,-1.0,1.0);
         //f->FixParameter(5,1);
         h_data->Fit(Form("f_%d",i),"L q","",fit_range_low,fit_range_high);
         h_data->Fit(Form("f_%d",i),"L q","",fit_range_low,fit_range_high);
@@ -303,15 +285,11 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         f1->FixParameter(5,f->GetParameter(5));
         f1->FixParameter(6,f->GetParameter(6));
 
-        
         fmasssig[i] = (TF1*)f1->Clone();
         fmasssig[i]->SetName(Form("masssigfcn_pt%d",i));
         fmasssig[i]->Write();
-
         
         f1->Draw("LSAME");
-
-        
 
         //draw swap bkg separately
         TF1* f2 = new TF1(Form("f_swap_%d",i),
@@ -356,7 +334,8 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
            tex->DrawLatex(0.22,0.86,Form("%u #leq N_{trk}^{offline} < %u", vec_trkbin[i], vec_trkbin[i+1]));
         else
            tex->DrawLatex(0.22,0.86,Form("N_{trk}^{offline} #geq %u", vec_trkbin[i]));
-        tex->DrawLatex(0.22,0.80,"1.5 < p_{T} < 8.0 GeV/c");
+        //tex->DrawLatex(0.22,0.80,"1.5 < p_{T} < 8.0 GeV/c");
+        tex->DrawLatex(0.22,0.80,"6.0 < p_{T} < 7.0 GeV/c");
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
 
         
@@ -381,10 +360,29 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         //[13] is vn_sig
         //[14-15] is vn bkg, const + linear vn(pT)
         TGraphErrors* vn_data = (TGraphErrors*)file1->Get(Form("g_v2_trk%d",i));
+
+        bool zeros = true;
+        for(int j=0; j<vn_data->GetN(); j++){
+           double x, y;
+           vn_data->GetPoint(j, x, y);
+           if(fabs(y)>=1e-9) {
+            cout << "test" << endl;
+            cout << y << endl;
+              zeros = false;
+              break;
+           }
+        }
+        if(zeros) {
+            delete leg;
+            delete f;
+            delete f1;
+            delete f2;
+            delete f3;
+           continue;
+        }
         
         c[i]->cd(2);
         
-        hist->Draw();
         
         TF1* fmass_combinemassvnfit = new TF1(Form("fmass_combinemassvnfit_%d",i),"[0]*([5]*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))+(1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6])))+(1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6]))) + [9] + [10]*x + [11]*x*x + [12]*x*x*x", fit_range_low, fit_range_high);
         
@@ -461,11 +459,34 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         fvn_combinemassvnfit->SetLineColor(2);
         //fvn_combinemassvnfit->SetLineStyle(2);
         //vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
+        //
+         auto hist =  vn_data->GetHistogram();
+         hist->GetXaxis()->SetRangeUser(0, 0.3);
+         hist->SetLineWidth(0);
+         hist->GetYaxis()->SetRangeUser(0,0.3);
+         hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
+         hist->GetYaxis()->SetTitle("v_{2}");
+         hist->GetXaxis()->CenterTitle();
+         hist->GetYaxis()->CenterTitle();
+         hist->GetXaxis()->SetTitleOffset(1.3);
+         hist->GetYaxis()->SetTitleOffset(2);
+         hist->GetXaxis()->SetLabelOffset(0.007);
+         hist->GetYaxis()->SetLabelOffset(0.007);
+         hist->GetXaxis()->SetTitleSize(0.045);
+         hist->GetYaxis()->SetTitleSize(0.045);
+         hist->GetXaxis()->SetTitleFont(42);
+         hist->GetYaxis()->SetTitleFont(42);
+         hist->GetXaxis()->SetLabelFont(42);
+         hist->GetYaxis()->SetLabelFont(42);
+         hist->GetXaxis()->SetLabelSize(0.04);
+         hist->GetYaxis()->SetLabelSize(0.04);
+         hist->SetMinimum(0.001);
+         hist->SetMaximum(0.3);
         vn_data->SetTitle("");
         vn_data->SetMarkerSize(0.8);
         vn_data->SetLineWidth(1);
-        //vn_data->Draw("A PE SAME");
-        vn_data->Draw("A PE ");
+        hist->Draw();
+        vn_data->Draw("A PE SAME");
         
         fvn[i] = (TF1*)fvn_combinemassvnfit->Clone();
         fvn[i]->SetName(Form("vnfit_pt%d",i));
@@ -480,7 +501,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
            tex->DrawLatex(0.22,0.86,Form("%u #leq N_{trk}^{offline} < %u", vec_trkbin[i], vec_trkbin[i+1]));
         else
            tex->DrawLatex(0.22,0.86,Form("N_{trk}^{offline} #geq %u", vec_trkbin[i]));
-        tex->DrawLatex(0.22,0.80,"1.5 < p_{T} < 8.0 GeV/c");
+        tex->DrawLatex(0.22,0.80,"6.0 < p_{T} < 7.0 GeV/c");
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
         //tex->DrawLatex(0.22,0.68,"|#Delta#eta| > 2");
 
@@ -572,7 +593,20 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         c[i]->cd(2);
         tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2v2,ndfv2));
 
-        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_vnfit_combine_trk%d_%s.png",i, dataset.c_str()));
+         std::string str = input_data;
+         auto found = str.find("/");
+         while(found!=std::string::npos){
+            str.replace(found, 1, "_");
+            found = str.find("/");
+         }
+         while(str.at(0) == '.'){
+            str.erase(0, 1);
+         }
+         while(str.at(0) == '_'){
+            str.erase(0, 1);
+         }
+
+        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_vnfit_combine_trk%d_%s_%s.png",i, dataset.c_str(), str.c_str()));
         
         delete leg;
         delete leg1;
@@ -584,19 +618,18 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         delete fvn_combinemassvnfit;
         delete fvnbkg;
         delete falpha;
-        delete hist;
     }
 
     TGraphErrors* v2plot = new TGraphErrors(n_trk_bin_,trk ,v2,0,v2e);
     TGraphErrors* v2ncqplot = new TGraphErrors(n_trk_bin_,KET_ncq,v2_ncq,0,v2e_ncq);
     TGraphErrors* v2bkgplot = new TGraphErrors(n_trk_bin_,trk,v2_bkg,0,0);
     
-    v2plot->SetName("v2vspt");
+    v2plot->SetName("v2vsNtrk");
     v2ncqplot->SetName("v2vsKET_ncq");
-    v2bkgplot->SetName("v2bkgvspt");
+    v2bkgplot->SetName("v2bkgvsNtrk");
     
     v2plot->Write();
-    v2ncqplot->Write();
+    //v2ncqplot->Write();
     v2bkgplot->Write();
 
     ofile.Close();

@@ -120,7 +120,7 @@ vector<unsigned int> ana::get_Mult_Edges(const std::string& dataset){
    vector<int> n_PA;
    for(auto& element: PA_Mult_Order) n_PA.push_back(ana::Get_N_nTrkBin(element));
    auto it_PA = find(ana::PA_Mult_Order.begin(), ana::PA_Mult_Order.end(), dataset);
-   auto index_PA = distance(it_PA, ana::PA_Mult_Order.begin());
+   auto index_PA = distance(ana::PA_Mult_Order.begin(), it_PA);
    int offset_PA = 0;
    for(int i_offset=0; i_offset<index_PA; i_offset++)
       offset_PA += n_PA.at(i_offset);
@@ -131,7 +131,7 @@ vector<unsigned int> ana::get_Mult_Edges(const std::string& dataset){
    vector<int> n_PP;
    for(auto& element: PP_Mult_Order) n_PP.push_back(ana::Get_N_nTrkBin(element));
    auto it_PP = find(ana::PP_Mult_Order.begin(), ana::PP_Mult_Order.end(), dataset);
-   auto index_PP = distance(it_PP, ana::PP_Mult_Order.begin());
+   auto index_PP = distance(ana::PP_Mult_Order.begin(), it_PP);
    int offset_PP = 0;
    for(int i_offset=0; i_offset<index_PP; i_offset++)
       offset_PP += n_PP.at(i_offset);
