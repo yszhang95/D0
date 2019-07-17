@@ -35,5 +35,6 @@ void massfitvn_combine_pd0_ntrk()
    gInterpreter->ProcessLine(".include ../include");
    gInterpreter->ProcessLine(".L ../src/functions.cxx");
    gInterpreter->ProcessLine(".L massfitvn_combine_pd0_ntrk_process.C");
+   //gInterpreter->ProcessLine(Form("massfitvn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f)", input_mc, input_data, output, dataset.c_str(), y));
    gInterpreter->ProcessLine(Form("massfitvn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f)", input_mc, input_data, output, dataset.c_str(), y));
 }

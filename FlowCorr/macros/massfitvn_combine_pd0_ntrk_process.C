@@ -57,8 +57,6 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
 {
    gStyle->SetOptStat(0);
    double fit_range_low = 1.7;
-   //double fit_range_low = 1.76;
-   //double fit_range_low = 1.72;
    double fit_range_high = 2.0;
    double D0_mass = 1.8648;
    TFile* file0 = TFile::Open(input_mc);
@@ -129,14 +127,6 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
     for(int i=0;i<n_trk_bin_;i++)
     //for(int i=0;i<1;i++)
     {
-
-       /*
-       if(dataset == "PAMB" && i==0) fit_range_low = 1.76;
-       else if(dataset == "PAMB" && i==1) fit_range_low = 1.75;
-       else if(dataset == "PAMB" && i==2) fit_range_low = 1.72;
-       */
-       
-
         TH1D* h_mc_match_signal = (TH1D*)file0->Get("hMassPD0");
         TH1D* h_mc_match_all = (TH1D*)file0->Get("hMassPD0_All");
         
@@ -538,6 +528,8 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
 //        leg1->AddEntry(f2,"K-#pi swap","f");
 //        leg1->AddEntry(f3,"Combinatorial","l");
         //leg1->Draw("SAME");
+        h_data->Scale(1./h_data->GetBinWidth(1));
+        h_data->Draw("SAME");
 
         TF1* falpha = new TF1(Form("falpha_%d",1),"( [0]*([5]*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))+(1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6])))+(1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6]))) )/( [0]*([5]*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))+(1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6])))+(1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6]))) + [9] + [10]*x + [11]*x*x + [12]*x*x*x )", fit_range_low,fit_range_high);
 
