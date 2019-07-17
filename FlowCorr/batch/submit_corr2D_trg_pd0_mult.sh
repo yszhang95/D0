@@ -1,13 +1,15 @@
 #!/bin/bash
 
+ROOTPATH=$9
+
 echo "setup cmssw"
-cd /afs/cern.ch/user/y/yousen/public/pPb2016
-source setup_CMSSW_8_0_31
-cd CMSSW_8_0_31/src
-eval `scramv1 runtime -sh`
+cd $ROOTPATH
+source setup
+export $SCRAM_ARCH
 
 # cd to work dir
-cd /afs/cern.ch/user/y/yousen/work/pPb2016/D0/FlowCorr/batch
+cd ${ROOTPATH}/D0/FlowCorr/batch
+root -b -q
 echo PWD: $PWD
 
 #OUTDIR=/afs/cern.ch/user/y/yousen/work/pPb2016/HM185-250-PD0-v2vspt

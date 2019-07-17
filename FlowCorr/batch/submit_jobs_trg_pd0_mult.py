@@ -36,7 +36,12 @@ sublist_number = {
       'PAHM1-6' : 146,
       'PAHM7'   : 50,
       'PPMB'    : 0,
-      'PPHM'  : 0,
+      'PPHM'  : 33,
+      }
+
+path = {
+      'PAHM' : '/afs/cern.ch/user/y/yousen/work/pPb2016'
+      'PPHM' : '/afs/cern.ch/user/y/yousen/work/pp2018'
       }
 
 if sublist_number[dataset_name] != 0:
@@ -46,23 +51,23 @@ if sublist_number[dataset_name] != 0:
    command_lines = '''universe   = vanilla
 getenv     = True
 executable = submit_corr2D_trg_pd0_mult.sh
-arguments  = list/%s.000 %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f
+arguments  = list/%s.000 %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f %s
 log        = log/submit_corr2D_trg_pd0_%s_%s_v2vsNtrk_pT%.1f-%.1f_y%.1f-%.1f.$(Process).log
 output     = out/submit_corr2D_trg_pd0_%s_%s_v2vsNtrk_pT%.1f-%.1f_y%.1f-%.1f.$(Process).out
 error      = err/submit_corr2D_trg_pd0_%s_%s_v2vsNtrk_pT%.1f-%.1f_y%.1f-%.1f.$(Process).err
 requirements = (OpSysAndVer =?= "CentOS7")
 +JobFlavour           = "workday"
 queue
-''' % (dataset[dataset_name], dataset_name, storage[dataset_name], pTMin, pTMax, yMin, yMax,
+''' % (dataset[dataset_name], dataset_name, storage[dataset_name], pTMin, pTMax, yMin, yMax, path[dataset_name]
       tree[treeNumber], dataset_name, pTMin, pTMax, yMin, yMax,
       tree[treeNumber], dataset_name, pTMin, pTMax, yMin, yMax,
       tree[treeNumber], dataset_name, pTMin, pTMax, yMin, yMax)
 
    for i in range(1, sublist_number[dataset_name]):
       temp = '''
-arguments  = list/%s.%03d %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f
+arguments  = list/%s.%03d %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f %s
 queue
-''' % (dataset[dataset_name], i, dataset_name, storage[dataset_name], pTMin, pTMax, yMin, yMax)
+''' % (dataset[dataset_name], i, dataset_name, storage[dataset_name], pTMin, pTMax, yMin, yMax, path[dataset_name])
       command_lines += temp
 
    f.write(command_lines)
