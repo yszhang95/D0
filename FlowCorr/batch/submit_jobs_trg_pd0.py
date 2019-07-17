@@ -30,7 +30,7 @@ if sublist_number[dataset_name] != 0:
 
    command_lines = '''universe   = vanilla
 getenv     = True
-executable = submit_corr2D_trg_pd0.sh
+executable = submit_corr2D_trg_npd0.sh
 arguments  = list/%s.000 %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f
 log        = log/submit_corr2D_trg_pd0_%s_%s_HM_pT%.1f-%.1f_y%.1f-%.1f.$(Process).log
 output     = out/submit_corr2D_trg_pd0_%s_%s_HM_pT%.1f-%.1f_y%.1f-%.1f.$(Process).out
