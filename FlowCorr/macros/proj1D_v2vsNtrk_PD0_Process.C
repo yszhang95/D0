@@ -31,12 +31,14 @@ const float yMin =0., const float yMax =0.)
    double V2_REF[n_trk_bin_];
    double V2_REF_err[n_trk_bin_];
 
-   double N_ass[n_trk_bin_];
-   double N_ass_low;
+   double N_ass[ana::nMass][n_trk_bin_];
+   double N_ass_err[ana::nMass][n_trk_bin_];
+   double N_ass_low[ana::nMass];
+   double N_ass_low_err[ana::nMass];
 
-   double Upsilon[ana::nMass][n_trk_bin_];
-   double Upsilon_err[ana::nMass][n_trk_bin_];
-   double Upsilon_low[ana::nMass];
+   double yields_jet[ana::nMass][n_trk_bin_];
+   double yields_jet_err[ana::nMass][n_trk_bin_];
+   double yields_jet_low[ana::nMass];
 
    double V2_PD0_low[ana::nMass];
    double V2_PD0_low_err[ana::nMass];
@@ -68,16 +70,14 @@ const float yMin =0., const float yMax =0.)
    TFile* f3 = nullptr;
 
    // read short range
-   if(dataset != "PAMB"){
+   if(dataset != "PAMB" || dataset != "PPMB"){
       f3 = new TFile(input_d0_low_mult);
       if(!f3->IsOpen()) {
-         cout << "not found" << endl;
+         cout << "not found " << input_d0_low_mult << endl;
          return;
       }
       f3->GetObject("hMult_ass_trk0", hMult_ass_low);
       if(!hMult_ass_low) {
-         cout << "not found" << endl;
-         return;
       }
       for(int imass=0; imass<ana::nMass; imass++){
          f3->GetObject(Form("hSignal_mass%d_trk0", imass), h2DSignal_D0_low[imass]);
@@ -94,8 +94,6 @@ const float yMin =0., const float yMax =0.)
    }else{
       f1->GetObject("hMult_ass_trk0", hMult_ass_low);
       if(!hMult_ass_low) {
-         cout << "not found" << endl;
-         return;
       }
       for(int imass=0; imass<ana::nMass; imass++){
          f1->GetObject(Form("hSignal_mass%d_trk0", imass), h2DSignal_D0_low[imass]);
@@ -111,16 +109,11 @@ const float yMin =0., const float yMax =0.)
       }
    }
 
-   // read n_ass
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       f1->GetObject(Form("hMult_ass_trk%d", i_trk_bin_), hMult_ass[i_trk_bin_]);
       if(!hMult_ass[i_trk_bin_]) {
-         //cout << "not found " << Form("hMult_ass_trk%d", i_trk_bin_) << endl;
-         //return;
       }
-      //N_ass[i_trk_bin_] = hMult_ass[i_trk_bin_]->Integral();
    }
-   N_ass_low = hMult_ass_low->Integral();
 
    // read long range
    for(int imass=0; imass<ana::nMass; imass++){
@@ -140,7 +133,7 @@ const float yMin =0., const float yMax =0.)
    // scaled by event number
    for(int imass=0; imass<ana::nMass; imass++){
       for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-         double nMult_D0= hMult_raw_D0[imass][i_trk_bin_]->Integral(2, 251);
+         double nMult_D0= hMult_raw_D0[imass][i_trk_bin_]->GetEntries()-hMult_raw_D0[imass][i_trk_bin_]->GetBinContent(1);
          h2DSignal_D0[imass][i_trk_bin_]->Scale(1./nMult_D0);
       }
    }
@@ -203,6 +196,8 @@ const float yMin =0., const float yMax =0.)
                );
          V2_PD0[imass][i_trk_bin_] = func.GetParameter(2);
          V2_PD0_err[imass][i_trk_bin_] = func.GetParError(2);
+         N_ass[imass][i_trk_bin_] = func.GetParameter(0);
+         N_ass_err[imass][i_trk_bin_] = func.GetParError(0);
       }
    }
 
@@ -229,6 +224,8 @@ const float yMin =0., const float yMax =0.)
             );
       V2_PD0_low[imass] = func.GetParameter(2);
       V2_PD0_low_err[imass] = func.GetParError(2);
+      N_ass_low[imass] = func.GetParameter(0);
+      N_ass_low_err[imass] = func.GetParError(0);
    }
 
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
@@ -323,7 +320,7 @@ const float yMin =0., const float yMax =0.)
          hDeltaPhi_jet->Divide(temp);
          hDeltaPhi_jet->Scale(h2DBackground_D0[imass][i_trk_bin_]->GetBinContent(center) / temp->GetBinWidth(1));
 
-         Upsilon[imass][i_trk_bin_] = hDeltaPhi_jet->IntegralAndError(0, 10000, Upsilon_err[imass][i_trk_bin_], "width");
+         yields_jet[imass][i_trk_bin_] = hDeltaPhi_jet->IntegralAndError(0, 10000, yields_jet_err[imass][i_trk_bin_], "width");
 
          delete hDeltaPhi_jet;
          delete temp;
@@ -337,7 +334,7 @@ const float yMin =0., const float yMax =0.)
       hDeltaPhi_jet_low->Divide(temp);
       hDeltaPhi_jet_low->Scale(h2DBackground_D0_low[imass]->GetBinContent(center) / temp->GetBinWidth(1));
 
-      Upsilon_low[imass] = hDeltaPhi_jet_low->Integral("width");
+      yields_jet_low[imass] = hDeltaPhi_jet_low->Integral("width");
       delete hDeltaPhi_jet_low;
       delete temp;
    }
@@ -347,9 +344,9 @@ const float yMin =0., const float yMax =0.)
       g_v2_sub[i_trk_bin_] = new TGraphErrors(ana::nMass);
       g_v2_sub[i_trk_bin_]->SetName(Form("g_v2_trk%d", i_trk_bin_));
       for(int imass=0; imass<ana::nMass; imass++){
-         V2_Sub_PD0[imass][i_trk_bin_] = V2_PD0[imass][i_trk_bin_] - V2_PD0_low[imass]*N_ass_low/Upsilon_low[imass] / N_ass[i_trk_bin_] * Upsilon[imass][i_trk_bin_];
+         V2_Sub_PD0[imass][i_trk_bin_] = V2_PD0[imass][i_trk_bin_] - V2_PD0_low[imass]*N_ass_low[imass]/yields_jet_low[imass] / N_ass[imass][i_trk_bin_] * yields_jet[imass][i_trk_bin_];
          V2_Sub_PD0_err[imass][i_trk_bin_] = sqrt(pow(V2_PD0_err[imass][i_trk_bin_], 2) - 
-               pow(V2_PD0_low_err[imass]*N_ass_low/Upsilon_low[imass] / N_ass[i_trk_bin_] * Upsilon[imass][i_trk_bin_], 2));
+               pow(V2_PD0_low_err[imass]*N_ass_low[imass]/yields_jet_low[imass] / N_ass[imass][i_trk_bin_] * yields_jet[imass][i_trk_bin_], 2));
          double temp = V2_Sub_PD0[imass][i_trk_bin_]/ sqrt(V2_REF[i_trk_bin_]);
          double temp_err = temp* sqrt(pow(V2_Sub_PD0_err[imass][i_trk_bin_]/ V2_Sub_PD0[imass][i_trk_bin_], 2) 
                + pow(0.5*V2_REF[i_trk_bin_]/ V2_REF[i_trk_bin_], 2));
@@ -377,27 +374,14 @@ const float yMin =0., const float yMax =0.)
 
    // ugly
    /*
-   TFile fout_consts("consts.root", "recreate");
-   TTree t("t", "");
-   double upsilon[3];
-   upsilon[0]= Upsilon[0][7] + Upsilon[0][8];
-   upsilon[1]= Upsilon[1][7] + Upsilon[1][8];
-   upsilon[2]= Upsilon[2][7] + Upsilon[2][8];
-   t.Branch("Upsilon", upsilon, "Upsilon[3]/D");
-   t.Branch("Upsilon_low", &Upsilon_low, "Upsilon_low/D");
-   t.Branch("N_ass", N_ass, "N_ass[3]/D");
-   t.Branch("N_ass_low", &N_ass_low, "N_ass_low/D");
-   t.Fill();
-   t.Write();
-
    TGraphErrors* g_jets[3];
    for(int i=0; i<3; i++){
       cout << "test" << endl;
       g_jets[i] = new TGraphErrors(14);
       g_jets[i]->SetName(Form("g_v2_trk%d", i));
       for(int j=0; j<14; j++){
-         g_jets[i]->SetPoint(i, hMass_D0[j][i]->GetMean(), Upsilon[j][i]);
-         g_jets[i]->SetPointError(i, 0, Upsilon_err[j][i]);
+         g_jets[i]->SetPoint(i, hMass_D0[j][i]->GetMean(), yields_jet[j][i]);
+         g_jets[i]->SetPointError(i, 0, yields_jet_err[j][i]);
       }
       g_jets[i]->Write();
       hMass[i]->Write();
