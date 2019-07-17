@@ -52,7 +52,9 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
       const char* input_data = "",
       const char* output = "",
       const std::string dataset = "",
-      const float y = 2.0
+      const float y = 0.0,
+      const float pTMin = 0.0,
+      const float pTMax = 0.0
       )
 {
    gStyle->SetOptStat(0);
@@ -160,6 +162,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         ((TGaxis*)h_data->GetXaxis())->SetMaxDigits(7);
         
         h_data->SetMaximum(h_data->GetMaximum()*1.5);
+        h_data->Scale(1./h_data->GetBinWidth(1));
         
         TH1D* h_Ntrk = (TH1D*)file1->Get(Form("hNtrk_trk%d",i));
         TH1D* h_KET = (TH1D*)file1->Get(Form("hKET_trk%d",i));
@@ -324,8 +327,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
            tex->DrawLatex(0.22,0.86,Form("%u #leq N_{trk}^{offline} < %u", vec_trkbin[i], vec_trkbin[i+1]));
         else
            tex->DrawLatex(0.22,0.86,Form("N_{trk}^{offline} #geq %u", vec_trkbin[i]));
-        //tex->DrawLatex(0.22,0.80,"1.5 < p_{T} < 8.0 GeV/c");
-        tex->DrawLatex(0.22,0.80,"6.0 < p_{T} < 7.0 GeV/c");
+        tex->DrawLatex(0.22,0.80,Form("%.1f < p_{T} < %.1f GeV/c", pTMin, pTMax));
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
 
         
@@ -447,8 +449,8 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         fvn_combinemassvnfit->SetFitResult( result, iparvnfit_poly3bkg_floatwidth);
         fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
         fvn_combinemassvnfit->SetLineColor(2);
-        //fvn_combinemassvnfit->SetLineStyle(2);
-        //vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
+        fvn_combinemassvnfit->SetLineStyle(2);
+        vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
         //
          auto hist =  vn_data->GetHistogram();
          hist->GetXaxis()->SetRangeUser(0, 0.3);
@@ -491,7 +493,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
            tex->DrawLatex(0.22,0.86,Form("%u #leq N_{trk}^{offline} < %u", vec_trkbin[i], vec_trkbin[i+1]));
         else
            tex->DrawLatex(0.22,0.86,Form("N_{trk}^{offline} #geq %u", vec_trkbin[i]));
-        tex->DrawLatex(0.22,0.80,"6.0 < p_{T} < 7.0 GeV/c");
+        tex->DrawLatex(0.22,0.80,Form("%.1f < p_{T} < %.1f GeV/c", pTMin, pTMax));
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
         //tex->DrawLatex(0.22,0.68,"|#Delta#eta| > 2");
 
@@ -528,8 +530,6 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
 //        leg1->AddEntry(f2,"K-#pi swap","f");
 //        leg1->AddEntry(f3,"Combinatorial","l");
         //leg1->Draw("SAME");
-        h_data->Scale(1./h_data->GetBinWidth(1));
-        h_data->Draw("SAME");
 
         TF1* falpha = new TF1(Form("falpha_%d",1),"( [0]*([5]*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))+(1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6])))+(1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6]))) )/( [0]*([5]*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))+(1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6])))+(1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6]))) + [9] + [10]*x + [11]*x*x + [12]*x*x*x )", fit_range_low,fit_range_high);
 
@@ -606,8 +606,8 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         delete f1;
         delete f2;
         delete f3;
-        delete fmass_combinemassvnfit;
-        delete fvn_combinemassvnfit;
+        //delete fmass_combinemassvnfit;
+        //delete fvn_combinemassvnfit;
         delete fvnbkg;
         delete falpha;
     }
