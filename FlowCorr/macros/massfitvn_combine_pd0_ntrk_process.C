@@ -59,7 +59,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
 {
    gStyle->SetOptStat(0);
    double fit_range_low = 1.7;
-   if(dataset!="PAHM1-6") fit_range_low=1.74;
+   if(dataset =="PAHM0" || dataset == "PAHM7" || dataset == "PAMB") fit_range_low=1.74;
    double fit_range_high = 2.0;
    double D0_mass = 1.8648;
    TFile* file0 = TFile::Open(input_mc);
