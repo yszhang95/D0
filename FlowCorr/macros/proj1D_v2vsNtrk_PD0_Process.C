@@ -183,9 +183,9 @@ const float yMin =0., const float yMax =0.)
          }
          std::string ntrk;
          auto trkRange = ana::get_Mult_Edges(dataset);
-         if(trkRange.size() && trkRange[trkRange.size()]!=std::numeric_limits<unsigned int>::max()) 
+         if(trkRange.size() && trkRange[i_trk_bin_+1]!=std::numeric_limits<unsigned int>::max()) 
             ntrk = std::string(Form("%u#leqN_{trk}^{offline}<%u", trkRange[i_trk_bin_], trkRange[i_trk_bin_+1]));
-         if(trkRange.size() && trkRange[trkRange.size()]==std::numeric_limits<unsigned int>::max()) 
+         if(trkRange.size() && trkRange[i_trk_bin_+1]==std::numeric_limits<unsigned int>::max()) 
             ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
          auto func = draw1D_longrange(hDeltaPhi[imass][i_trk_bin_],
                Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_mass%d_trk%d.png", 
@@ -243,9 +243,9 @@ const float yMin =0., const float yMax =0.)
       }
       std::string ntrk;
       auto trkRange = ana::get_Mult_Edges(dataset);
-      if(trkRange.size() && trkRange[trkRange.size()-1]!=std::numeric_limits<unsigned int>::max()) 
+      if(trkRange.size() && trkRange[i_trk_bin_+1]!=std::numeric_limits<unsigned int>::max()) 
          ntrk = std::string(Form("%u#leqN_{trk}^{offline}<%u", trkRange[i_trk_bin_], trkRange[i_trk_bin_+1]));
-      if(trkRange.size() && trkRange[trkRange.size()-1]==std::numeric_limits<unsigned int>::max()) 
+      if(trkRange.size() && trkRange[i_trk_bin_+1]==std::numeric_limits<unsigned int>::max()) 
             ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
       auto func_ref = draw1D_longrange(hDeltaPhi_Ref[i_trk_bin_],
             Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d.png", 
