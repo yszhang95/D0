@@ -16,5 +16,21 @@ const float y=2.0, const string dataset="PAMB")
             "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root", "../data/corr2D_trg_ref_PAHM185-250_d0ana_ntrk.root",
             "PAHM1-6", "../data/corr2D_trg_pd0_PAMB0-150_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root",
             2.5, 4.0, -2., 2.));
+   gInterpreter->ProcessLine(Form("proj1D_v2vsNtrk_PD0_Process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %f)", 
+            "../data/corr2D_trg_pd0_PAHM150-185_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root", "../data/corr2D_trg_ref_PAHM150-185_d0ana_ntrk.root",
+            "PAHM1-6", "../data/corr2D_trg_pd0_PAMB0-150_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root",
+            2.5, 4.0, -2., 2.));
+   gInterpreter->ProcessLine(Form("proj1D_v2vsNtrk_PD0_Process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %f)", 
+            "../data/corr2D_trg_pd0_PAHM250-inf_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root", "../data/corr2D_trg_ref_PAHM250-inf_d0ana_ntrk.root",
+            "PAHM7", "../data/corr2D_trg_pd0_PAMB0-150_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root",
+            2.5, 4.0, -2., 2.));
+   gInterpreter->ProcessLine(Form("proj1D_v2vsNtrk_PD0_Process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %f)", 
+            "../data/corr2D_trg_pd0_PAHM150-185_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root", "../data/corr2D_trg_ref_PAHM150-185_d0ana_ntrk.root",
+            "PAHM0", "../data/corr2D_trg_pd0_PAMB0-150_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root",
+            2.5, 4.0, -2., 2.));
+   gInterpreter->ProcessLine(Form("proj1D_v2vsNtrk_PD0_Process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %f)", 
+            "../data/corr2D_trg_pd0_PAMB0-150_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root", "../data/corr2D_trg_ref_PAMB0-150_d0ana_ntrk.root",
+            "PAMB", "../data/corr2D_trg_pd0_PAMB0-150_d0ana_pT2.5-4.0_y-2.0-2.0_ntrk.root",
+            2.5, 4.0, -2., 2.));
 }
    

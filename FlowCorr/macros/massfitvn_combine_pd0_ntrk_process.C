@@ -59,6 +59,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
 {
    gStyle->SetOptStat(0);
    double fit_range_low = 1.7;
+   if(dataset!="PAHM1-6") fit_range_low=1.74;
    double fit_range_high = 2.0;
    double D0_mass = 1.8648;
    TFile* file0 = TFile::Open(input_mc);
@@ -162,7 +163,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         ((TGaxis*)h_data->GetXaxis())->SetMaxDigits(7);
         
         h_data->SetMaximum(h_data->GetMaximum()*1.5);
-        h_data->Scale(1./h_data->GetBinWidth(1));
+        //h_data->Scale(1./h_data->GetBinWidth(1));
         
         TH1D* h_Ntrk = (TH1D*)file1->Get(Form("hNtrk_trk%d",i));
         TH1D* h_KET = (TH1D*)file1->Get(Form("hKET_trk%d",i));
@@ -256,7 +257,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         f->ReleaseParameter(1); //allow data to have different mass peak mean than MC
         f->ReleaseParameter(6); //allow data to have different peak width than MC
         f->SetParameter(6,0);
-        //f->SetParLimits(6,-1.0,1.0);
+        f->SetParLimits(6,-1.0,1.0);
         //f->FixParameter(5,1);
         h_data->Fit(Form("f_%d",i),"L q","",fit_range_low,fit_range_high);
         h_data->Fit(Form("f_%d",i),"L q","",fit_range_low,fit_range_high);
@@ -566,11 +567,14 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         double v2y[200];
         
         float Chi2v2=0;
-        int ndfv2 = 14 - 2;
+        int ndfv2 = 0;
+        if(dataset=="PAHM1-6") ndfv2=14 - 2;
+        else ndfv2 = 13 - 2;
         
 
         for(int k=0;k<vn_data->GetN();k++)
         {
+           if(dataset!="PAHM1-6" && k==0) continue;
             vn_data->GetPoint(k,xv2[k],v2y[k]);
             //xv2[k] = vn_dara->GetBinCenter(k);
             pullv2[k] = (v2y[k] - fvn_combinemassvnfit->Eval(xv2[k]))/vn_data->GetErrorY(k);
