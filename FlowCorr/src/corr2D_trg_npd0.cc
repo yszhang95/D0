@@ -647,7 +647,10 @@ bool passD0MVA(const int& trigger, Event* event, const int& icand,
       return false;
    } else{
       switch(trigger){
-         case 2: 
+         case 0:  // PAMB
+            return ana::pass_pPb2016_8TeV_NPD0_MVA(event->Pt(icand), event->Mva(icand));
+            break;
+         case 1:  // PAHM1-6
             return ana::pass_pPb2016_8TeV_NPD0_MVA(event->Pt(icand), event->Mva(icand));
             break;
          default: 

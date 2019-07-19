@@ -3,8 +3,8 @@ import subprocess
 tree = ["PromptD0", "NonPromptD0", "NonPromptD0"]
 treeNumber = 2
 
-pTMin = 2.0
-#pTMin = 2.5
+#pTMin = 2.0
+pTMin = 2.5
 pTMax = 8.0
 yMin  = -1.0
 yMax  = 1.0

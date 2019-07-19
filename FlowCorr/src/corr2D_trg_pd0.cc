@@ -30,10 +30,10 @@ bool checkBranchStatus(Event*);
 
 bool passGoodTrack(Event*, const unsigned int&);
 inline bool passGoodVtx(Event* event);
-inline bool passD0Selections(const int&, Event*, const int&, const bool&);
+inline bool passD0Selections(const string&, Event*, const int&, const bool&);
 bool passD0PreSelections(Event*, const int&);
 bool passD0KinematicCuts(Event*, const int&);
-bool passD0MVA(const int&, Event*, const int&, const bool&);
+bool passD0MVA(const string&, Event*, const int&, const bool&);
 inline bool passNtrkoffline(const double&, const int&);
 
 vector<double> setPtBin(const string& dataset);
@@ -254,7 +254,7 @@ int main(int argc, char** argv)
          if(imass == -1) continue;
          if(ipt == -1) continue;
 
-         if(!passD0Selections(dataset_trigger, evt, id0, isPromptD0)) continue;
+         if(!passD0Selections(dataset, evt, id0, isPromptD0)) continue;
 
          double effks = h_eff->GetBinContent(h_eff->FindBin(evt->Pt(id0), evt->Y(id0)));
 
@@ -568,11 +568,11 @@ bool checkBranchStatus(Event* event)
    return check;
 }
 
-inline bool passD0Selections(const int& trigger, Event* event, const int& icand, const bool& isPromptD0)
+inline bool passD0Selections(const string& dataset, Event* event, const int& icand, const bool& isPromptD0)
 {
    if(!passD0PreSelections(event, icand)) return false;
    if(!passD0KinematicCuts(event, icand)) return false;
-   if(!passD0MVA(trigger, event, icand, isPromptD0)) return false;
+   if(!passD0MVA(dataset, event, icand, isPromptD0)) return false;
    return true;
 }
 
@@ -602,17 +602,14 @@ bool passD0KinematicCuts(Event* event, const int& icand)
    return passY && passPt;
 }
 
-bool passD0MVA(const int& trigger, Event* event, const int& icand, 
+bool passD0MVA(const string& dataset, Event* event, const int& icand, 
       const bool& isPrompt)
 {
    if(isPrompt){
-      switch(trigger){
-         case 2: return ana::pass_pPb2016_8TeV_PD0_MVA(event->Pt(icand), event->Mva(icand));
-                 break;
-         case 5: return ana::pass_pp2018_13TeV_PD0_MVA(event->Mva(icand));
-                 break;
-         default: return false;
-      }
+      if(dataset == "PAHM1-6" || dataset == "PAMB") 
+         return ana::pass_pPb2016_8TeV_PD0_MVA(event->Pt(icand), event->Mva(icand));
+      if(dataset == "PPHM" || dataset == "PPMB")
+         return ana::pass_pp2018_13TeV_PD0_MVA(event->Mva(icand));
    } else{
       // non-prompt would not be measured
       return false;

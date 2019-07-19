@@ -578,11 +578,9 @@ bool passD0MVA(const int& trigger, Event* event, const int& icand,
                  break;
          case 2: return ana::pass_pPb2016_8TeV_PD0_MVA(event->Pt(icand), event->Mva(icand));
                  break;
-         case 3: return ana::pass_pPb2016_8TeV_PD0_MVA(event->Pt(icand), event->Mva(icand));
+         case 3: return ana::pass_pp2018_13TeV_PD0_MVA(event->Mva(icand));
                  break;
          case 4: return ana::pass_pp2018_13TeV_PD0_MVA(event->Mva(icand));
-                 break;
-         case 5: return ana::pass_pp2018_13TeV_PD0_MVA(event->Mva(icand));
                  break;
       }
    } else{
