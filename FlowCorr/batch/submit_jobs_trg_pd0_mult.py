@@ -3,13 +3,16 @@ import subprocess
 tree = ["PromptD0", "NonPromptD0", "NonPromptD0"]
 treeNumber = 0
 
-pTMin = 2.0
-pTMax = 4.0
+#pTMin = 3.0
+#pTMin = 2.5
+#pTMax = 4.0
+pTMin = 4.0
+pTMax = 6.0
 yMin  = -1.0
 yMax  = 1.0
 
-dataset_name = 'PAHM1-6'
-#dataset_name = 'PAHM7'
+#dataset_name = 'PAHM1-6'
+dataset_name = 'PAHM7'
 #dataset_name = 'PAMB'
 
 dataset = {

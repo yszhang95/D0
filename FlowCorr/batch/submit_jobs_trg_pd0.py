@@ -52,6 +52,6 @@ queue
 
    f.write(command_lines)
    f.close()
-   #subprocess.call(["condor_submit", name])
+   subprocess.call(["condor_submit", name])
 else:
    print "enter the correct dataset name!"

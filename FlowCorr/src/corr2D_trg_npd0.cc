@@ -107,11 +107,13 @@ int main(int argc, char** argv)
    const int dataset_trigger = ana::Get_Trigger(dataset);
    const bool isHM = ana::isHM_NPD0_DataSet(dataset);
    const bool isLow = ana::isLow_Mult_NPD0_DataSet(dataset);
+
    cout << "dataset number: " << dataset_trigger << endl;
-   if(dataset_trigger<0 || !isHM || !isLow){
+   cout << "dataset: " << dataset << endl;
+   if(dataset_trigger<0 || (!isHM && !isLow)){
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
-         << "PAHM1-6"
+         << "PAHM1-6\n"
          << "PAMB"
          << endl;
       return -1;
@@ -541,6 +543,8 @@ void setBranchStatus(Event* evt)
    evt->SetBranchStatus("pT", 1);
    evt->SetBranchStatus("mass", 1);
    evt->SetBranchStatus("mva", 1);
+   evt->SetBranchStatus("eta", 1);
+   evt->SetBranchStatus("phi", 1);
    evt->SetBranchStatus("y", 1);
    evt->SetBranchStatus("3DPointingAngle", 1);
    evt->SetBranchStatus("3DDecayLength", 1);
@@ -567,6 +571,8 @@ bool checkBranchStatus(Event* event)
       event->GetBranchStatus("mass")&&
       event->GetBranchStatus("mva")&&
       event->GetBranchStatus("y")&&
+      event->GetBranchStatus("eta")&&
+      event->GetBranchStatus("phi")&&
       event->GetBranchStatus("3DPointingAngle")&&
       event->GetBranchStatus("3DDecayLength")&&
       event->GetBranchStatus("3DDecayLengthSignificance")&&

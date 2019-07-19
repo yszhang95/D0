@@ -79,7 +79,7 @@ int main(int argc, char** argv)
    const int dataset_trigger = ana::Get_Trigger(dataset);
    const bool isHM = ana::isHM_PD0_DataSet(dataset);
    const bool isLow = ana::isLow_Mult_PD0_DataSet(dataset);
-   if(dataset_trigger<0 || !isHM || !isLow) {
+   if(dataset_trigger<0 || (!isHM && !isLow)) {
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAHM1-6\n"

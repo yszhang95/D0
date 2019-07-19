@@ -5,12 +5,12 @@ treeNumber = 0
 
 #dataset_name = 'PAHM1-6'
 #dataset_name = 'PAHM0'
-dataset_name = 'PAHM7'
-#dataset_name = 'PAMB'
+#dataset_name = 'PAHM7'
+dataset_name = 'PAMB'
 
 dataset = {
-      'PAMB'    : 'PAMB0-150_REF.list',
-      'PAHM0'   : 'PAHM150-185_REF.list',
+      'PAMB'    : 'PAMB0-150_REF.list', # should be 0-185, I am too lazy to correct it
+      #'PAHM0'   : 'PAHM150-185_REF.list', # we will not use it
       'PAHM1-6' : 'PAHM185-250_REF.list',
       'PAHM7'   : 'PAHM250-inf_REF.list',
       'PPMB'    : 'PPMB0-80_REF.list',
@@ -18,8 +18,9 @@ dataset = {
       'PPHM_2'  : 'PPHM100-inf_REF.list'
       }
 storage = {
-      'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-150-PD0-v2vsNtrk',
-      'PAHM0'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM150-185-PD0-v2vsNtrk',
+      #'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-150-PD0-v2vsNtrk',
+      'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-185-PD0-v2vsNtrk',
+      #'PAHM0'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM150-185-PD0-v2vsNtrk', # we will not use it
       'PAHM1-6' : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM185-250-PD0-v2vsNtrk',
       'PAHM7'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM250-inf-PD0-v2vsNtrk',
       'PPMB'    : '/afs/cern.ch/user/y/yousen/work/pp2018/MB0-80-PD0-v2vsNtrk',
@@ -29,7 +30,7 @@ storage = {
 
 sublist_number = {
       'PAMB'    : 839,
-      'PAHM0'   : 623,
+      #'PAHM0'   : 623, # we will not use it
       'PAHM1-6' : 500,
       'PAHM7'   : 818,
       'PPMB'    : 0,
