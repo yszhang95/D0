@@ -77,15 +77,19 @@ int main(int argc, char** argv)
    cuts.yMax  = stof(argv[8]);
 
    const int dataset_trigger = ana::Get_Trigger(dataset);
-   if(dataset_trigger<0 || !ana::isHM_PD0_DataSet(dataset)){
+   const bool isHM = ana::isHM_PD0_DataSet(dataset);
+   const bool isLow = ana::isLow_Mult_PD0_DataSet(dataset);
+   if(dataset_trigger<0 || !isHM || !isLow) {
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAHM1-6\n"
          << "PPHM  //mult > 100, 80-100 not used\n"
+         << "PAMB  // 0-35, used"
+         << "PPMB  // 0-20, used"
          << "// means comments"
          << endl;
       return -1;
-   }
+   };
 
    const vector<double> ptbin = setPtBin(dataset);
    const int nPt = ptbin.size()-1;
@@ -241,7 +245,10 @@ int main(int argc, char** argv)
       hNtrkofflineVsNtrkgood->Fill(nMult_ass_good, evt->nTrkOffline());
 
       for(int id0=0; id0<evt->CandSize(); id0++){
-         int imass = ana::findMassBin(evt->Mass(id0));
+         int imass = -1;
+         //if(isHM) imass = ana::findMassBin_HM(evt->Mass(id0));
+         //else if(isLow) imass = ana::findMassBin(evt->Mass(id0));
+         imass = ana::findMassBin(evt->Mass(id0));
          int ipt = ana::findPtBin(evt->Pt(id0), ptbin);
 
          if(imass == -1) continue;
@@ -429,13 +436,13 @@ int main(int argc, char** argv)
       }
       auto ntrkBounds = ntrkEdges(dataset);
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+         outName = TString::Format("%s/fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_nptbin%d.root", 
                prefix.c_str(), datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
-               cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
+               cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax, nPt);
       else
-         outName = TString::Format("fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+         outName = TString::Format("fout_%s_d0ana_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_nptbin%d.root", 
                datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
-               cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
+               cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax, nPt);
    } 
    else return -1;
 
@@ -635,23 +642,29 @@ inline bool passNtrkoffline(const double& Ntrkoffline, const int& dataset_trigge
 {
    if(dataset_trigger == ana::dataset_trigger.at("PAHM1-6")) 
       return Ntrkoffline >= ana::multMin_PA_ && Ntrkoffline < ana::multMax_PA_;
+   if(dataset_trigger == ana::dataset_trigger.at("PAMB")) 
+      return Ntrkoffline >= ana::multMin_low_PA_ && Ntrkoffline < ana::multMax_low_PA_;
    if(dataset_trigger == ana::dataset_trigger.at("PPHM")) 
       return Ntrkoffline >= ana::multMin_PP_ && Ntrkoffline < ana::multMax_PP_;
+   if(dataset_trigger == ana::dataset_trigger.at("PPMB")) 
+      return Ntrkoffline >= ana::multMin_low_PP_ && Ntrkoffline < ana::multMax_low_PP_;
    return false;
 }
 
 pair<int, int> ntrkEdges(const std::string& dataset){
    if(dataset == "PAHM1-6") return pair<int, int>(ana::multMin_PA_, ana::multMax_PA_);
+   if(dataset == "PAMB") return pair<int, int>(ana::multMin_low_PA_, ana::multMax_low_PA_);
    if(dataset == "PPHM") return pair<int, int>(ana::multMin_PP_, ana::multMax_PP_);
+   if(dataset == "PPMB") return pair<int, int>(ana::multMin_low_PP_, ana::multMax_low_PP_);
    return pair<int, int>(0, 0);
 }
 
 vector<double> setPtBin(const string& dataset)
 {
-   if(dataset == "PAHM1-6"){
+   if(dataset == "PAHM1-6" || dataset == "PAMB"){
       return vector<double>(ana::ptbin_PD0_pPb, ana::ptbin_PD0_pPb+ana::nPt_PD0_pPb+1);
    }
-   if(dataset == "PPHM"){
+   if(dataset == "PPHM" || dataset == "PPMB"){
       return vector<double>(ana::ptbin_PD0_pp, ana::ptbin_PD0_pp+ana::nPt_PD0_pp+1);
    }
    return vector<double>();

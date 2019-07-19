@@ -79,7 +79,8 @@ int main(int argc, char** argv)
       return -1;
    }
 
-   const long int nDca = dcaCutTree.GetEntries();
+   const int nDca = dcaCutTree.GetEntries();
+
    double dcaCut[nDca][ana::nPt_NPD0_pPb] = {0.};
    float  dcaCutTemp[ana::nPt_NPD0_pPb] = {0.};
 
@@ -104,11 +105,14 @@ int main(int argc, char** argv)
    cuts.yMax  = stof(argv[8]);
 
    const int dataset_trigger = ana::Get_Trigger(dataset);
+   const bool isHM = ana::isHM_NPD0_DataSet(dataset);
+   const bool isLow = ana::isLow_Mult_NPD0_DataSet(dataset);
    cout << "dataset number: " << dataset_trigger << endl;
-   if(dataset_trigger<0){
+   if(dataset_trigger<0 || !isHM || !isLow){
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAHM1-6"
+         << "PAMB"
          << endl;
       return -1;
    }
@@ -262,7 +266,10 @@ int main(int argc, char** argv)
       if(!passNtrkoffline(evt->nTrkOffline(), dataset_trigger)) continue;
 
       for(int id0=0; id0<evt->CandSize(); id0++){
-         int imass = ana::findMassBin(evt->Mass(id0));
+         int imass = -1;
+         //if(isHM) imass = ana::findMassBin_HM(evt->Mass(id0));
+         //else if(isLow) imass = ana::findMassBin(evt->Mass(id0));
+         imass = ana::findMassBin(evt->Mass(id0));
          int ipt = ana::findPtBin(evt->Pt(id0), ptbin);
 
          if(imass == -1) continue;
@@ -674,17 +681,23 @@ inline bool passNtrkoffline(const double& Ntrkoffline, const int& dataset_trigge
 {
    if(dataset_trigger == ana::dataset_trigger.at("PAHM1-6")) 
       return Ntrkoffline >= ana::multMin_PA_ && Ntrkoffline < ana::multMax_PA_;
+   if(dataset_trigger == ana::dataset_trigger.at("PAMB")) 
+      return Ntrkoffline >= ana::multMin_low_PA_ && Ntrkoffline < ana::multMax_low_PA_;
    return false;
 }
 
 pair<int, int> ntrkEdges(const std::string& dataset){
    if(dataset == "PAHM1-6") return pair<int, int>(ana::multMin_PA_, ana::multMax_PA_);
+   if(dataset == "PAMB") return pair<int, int>(ana::multMin_low_PA_, ana::multMax_low_PA_);
    return pair<int, int>(0, 0);
 }
 
 vector<double> setPtBin(const string& dataset)
 {
    if(dataset == "PAHM1-6"){
+      return vector<double>(ana::ptbin_NPD0_pPb, ana::ptbin_NPD0_pPb+ana::nPt_NPD0_pPb+1);
+   }
+   if(dataset == "PAMB"){
       return vector<double>(ana::ptbin_NPD0_pPb, ana::ptbin_NPD0_pPb+ana::nPt_NPD0_pPb+1);
    }
    return vector<double>();

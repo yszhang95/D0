@@ -31,8 +31,14 @@ namespace ana{
    const int    multMin_PA_ = 185;
    const int    multMax_PA_ = 250;
 
+   const int    multMin_low_PA_ = 0;
+   const int    multMax_low_PA_ = 35;
+
    const int    multMin_PP_ = 100;
    const int    multMax_PP_ = 250;
+
+   const int    multMin_low_PP_ = 0;
+   const int    multMax_low_PP_ = 20;
 
    const bool   rejectDaughter_ = true;
 
@@ -48,7 +54,9 @@ namespace ana{
    const double d0_y_max_  = 2;
 
    const int nMass = 14;
-   const double massbin[nMass+1] = {1.70, 1.74, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
+   const double massbin[nMass+1] = {1.72, 1.75, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
+      1.87, 1.88, 1.9, 1.92, 1.96, 2.0};
+   const double massbin_HM[nMass+1] = {1.70, 1.74, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
       1.87, 1.88, 1.9, 1.92, 1.96, 2.0};
    
    const int nPt_NPD0_pPb = 3;
@@ -57,8 +65,6 @@ namespace ana{
    const double ptbin_PD0_pPb[nPt_PD0_pPb+1] = {1.5, 2.4, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0};
    const int nPt_PD0_pp = 3;
    const double ptbin_PD0_pp[nPt_PD0_pp+1] = {2., 4., 6., 8.};
-
-   const int nDca = 2;
    
    const int nY = 1;
    const double ybin[nY+1] = {0., 2.0};
@@ -79,19 +85,19 @@ namespace ana{
 
    const std::map<std::string, int> dataset_trigger = {
       {"PAMB", 0},
-      {"PAHM0", 1},
-      {"PAHM1-6", 2},
-      {"PAHM7", 3},
-      {"PPMB", 4},
-      {"PPHM", 5}, //80-100, >100
+      {"PAHM1-6", 1},
+      {"PAHM7", 2},
+      {"PPMB", 3},
+      {"PPHM", 4}, //80-100, >100
    };
 
    const std::array<std::string, 2> dataset_HM_PD0 = {"PAHM1-6", "PPHM"};
+   const std::array<std::string, 2> dataset_Low_Mult_PD0 = {"PAMB", "PPMB"};
    const std::array<std::string, 1> dataset_HM_NPD0 = {"PAHM1-6"};
+   const std::array<std::string, 1> dataset_Low_Mult_NPD0 = {"PAMB"};
 
    const std::map<std::string, int> dataset_N_nTrkBin = {
-      {"PAMB", 3},
-      {"PAHM0", 1},
+      {"PAMB", 4},
       {"PAHM1-6", 1},
       {"PAHM7", 1},
       {"PPMB", 3},
@@ -99,8 +105,7 @@ namespace ana{
    };
 
    const std::map<std::string, int> dataset_PA_N_nTrkBin = {
-      {"PAMB", 3},
-      {"PAHM0", 1},
+      {"PAMB", 4},
       {"PAHM1-6", 1},
       {"PAHM7", 1},
    };
@@ -111,22 +116,23 @@ namespace ana{
    };
 
    const unsigned int PA_Mult_Edges[] = {
-      0, 35, 90, 150, 185, 250, std::numeric_limits<unsigned int>::max()
+      0, 35, 90, 120, 185, 250, std::numeric_limits<unsigned int>::max()
    };
    const unsigned int PP_Mult_Edges[] = {
       0, 20, 40, 80, 100, std::numeric_limits<unsigned int>::max()
    };
 
-   const unsigned int PA_Mult_N = 4;
+   const unsigned int PA_Mult_N = 3;
    const unsigned int PP_Mult_N = 2;
    const std::array<std::string, PA_Mult_N>PA_Mult_Order = {
-      "PAMB", "PAHM0", "PAHM1-6", "PAHM7"
+      "PAMB", "PAHM1-6", "PAHM7"
    };
    const std::array<std::string, PP_Mult_N>PP_Mult_Order = {
       "PPMB", "PPHM" 
    };
 
    int findMassBin(const double&);
+   int findMassBin_HM(const double&);
    int findPtBin(const double&, const std::vector<double>&);
    int findZVtxBin(const float&);
 
@@ -140,6 +146,9 @@ namespace ana{
 
    bool isHM_PD0_DataSet(const std::string&);
    bool isHM_NPD0_DataSet(const std::string&);
+
+   bool isLow_Mult_PD0_DataSet(const std::string&);
+   bool isLow_Mult_NPD0_DataSet(const std::string&);
 
    std::vector<unsigned int> get_Mult_Edges(const std::string&);
 };

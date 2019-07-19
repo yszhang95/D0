@@ -13,6 +13,14 @@ int ana::findMassBin(const double& mass)
    return -1;
 }
 
+int ana::findMassBin_HM(const double& mass)
+{
+   for(int imass=0; imass<ana::nMass; imass++){
+      if(ana::massbin_HM[imass]<=mass && mass<ana::massbin_HM[imass+1]) return imass;
+   }
+   return -1;
+}
+
 int ana::findPtBin(const double& pT, const vector<double>& ptbin)
 {
    const unsigned int nPt = ptbin.size() - 1;
@@ -115,6 +123,21 @@ bool ana::isHM_NPD0_DataSet(const string& dataset_name)
    return false;
 }
 
+bool ana::isLow_Mult_PD0_DataSet(const string& dataset_name)
+{
+   auto it = find(ana::dataset_Low_Mult_PD0.begin(), 
+         ana::dataset_Low_Mult_PD0.end(), dataset_name);
+   if(it != ana::dataset_Low_Mult_PD0.end()) return true;
+   return false;
+}
+
+bool ana::isLow_Mult_NPD0_DataSet(const string& dataset_name)
+{
+   auto it = find(ana::dataset_Low_Mult_NPD0.begin(), 
+         ana::dataset_Low_Mult_NPD0.end(), dataset_name);
+   if(it != ana::dataset_Low_Mult_NPD0.end()) return true;
+   return false;
+}
 
 vector<unsigned int> ana::get_Mult_Edges(const std::string& dataset){
    vector<int> n_PA;
