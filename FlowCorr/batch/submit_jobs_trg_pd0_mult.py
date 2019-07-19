@@ -13,7 +13,7 @@ dataset_name = 'PAHM1-6'
 #dataset_name = 'PAMB'
 
 dataset = {
-      'PAMB'    : 'PAMB0-150.list',
+      'PAMB'    : 'PAMB0-150.list', # list are the same but 0-150 should be renaemd after 0-185, I did not do that
       #'PAHM0'   : 'PAHM150-185.list',
       'PAHM1-6' : 'PAHM185-250.list',
       'PAHM7'   : 'PAHM250-inf.list',
@@ -21,7 +21,8 @@ dataset = {
       'PPHM'  : 'PPHM80-inf.list',
       }
 storage = {
-      'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-150-PD0-v2vsNtrk',
+      #'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-150-PD0-v2vsNtrk',
+      'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-185-PD0-v2vsNtrk',
       #'PAHM0'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM150-185-PD0-v2vsNtrk',
       'PAHM1-6' : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM185-250-PD0-v2vsNtrk',
       'PAHM7'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM250-inf-PD0-v2vsNtrk',
