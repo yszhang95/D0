@@ -11,16 +11,20 @@ yMax  = 1.0
 
 dcaCut_CSV = "dcacut.csv"
 
-dataset_name = 'PAHM1-6'
+#dataset_name = 'PAHM1-6'
+dataset_name = 'PAMB'
 
 dataset = {
+      'PAMB' : 'PAMB0-150.list', # too lazy to change it
       'PAHM1-6' : 'PAHM185-250.list',
       }
 storage = {
+      'PAMB' : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-185-NPD0-v2vspt',
       'PAHM1-6' : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM185-250-NPD0-v2vspt',
       }
 
 sublist_number = {
+      'PAMB'    : 458,
       'PAHM1-6' : 146,
       }
 
@@ -29,7 +33,6 @@ if sublist_number[dataset_name] != 0:
    f = open(name, "w")
 
    command_lines = '''universe   = vanilla
-getenv     = True
 executable = submit_corr2D_trg_npd0.sh
 arguments  = list/%s.000 %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f %s
 log        = log/submit_corr2D_trg_npd0_%s_%s_HM_pT%.1f-%.1f_y%.1f-%.1f.$(Process).log

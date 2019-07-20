@@ -55,7 +55,6 @@ if sublist_number[dataset_name] != 0:
    f = open(name, "w")
 
    command_lines = '''universe   = vanilla
-getenv     = True
 executable = submit_corr2D_trg_pd0_mult.sh
 arguments  = list/%s.000 %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f %s
 log        = log/submit_corr2D_trg_pd0_%s_%s_v2vsNtrk_pT%.1f-%.1f_y%.1f-%.1f.$(Process).log
