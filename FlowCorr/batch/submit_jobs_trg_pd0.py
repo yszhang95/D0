@@ -8,12 +8,13 @@ pTMax = 8.0
 yMin  = -1.0
 yMax  = 1.0
 
-#dataset_name = 'PAHM1-6'
-dataset_name = 'PAMB'
+dataset_name = 'PAHM1-6'
+#dataset_name = 'PAMB'
 
 dataset = {
       'PAMB' : 'PAMB0-150.list', # too lazy to change it
-      'PAHM1-6' : 'PAHM185-250.list',
+      #'PAHM1-6' : 'PAHM185-250.list',
+      'PAHM1-6' : 'PAHM185-250_new.list',
       'PPHM'    : 'PPHM80-inf.list'
       }
 storage = {
@@ -24,7 +25,8 @@ storage = {
 
 sublist_number = {
       'PAMB'    : 458,
-      'PAHM1-6' : 146,
+      #'PAHM1-6' : 146,
+      'PAHM1-6' : 240,
       'PPHM'  : 0,
       }
 

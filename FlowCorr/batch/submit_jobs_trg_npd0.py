@@ -3,20 +3,20 @@ import subprocess
 tree = ["PromptD0", "NonPromptD0", "NonPromptD0"]
 treeNumber = 2
 
-#pTMin = 2.0
-pTMin = 2.5
+pTMin = 2.0
 pTMax = 8.0
 yMin  = -1.0
 yMax  = 1.0
 
 dcaCut_CSV = "dcacut.csv"
 
-#dataset_name = 'PAHM1-6'
-dataset_name = 'PAMB'
+dataset_name = 'PAHM1-6'
+#dataset_name = 'PAMB'
 
 dataset = {
       'PAMB' : 'PAMB0-150.list', # too lazy to change it
-      'PAHM1-6' : 'PAHM185-250.list',
+      #'PAHM1-6' : 'PAHM185-250.list',
+      'PAHM1-6' : 'PAHM185-250_new.list',
       }
 storage = {
       'PAMB' : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-185-NPD0-v2vspt',
@@ -25,7 +25,8 @@ storage = {
 
 sublist_number = {
       'PAMB'    : 458,
-      'PAHM1-6' : 146,
+      #'PAHM1-6' : 146,
+      'PAHM1-6' : 240,
       }
 
 if sublist_number[dataset_name] != 0:
