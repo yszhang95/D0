@@ -18,7 +18,7 @@ void proj1D_HM_NPD0_Process(const char* input_d0= "",
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111);
 
-   if(!ana::isHM_PD0_DataSet(dataset)){
+   if(!ana::isHM_NPD0_DataSet(dataset)){
       std::cerr << "wrong dataset" << std::endl;
       return;
    }
@@ -248,11 +248,11 @@ TF1 draw1D_longrange(TH1* hDeltaPhi, const char* name,
 
    hDeltaPhi->SetMarkerStyle(20);
 
-   hDeltaPhi->Fit(&func, "q");
-   hDeltaPhi->Fit(&func, "q");
-   hDeltaPhi->Fit(&func, "m q");
-   hDeltaPhi->Fit(&func, "m q E");
-   auto fitResult = hDeltaPhi->Fit(&func, "m S E q");
+   hDeltaPhi->Fit(&func, "q P");
+   hDeltaPhi->Fit(&func, "q P");
+   hDeltaPhi->Fit(&func, "m q P");
+   hDeltaPhi->Fit(&func, "m q P E");
+   auto fitResult = hDeltaPhi->Fit(&func, "m S E q P");
 
    hDeltaPhi->SetTitle(";#Delta#phi;");
    hDeltaPhi->GetXaxis()->CenterTitle();
