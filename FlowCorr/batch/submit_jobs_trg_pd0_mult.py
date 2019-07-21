@@ -3,22 +3,25 @@ import subprocess
 tree = ["PromptD0", "NonPromptD0", "NonPromptD0"]
 treeNumber = 0
 
-#pTMin = 3.0
-#pTMin = 2.5
+#pTMin = 2.0
 #pTMax = 4.0
-pTMin = 4.0
-pTMax = 6.0
+#pTMin = 4.0
+#pTMax = 6.0
+pTMin = 6.0
+pTMax = 8.0
 yMin  = -1.0
 yMax  = 1.0
 
-#dataset_name = 'PAHM1-6'
-dataset_name = 'PAHM7'
+dataset_name = 'PAHM1-6'
+#dataset_name = 'PAHM7'
 #dataset_name = 'PAMB'
 
 dataset = {
-      'PAMB'    : 'PAMB0-150.list', # list are the same but 0-150 should be renaemd after 0-185, I did not do that
+      #'PAMB'    : 'PAMB0-150.list', # list are the same but 0-150 should be renaemd after 0-185, I did not do that
+      'PAMB'    : 'PAMB0-185_new.list',
       #'PAHM0'   : 'PAHM150-185.list',
-      'PAHM1-6' : 'PAHM185-250.list',
+      #'PAHM1-6' : 'PAHM185-250.list',
+      'PAHM1-6' : 'PAHM185-250_new.list',
       'PAHM7'   : 'PAHM250-inf.list',
       'PPMB'    : 'PPMB0-80.list',
       'PPHM'  : 'PPHM80-inf.list',
@@ -34,9 +37,11 @@ storage = {
       }
 
 sublist_number = {
-      'PAMB'    : 458,
+      #'PAMB'    : 458, # old list
+      'PAMB'    : 659,
       #'PAHM0'   : 32,
-      'PAHM1-6' : 146,
+      #'PAHM1-6' : 146, # old list
+      'PAHM1-6' : 240,
       'PAHM7'   : 50,
       'PPMB'    : 0,
       'PPHM'  : 33,
@@ -55,6 +60,7 @@ if sublist_number[dataset_name] != 0:
    f = open(name, "w")
 
    command_lines = '''universe   = vanilla
+getenv     = True
 executable = submit_corr2D_trg_pd0_mult.sh
 arguments  = list/%s.000 %s ../eff/fEff.root %s %.1f %.1f %.1f %.1f %s
 log        = log/submit_corr2D_trg_pd0_%s_%s_v2vsNtrk_pT%.1f-%.1f_y%.1f-%.1f.$(Process).log

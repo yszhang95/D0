@@ -5,8 +5,10 @@ treeNumber = 2
 
 pTMin = 2.0
 pTMax = 8.0
-yMin  = -1.0
-yMax  = 1.0
+#yMin  = -1.0
+#yMax  = 1.0
+yMin  = -2.0
+yMax  = 2.0
 
 dcaCut_CSV = "dcacut.csv"
 
