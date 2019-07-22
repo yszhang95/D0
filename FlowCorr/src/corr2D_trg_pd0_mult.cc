@@ -220,6 +220,7 @@ int main(int argc, char** argv)
       if(iz == -1) continue;
       auto iTrkBin = ana::findNtrkBin(evt->nTrkOffline(), dataset_trigger);
       if(iTrkBin<0) continue;
+      hNtrk_D0[iTrkBin]->Fill(evt->nTrkOffline());
 
       // count number of good tracks per event
       unsigned int nMult_ass_good = 0;
@@ -258,7 +259,6 @@ int main(int argc, char** argv)
                - evt->Mass(id0));
          hKET_D0[iTrkBin]->Fill(KET, 1./effks);
          hMass[iTrkBin]->Fill(evt->Mass(id0), 1./effks);
-         hNtrk_D0[iTrkBin]->Fill(evt->nTrkOffline());
 
          pVect_trg_d0[imass].push_back(p_d0);
          effVect_trg_d0[imass].push_back(effks);
