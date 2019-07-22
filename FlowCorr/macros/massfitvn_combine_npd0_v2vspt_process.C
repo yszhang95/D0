@@ -394,7 +394,7 @@ void massfitvn_combine_npd0_v2vspt_process(
         fitter.Config().ParSettings(7).Fix();
         fitter.Config().ParSettings(8).Fix();
 
-        fitter.Config().ParSettings(1).SetLimits(1.7, 2.0);
+        fitter.Config().ParSettings(1).SetLimits(1.72, 2.0);
 
         fitter.Config().MinimizerOptions().SetPrintLevel(0);
         fitter.Config().SetMinimizer("Minuit2","Migrad");
@@ -473,7 +473,7 @@ void massfitvn_combine_npd0_v2vspt_process(
         //fvnbkg->Write();
         
         fvnbkg->SetLineStyle(7);
-        fvnbkg->Draw("LSAME");
+        //fvnbkg->Draw("LSAME");
         
         TLegend* leg1 = new TLegend(0.65,0.78,0.95,0.9,NULL,"brNDC");
         leg1->SetBorderSize(0);
@@ -497,14 +497,13 @@ void massfitvn_combine_npd0_v2vspt_process(
         falpha->SetName(Form("sigfrac_fcn_pt%d_dca%d",i,idca));
         //falpha->Write();
         //
-        cout << falpha->Eval(1.864) << endl;
-        cout << fvnbkg->Eval(1.864) << endl;
         
         double xmass[200];
         double pullmass[200];
         
         float Chi2=0;
-        int ndf = 0.3/0.005 - 11;
+        //int ndf = 0.3/0.005 - 11;
+        int ndf = 0.28/0.005 - 11;
         
         for(int k=0;k<h_data->GetNbinsX();k++)
         {
@@ -558,8 +557,7 @@ void massfitvn_combine_npd0_v2vspt_process(
         delete f3;
     }
 
-    ofile.cd();
-    double x_e[nPt];
+    ofile.cd(); double x_e[nPt];
     for(int ipt=0; ipt<nPt; ipt++){
       x_e[ipt] = 0.;
     }
