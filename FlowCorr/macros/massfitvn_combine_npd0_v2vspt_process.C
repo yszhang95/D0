@@ -415,7 +415,8 @@ void massfitvn_combine_npd0_v2vspt_process(
         vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
         auto hist = vn_data->GetHistogram();
         hist->SetLineWidth(0);
-        hist->GetYaxis()->SetRangeUser(0,0.3);
+        if(dataset == "PAHM1-6")hist->GetYaxis()->SetRangeUser(0,0.3);
+        if(dataset == "PAMB") hist->GetYaxis()->SetRangeUser(-0.2, 0.7);
         hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
         hist->GetYaxis()->SetTitle("v_{2}");
         hist->GetXaxis()->CenterTitle();
@@ -432,8 +433,8 @@ void massfitvn_combine_npd0_v2vspt_process(
         hist->GetYaxis()->SetLabelFont(42);
         hist->GetXaxis()->SetLabelSize(0.04);
         hist->GetYaxis()->SetLabelSize(0.04);
-        hist->SetMinimum(0.001);
-        hist->SetMaximum(0.3);
+        //hist->SetMinimum(0.001);
+        //hist->SetMaximum(0.3);
         hist->Draw();
         vn_data->SetTitle("");
         vn_data->SetMarkerSize(0.8);
@@ -591,7 +592,7 @@ void massfitvn_combine_npd0_v2vspt_process(
 
 vector<double> setPtBin(const string& dataset)
 {
-   if(dataset == "PAHM1-6"){
+   if(dataset == "PAHM1-6" || dataset == "PAMB"){
       return vector<double>(ana::ptbin_NPD0_pPb, ana::ptbin_NPD0_pPb+ana::nPt_NPD0_pPb+1);
    }
    return vector<double>();

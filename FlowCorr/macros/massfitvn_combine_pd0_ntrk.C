@@ -36,15 +36,14 @@ void massfitvn_combine_pd0_ntrk()
    gInterpreter->ProcessLine(".L ../src/functions.cxx");
    gInterpreter->ProcessLine(".L massfitvn_combine_pd0_ntrk_process.C");
 
-   /*
    gInterpreter->ProcessLine(Form("massfitvn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
             "../MC/d0ana_hists_mass_pT6.0-7.0_y-1.0-1.0.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk.root_v2.root", 
-            "../data/v2vsNtrk_pd0_PAHM185-250_pT6.0_7.0_y-1.0-1.0.root", 
+            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub_fixed.root", 
+            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub.root", 
+            "../data/v2vsNtrk_pd0_PAHM185-250_pT6.0_7.0_y-1.0-1.0_new.root", 
             "PAHM1-6", 
             1.0, 6.0, 7.0));
 
-   */
    /*
    gInterpreter->ProcessLine(Form("massfitvn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
             "../MC/d0ana_hists_mass_pT2.5-4.0_y-2.0-2.0.root", 
@@ -74,10 +73,12 @@ void massfitvn_combine_pd0_ntrk()
             "PAMB", 
             2.0, 2.5, 4.0));
             */
+   /*
    gInterpreter->ProcessLine(Form("massfitvn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
             "../MC/d0ana_hists_mass_pT3.0-5.0_y-2.0-2.0_pp.root",
             "../data/corr2D_trg_pd0_PPHM80-inf_d0ana_pT3.0-5.0_y-2.0-2.0_ntrk.root_v2.root",
             "../data/v2vsNtrk_pd0_PPHM80-inf_pT3.0_5.0_y-2.0-2.0.root", 
             "PPHM", 
             2.0, 3.0, 5.0));
+            */
 }

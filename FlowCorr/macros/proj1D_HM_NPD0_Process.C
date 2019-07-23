@@ -18,14 +18,14 @@ void proj1D_HM_NPD0_Process(const char* input_d0= "",
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111);
 
-   if(!ana::isHM_NPD0_DataSet(dataset)){
+   if(dataset!="PAHM1-6" && dataset!="PAMB"){
       std::cerr << "wrong dataset" << std::endl;
       return;
    }
 
    vector<double> ptbin;
    int nPtBin;
-   if(dataset == "PAHM1-6") {
+   if(dataset == "PAHM1-6" || dataset=="PAMB") {
       ptbin = vector<double>(ana::ptbin_NPD0_pPb, ana::ptbin_NPD0_pPb+ana::nPt_NPD0_pPb+1);
       nPtBin= ptbin.size()-1;
    }
