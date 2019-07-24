@@ -4,8 +4,6 @@
 const double deltaEtaBound = 1;
 
 TH1D* proj1D_longrange(TH2*, TH2*, const char*);
-//std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad);
-//std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas*c, const int& ipad);
 std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
 std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
 
@@ -644,6 +642,21 @@ const float yMin =0., const float yMax =0.)
       delete hDeltaPhi_low[imass];
    }
    delete hDeltaPhi_Ref_low;
+
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      delete c_lr[i_trk_bin_];
+      delete c_lr_ref[i_trk_bin_];
+      delete c_sry[i_trk_bin_];
+      delete c_lry[i_trk_bin_];
+      delete c_sry_ref[i_trk_bin_];
+      delete c_lry_ref[i_trk_bin_];
+   }
+   delete c_lr_low;
+   delete c_lr_ref_low;
+   delete c_sry_low;
+   delete c_lry_low;
+   delete c_sry_ref_low;
+   delete c_lry_ref_low;
 
    delete f1;
    delete f2;
