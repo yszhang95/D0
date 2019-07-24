@@ -461,7 +461,9 @@ const float yMin =0., const float yMax =0.)
    // to fit the yields and then subtract non flow
    // low mult, ref
    TCanvas* c_sry_ref_low = new TCanvas("c_sry_ref_low", "", 550, 550);
+   c_sry_ref_low->Divide(1,1);
    TCanvas* c_lry_ref_low = new TCanvas("c_lry_ref_low", "", 550, 550);
+   c_lry_ref_low->Divide(1,1);
    TH1D* h_sry_ref_low;
    TH1D* h_lry_ref_low;
    if(true){
@@ -486,7 +488,9 @@ const float yMin =0., const float yMax =0.)
    TH1D* h_lry_ref[n_trk_bin_];
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       c_sry_ref[i_trk_bin_] = new TCanvas(Form("c_sry_ref_%d", i_trk_bin_), "", 550, 550);
+      c_sry_ref[i_trk_bin_]->Divide(1, 1);
       c_lry_ref[i_trk_bin_] = new TCanvas(Form("c_lry_ref_%d", i_trk_bin_), "", 550, 550);
+      c_lry_ref[i_trk_bin_]->Divide(1, 1);
    }
    // higher mult, ref
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
@@ -511,7 +515,9 @@ const float yMin =0., const float yMax =0.)
 
    // low mult, d0
    TCanvas* c_sry_low = new TCanvas("c_sry_low", "", 550*3, 550*5);
+   c_sry_low->Divide(3,5);
    TCanvas* c_lry_low = new TCanvas("c_lry_low", "", 550*3, 550*5);
+   c_lry_low->Divide(3,5);
    TH1D* h_sry_low;
    TH1D* h_lry_low;
    for(int imass=0; imass<ana::nMass; imass++){
@@ -770,7 +776,8 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
 std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1D* hsig)
 {
    c->cd(ipad);
-   double lw = 0.0;
+   //double lw = 0.0;
+   double lw = 0.1;
    double up = 2.0;
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111111);
@@ -803,7 +810,7 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    hsig->Divide(temp);
    hsig->Scale(h2DBackground->GetBinContent(center) / temp->GetBinWidth(1)/h2DBackground->GetXaxis()->GetBinWidth(1));
 
-   TF1 fitter("fitter", "[0]*x^2+[1]*x+[2]", 0.0, 2.0);
+   TF1 fitter("fitter", "[0]*x^2+[1]*x+[2]", lw, up);
    fitter.SetParameters(1, 1, 1);
    fitter.SetParLimits(0, 0, 10);
 
@@ -823,8 +830,8 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    TLatex ltx;
    ltx.DrawLatexNDC(0.2, 0.8, "#font[42]{|#Delta#eta|>1}");
 
-   double min = fitter.GetMinimum(0.0, 2.0);
-   double minX = fitter.GetMinimumX(0.0, 2.0);
+   double min = fitter.GetMinimum(lw, up);
+   double minX = fitter.GetMinimumX(lw, up);
 
    TF1 minfunc("minfunc", "[0]", -0.5*TMath::Pi(), 1.5*TMath::Pi());
    minfunc.SetParameter(0, -min);
