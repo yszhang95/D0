@@ -354,6 +354,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         //[13] is vn_sig
         //[14-15] is vn bkg, const + linear vn(pT)
         TGraphErrors* vn_data = (TGraphErrors*)file1->Get(Form("g_v2_trk%d",i));
+        vn_data->SetMarkerStyle(20);
 
         bool zeros = true;
         for(int j=0; j<vn_data->GetN(); j++){

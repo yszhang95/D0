@@ -370,9 +370,9 @@ const float yMin =0., const float yMax =0.)
          V2_Sub_PD0[imass][i_trk_bin_] = V2_PD0[imass][i_trk_bin_] - V2_PD0_low[imass]*N_ass_low[imass]/ N_ass[imass][i_trk_bin_] * 1.5;
 
          double temp_2nd_err_pd0 = V2_PD0_low[imass]*N_ass_low[imass]/ N_ass[imass][i_trk_bin_] * 1.5 * sqrt(
-               pow(V2_PD0_low_err[imass]/V2_PD0_low[imass] , 2) + 
-               pow(N_ass_low_err[imass]/N_ass_low[imass], 2) + 
-               pow(N_ass_err[imass][i_trk_bin_]/N_ass[imass][i_trk_bin_], 2)
+               pow(V2_PD0_low_err[imass]/V2_PD0_low[imass] , 2) //+ 
+               //pow(N_ass_low_err[imass]/N_ass_low[imass], 2) + 
+               //pow(N_ass_err[imass][i_trk_bin_]/N_ass[imass][i_trk_bin_], 2)
                );
 
          V2_Sub_PD0_err[imass][i_trk_bin_] = sqrt(pow(V2_PD0_err[imass][i_trk_bin_], 2) + pow(temp_2nd_err_pd0, 2));
@@ -479,9 +479,9 @@ const float yMin =0., const float yMax =0.)
          V2_Sub_PD0[imass][i_trk_bin_] = V2_PD0[imass][i_trk_bin_] - V2_PD0_low[imass]*N_ass_low[imass]/ N_ass[imass][i_trk_bin_] * yields_jet[imass][i_trk_bin_]/yields_jet_low[imass];
 
          double temp_2nd_err_pd0 = V2_PD0_low[imass]*N_ass_low[imass]/ N_ass[imass][i_trk_bin_] * yields_jet[imass][i_trk_bin_]/yields_jet_low[imass] * sqrt(
-               pow(V2_PD0_low_err[imass]/V2_PD0_low[imass] , 2) + 
-               pow(N_ass_low_err[imass]/N_ass_low[imass], 2) + 
-               pow(N_ass_err[imass][i_trk_bin_]/N_ass[imass][i_trk_bin_], 2)
+               pow(V2_PD0_low_err[imass]/V2_PD0_low[imass] , 2) //+ 
+               //pow(N_ass_low_err[imass]/N_ass_low[imass], 2) + 
+               //pow(N_ass_err[imass][i_trk_bin_]/N_ass[imass][i_trk_bin_], 2)
                );
 
          V2_Sub_PD0_err[imass][i_trk_bin_] = sqrt(pow(V2_PD0_err[imass][i_trk_bin_], 2) + pow(temp_2nd_err_pd0, 2));

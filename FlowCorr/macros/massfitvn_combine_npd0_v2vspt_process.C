@@ -550,6 +550,8 @@ void massfitvn_combine_npd0_v2vspt_process(
         TH1D* hPt = (TH1D*)file1->Get(Form("hPt_pt%d_dca%d", i, idca));
         pt[i] = hPt->GetMean();
 
+        cout << f->GetParameter(0)/f->GetParError(0) << endl;
+
         delete leg;
         delete leg1;
         delete f;
