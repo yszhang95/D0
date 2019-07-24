@@ -4,13 +4,15 @@
 const double deltaEtaBound = 1;
 
 TH1D* proj1D_longrange(TH2*, TH2*, const char*);
-std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*);
-std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*);
+//std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad);
+//std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas*c, const int& ipad);
+std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
+std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
 
 std::pair<double, double> calYields(const pair<double, double>&, const pair<double,double>&);
 
-TF1 draw1D_longrange(TH1*, const char*, 
-      const char*, const char* , const char* );
+TF1 draw1D_longrange(TH1*,
+      const char*, const char* , const char*, TCanvas*c, const int& ipad);
 
 string ouput_prefix(const char* name);
 
@@ -26,6 +28,8 @@ const float yMin =0., const float yMax =0.)
    //gErrorIgnoreLevel = kWarning;
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111);
+
+   string str = ouput_prefix(input_d0);
 
    const int n_trk_bin_ = ana::Get_N_nTrkBin(dataset);
    if(n_trk_bin_<0){
@@ -238,9 +242,15 @@ const float yMin =0., const float yMax =0.)
    }
    
    std::string function = "[0]/(TMath::Pi()*2)*(1+2*([1]*TMath::Cos(x)+[2]*TMath::Cos(2*x)+[3]*TMath::Cos(3*x)))";
+
+   TCanvas* c_lr[n_trk_bin_];
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_lr[i_trk_bin_] = new TCanvas(Form("c_lr_%d", i_trk_bin_), "", 550*3, 500*5);
+      c_lr[i_trk_bin_]->Divide(3, 5);
+   }
+
    for(int imass=0; imass<ana::nMass; imass++){
       for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-         string str = ouput_prefix(input_d0);
          std::string ntrk;
          auto trkRange = ana::get_Mult_Edges(dataset);
          if(trkRange.size() && trkRange[i_trk_bin_+1]!=std::numeric_limits<unsigned int>::max()) 
@@ -248,11 +258,10 @@ const float yMin =0., const float yMax =0.)
          if(trkRange.size() && trkRange[i_trk_bin_+1]==std::numeric_limits<unsigned int>::max()) 
             ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
          auto func = draw1D_longrange(hDeltaPhi[imass][i_trk_bin_],
-               Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_mass%d_trk%d.png", 
-                  yMax, dataset.c_str(), str.c_str(), imass, i_trk_bin_),
                ntrk.c_str(),
                Form("%.1f<p_{T}<%.1fGeV, %.1f<y<%.1f", pTMin, pTMax, yMin, yMax), 
-               Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1])
+               Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1]),
+               c_lr[i_trk_bin_], imass+1
                );
          V2_PD0[imass][i_trk_bin_] = func.GetParameter(2);
          V2_PD0_err[imass][i_trk_bin_] = func.GetParError(2);
@@ -261,24 +270,47 @@ const float yMin =0., const float yMax =0.)
       }
    }
 
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_lr[i_trk_bin_]->Print(
+               Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_trk%d.png", 
+                  yMax, dataset.c_str(), str.c_str(), i_trk_bin_)
+            );
+      c_lr[i_trk_bin_]->Print(
+               Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_trk%d.pdf", 
+                  yMax, dataset.c_str(), str.c_str(), i_trk_bin_)
+            );
+   }
+
+   TCanvas* c_lr_low = new TCanvas("c_lr_low", "", 550*3, 550*5);
+   c_lr_low->Divide(3, 5);
+
    for(int imass=0; imass<ana::nMass; imass++){
-      string str = ouput_prefix(input_d0);
-      std::string ntrk;
       auto func = draw1D_longrange(hDeltaPhi_low[imass],
-            Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_mass%d_low.png", 
-               yMax, dataset.c_str(), str.c_str(), imass),
             "N_{trk}^{offline} < 35",
             Form("%.1f<p_{T}<%.1fGeV, %.1f<y<%.1f", pTMin, pTMax, yMin, yMax), 
-            Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1])
+            Form("%.3f<mass<%.3fGeV", ana::massbin[imass], ana::massbin[imass+1]),
+            c_lr_low, imass+1
             );
       V2_PD0_low[imass] = func.GetParameter(2);
       V2_PD0_low_err[imass] = func.GetParError(2);
       N_ass_low[imass] = func.GetParameter(0);
       N_ass_low_err[imass] = func.GetParError(0);
    }
+   c_lr_low->Print(
+      Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_low.png", 
+      yMax, dataset.c_str(), str.c_str())
+         );
+   c_lr_low->Print(
+      Form("../plots/v2vsNtrk/y%.1f/%s/%s_deltaPhi_low.pdf", 
+      yMax, dataset.c_str(), str.c_str())
+         );
+
+   TCanvas* c_lr_ref[n_trk_bin_];
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_lr_ref[i_trk_bin_] = new TCanvas(Form("c_lr_ref_%d", i_trk_bin_), "", 550*3, 500*5);
+   }
 
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-      string str = ouput_prefix(input_d0);
       std::string ntrk;
       auto trkRange = ana::get_Mult_Edges(dataset);
       if(trkRange.size() && trkRange[i_trk_bin_+1]!=std::numeric_limits<unsigned int>::max()) 
@@ -286,31 +318,48 @@ const float yMin =0., const float yMax =0.)
       if(trkRange.size() && trkRange[i_trk_bin_+1]==std::numeric_limits<unsigned int>::max()) 
             ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
       auto func_ref = draw1D_longrange(hDeltaPhi_Ref[i_trk_bin_],
-            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d.png", 
-            str.c_str(), i_trk_bin_),
             ntrk.c_str(),
             "0.3<p_{T}<3.0GeV |#eta|<2.4", 
-            ""
+            "",
+            c_lr_ref[i_trk_bin_], 1
             );
       V2_REF[i_trk_bin_] = func_ref.GetParameter(2);
       V2_REF_err[i_trk_bin_] = func_ref.GetParError(2);
       N_ass_ref[i_trk_bin_] = func_ref.GetParameter(0);
       N_ass_ref_err[i_trk_bin_] = func_ref.GetParError(0);
    }
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_lr_ref[i_trk_bin_]->Print(
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d.png", 
+            str.c_str(), i_trk_bin_)
+         );
+      c_lr_ref[i_trk_bin_]->Print(
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d.pdf", 
+            str.c_str(), i_trk_bin_)
+         );
+   }
+
+   TCanvas* c_lr_ref_low = new TCanvas;
    if(true){
-      string str = ouput_prefix(input_d0);
       auto func_ref = draw1D_longrange(hDeltaPhi_Ref_low,
-            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_low.png", 
-            str.c_str()),
             "N_{trk}^{offline} < 35",
             "0.3<p_{T}<3.0GeV |#eta|<2.4", 
-            ""
+            "",
+            c_lr_ref_low, 1
             );
       V2_REF_low = func_ref.GetParameter(2);
       V2_REF_low_err= func_ref.GetParError(2);
       N_ass_ref_low = func_ref.GetParameter(0);
       N_ass_ref_low_err= func_ref.GetParError(0);
    }
+   c_lr_ref_low->Print(
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_low.png", 
+            str.c_str())
+         );
+   c_lr_ref_low->Print(
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_low.pdf", 
+            str.c_str())
+         );
 
    // started filling
    TGraphErrors* g_v2_[n_trk_bin_];
@@ -411,53 +460,114 @@ const float yMin =0., const float yMax =0.)
 
    // to fit the yields and then subtract non flow
    // low mult, ref
+   TCanvas* c_sry_ref_low = new TCanvas("c_sry_ref_low", "", 550, 550);
+   TCanvas* c_lry_ref_low = new TCanvas("c_lry_ref_low", "", 550, 550);
+   TH1D* h_sry_ref_low;
+   TH1D* h_lry_ref_low;
    if(true){
-      string str = ouput_prefix(input_d0);
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_Ref_low, h2DBackground_Ref_low, 
-            Form("../plots/v2vsNtrk/%s_ref_low_sr.png", str.c_str()));
+            Form("../plots/v2vsNtrk/%s_ref_low_sr.png", str.c_str()), c_sry_ref_low, 1, h_sry_ref_low);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_Ref_low, h2DBackground_Ref_low, 
-            Form("../plots/v2vsNtrk/%s_ref_low_lr.png", str.c_str()));
+            Form("../plots/v2vsNtrk/%s_ref_low_lr.png", str.c_str()), c_lry_ref_low, 1, h_lry_ref_low);
       auto yields_pair = calYields(sr_pair, lr_pair);
       yields_jet_ref_low = yields_pair.first;
       yields_jet_ref_low_err = yields_pair.second;
    }
+   c_sry_ref_low->Print(
+            Form("../plots/v2vsNtrk/%s_ref_low_sr.png", str.c_str())
+            );
+   c_lry_ref_low->Print(
+            Form("../plots/v2vsNtrk/%s_ref_low_lr.png", str.c_str())
+            );
 
+   TCanvas* c_sry_ref[n_trk_bin_];
+   TCanvas* c_lry_ref[n_trk_bin_];
+   TH1D* h_sry_ref[n_trk_bin_];
+   TH1D* h_lry_ref[n_trk_bin_];
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_sry_ref[i_trk_bin_] = new TCanvas(Form("c_sry_ref_%d", i_trk_bin_), "", 550, 550);
+      c_lry_ref[i_trk_bin_] = new TCanvas(Form("c_lry_ref_%d", i_trk_bin_), "", 550, 550);
+   }
    // higher mult, ref
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-      string str = ouput_prefix(input_d0);
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_Ref[i_trk_bin_], h2DBackground_Ref[i_trk_bin_], 
-            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d_sr.png", str.c_str(), i_trk_bin_));
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d_sr.png", str.c_str(), i_trk_bin_), 
+            c_sry_ref[i_trk_bin_], 1, h_sry_ref[i_trk_bin_]);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_Ref[i_trk_bin_], h2DBackground_Ref[i_trk_bin_], 
-            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d_lr.png", str.c_str(), i_trk_bin_));
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d_lr.png", str.c_str(), i_trk_bin_),
+            c_lry_ref[i_trk_bin_], 1, h_lry_ref[i_trk_bin_]);
       auto yields_pair = calYields(sr_pair, lr_pair);
       yields_jet_ref[i_trk_bin_]= yields_pair.first;
       yields_jet_ref_err[i_trk_bin_] = yields_pair.second;
    }
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_sry_ref[i_trk_bin_]->Print(
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d_sr.png", str.c_str(), i_trk_bin_)
+            );
+      c_lry_ref[i_trk_bin_]->Print(
+            Form("../plots/v2vsNtrk/%s_ref_deltaPhi_trk%d_lr.png", str.c_str(), i_trk_bin_)
+            );
+   }
 
    // low mult, d0
+   TCanvas* c_sry_low = new TCanvas("c_sry_low", "", 550*3, 550*5);
+   TCanvas* c_lry_low = new TCanvas("c_lry_low", "", 550*3, 550*5);
+   TH1D* h_sry_low;
+   TH1D* h_lry_low;
    for(int imass=0; imass<ana::nMass; imass++){
       string str = ouput_prefix(input_d0);
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_D0_low[imass], h2DBackground_D0_low[imass], 
-            Form("../plots/v2vsNtrk/%s_deltaPhi_low_mass%d_sr.png", str.c_str(), imass));
+            Form("../plots/v2vsNtrk/%s_deltaPhi_low_mass%d_sr.png", str.c_str(), imass),
+            c_sry_low, imass+1, h_sry_low);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_D0_low[imass], h2DBackground_D0_low[imass], 
-            Form("../plots/v2vsNtrk/%s_deltaPhi_low_mass%d_lr.png", str.c_str(), imass));
+            Form("../plots/v2vsNtrk/%s_deltaPhi_low_mass%d_lr.png", str.c_str(), imass),
+            c_lry_low, imass+1, h_lry_low);
       auto yields_pair = calYields(sr_pair, lr_pair);
       yields_jet_low[imass]= yields_pair.first;
       yields_jet_low_err[imass] = yields_pair.second;
+      cout << yields_jet_low[imass] << endl;
    }
+   c_sry_low->Print(
+            Form("../plots/v2vsNtrk/%s_deltaPhi_low_sr.png", str.c_str())
+         );
+   c_lry_low->Print(
+            Form("../plots/v2vsNtrk/%s_deltaPhi_low_lr.png", str.c_str())
+         );
 
    // higher mult, d0
+   TCanvas* c_sry[n_trk_bin_];
+   TCanvas* c_lry[n_trk_bin_];
+   TH1D* h_sry[n_trk_bin_];
+   TH1D* h_lry[n_trk_bin_];
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_sry[i_trk_bin_] = new TCanvas(Form("c_sry_low_%d", i_trk_bin_), "", 550*3, 550*5);
+      c_sry[i_trk_bin_]->Divide(3, 5);
+      c_lry[i_trk_bin_]= new TCanvas(Form("c_lry_low_%d", i_trk_bin_), "", 550*3, 550*5);
+      c_lry[i_trk_bin_]->Divide(3, 5);
+   }
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       for(int imass=0; imass<ana::nMass; imass++){
          string str = ouput_prefix(input_d0);
          auto sr_pair = proj1D_shortrange_yields(h2DSignal_D0[imass][i_trk_bin_], h2DBackground_D0[imass][i_trk_bin_], 
-               Form("../plots/v2vsNtrk/%s_deltaPhi_mass%d_trk%d_sr.png", str.c_str(), imass, i_trk_bin_));
+               Form("../plots/v2vsNtrk/%s_deltaPhi_mass%d_trk%d_sr.png", str.c_str(), imass, i_trk_bin_),
+               c_sry[i_trk_bin_], imass+1, h_sry[i_trk_bin_]
+               );
          auto lr_pair = proj1D_longrange_yields(h2DSignal_D0[imass][i_trk_bin_], h2DBackground_D0[imass][i_trk_bin_], 
-               Form("../plots/v2vsNtrk/%s_deltaPhi_mass%d_trk%d_lr.png", str.c_str(), imass, i_trk_bin_));
+               Form("../plots/v2vsNtrk/%s_deltaPhi_mass%d_trk%d_lr.png", str.c_str(), imass, i_trk_bin_),
+               c_lry[i_trk_bin_], imass+1, h_lry[i_trk_bin_]
+                  );
          auto yields_pair = calYields(sr_pair, lr_pair);
          yields_jet[imass][i_trk_bin_]= yields_pair.first;
          yields_jet_err[imass][i_trk_bin_] = yields_pair.second;
       }
+   }
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      c_sry[i_trk_bin_]->Print(
+               Form("../plots/v2vsNtrk/%s_deltaPhi_trk%d_sr.png", str.c_str(), i_trk_bin_)
+            );
+      c_lry[i_trk_bin_]->Print(
+               Form("../plots/v2vsNtrk/%s_deltaPhi_trk%d_lr.png", str.c_str(), i_trk_bin_)
+            );
    }
 
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
@@ -470,7 +580,7 @@ const float yMin =0., const float yMax =0.)
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       V2_Sub_REF[i_trk_bin_] = V2_REF[i_trk_bin_] - V2_REF_low*N_ass_ref_low/ N_ass_ref[i_trk_bin_] * yields_jet_ref[i_trk_bin_]/yields_jet_ref_low;
       double temp_2nd_err = V2_REF_low*N_ass_ref_low/ N_ass_ref[i_trk_bin_]* yields_jet_ref[i_trk_bin_]/yields_jet_ref_low * sqrt(
-               pow(V2_REF_low_err/V2_REF_low, 2) + pow(N_ass_ref_low_err/N_ass_ref_low, 2) + pow(N_ass_ref_err[i_trk_bin_]/N_ass_ref[i_trk_bin_], 2)
+               pow(V2_REF_low_err/V2_REF_low, 2)// + pow(N_ass_ref_low_err/N_ass_ref_low, 2) + pow(N_ass_ref_err[i_trk_bin_]/N_ass_ref[i_trk_bin_], 2)
                );
       V2_Sub_REF_err[i_trk_bin_] = sqrt(
                pow(V2_REF_err[i_trk_bin_], 2) + pow(temp_2nd_err, 2)
@@ -564,12 +674,13 @@ TH1D* proj1D_longrange(TH2* h2DSignal, TH2* h2DBackground, const char* name)
    return hNeg;
 }
 
-TF1 draw1D_longrange(TH1* hDeltaPhi, const char* name, 
-      const char* cut1, const char* cut2, const char* cut3)
+TF1 draw1D_longrange(TH1* hDeltaPhi,
+      const char* cut1, const char* cut2, const char* cut3,
+      TCanvas* c, const int& ipad)
 {
    std::string function = "[0]/(TMath::Pi()*2)*(1+2*([1]*TMath::Cos(x)+[2]*TMath::Cos(2*x)+[3]*TMath::Cos(3*x)))";
-   TCanvas* c_deltaPhi = new TCanvas("c_deltaPhi", "", 550, 450);
-   c_deltaPhi->SetBottomMargin(0.14);
+   c->cd(ipad);
+   gPad->SetBottomMargin(0.14);
    TF1 func("deltaPhi", function.c_str(), -3.14159*0.5, 3.14159*1.5);
    func.SetParameter(0, hDeltaPhi->GetMaximum());
    func.SetParameter(1, 0.1);
@@ -603,23 +714,19 @@ TF1 draw1D_longrange(TH1* hDeltaPhi, const char* name,
    ltx.DrawLatexNDC(0.58, 0.34, cut2);
    ltx.DrawLatexNDC(0.58, 0.26, cut3);
 
-   c_deltaPhi->Print(name);
-
-   delete c_deltaPhi;
    return func;
 }
 
-std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name)
+std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad, TH1D* hsig)
 {
-   string output(name);
+   c->cd(ipad);
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111111);
-   TCanvas c("c", "", 500, 450);
-   c.SetLeftMargin(0.15);
-   c.SetBottomMargin(0.15);
+   gPad->SetLeftMargin(0.15);
+   gPad->SetBottomMargin(0.15);
    int negBin = h2DSignal->GetXaxis()->FindBin(-1.);
    int posBin = h2DSignal->GetXaxis()->FindBin(1.);
-   TH1D* hsig = h2DSignal->ProjectionY("hsig", negBin, posBin);
+   hsig = h2DSignal->ProjectionY("hsig", negBin, posBin);
    hsig->SetTitle(";#Delta#phi;dN/d(#Delta#phi)");
 
    TH1D* temp = h2DBackground->ProjectionY("hbkg", negBin, posBin);
@@ -641,8 +748,6 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
 
    TLatex ltx;
    ltx.DrawLatexNDC(0.2, 0.8, "#font[42]{|#Delta#eta|<1}");
-   //c.Print(name);
-   c.SaveAs(output.c_str());
 
    double min = fitter.GetMinimum(0.6, 2.2);
    double minX = fitter.GetMinimumX(0.6, 2.2);
@@ -655,22 +760,22 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
    double yields = hsig->IntegralAndError(hsig->FindBin(0.), hsig->FindBin(minX), yields_err, "width");
    yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
 
-   delete hsig;
+   hsig->Add(&minfunc, -1);
+
    delete temp;
 
    return std::pair<double, double>(yields, yields_err);
 }
 
-std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name)
+std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1D* hsig)
 {
+   c->cd(ipad);
    double lw = 0.0;
    double up = 2.0;
-   string output(name);
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111111);
-   TCanvas c("c", "", 500, 450);
-   c.SetLeftMargin(0.15);
-   c.SetBottomMargin(0.15);
+   c->SetLeftMargin(0.15);
+   c->SetBottomMargin(0.15);
 
    int negBinMin = 1;
    int negBinMax = 10;
@@ -680,7 +785,7 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    TH1D* hNeg = h2DSignal->ProjectionY("hneg", negBinMin, negBinMax);
    TH1D* hPos = h2DSignal->ProjectionY("hpos", posBinMin, posBinMax);
    hNeg->Add(hPos);
-   TH1D* hsig = new TH1D(*hNeg);
+   hsig = new TH1D(*hNeg);
    hsig->SetName("hsig");
    delete hNeg;
    delete hPos;
@@ -717,8 +822,6 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
 
    TLatex ltx;
    ltx.DrawLatexNDC(0.2, 0.8, "#font[42]{|#Delta#eta|>1}");
-   //c.Print(name);
-   c.SaveAs(output.c_str());
 
    double min = fitter.GetMinimum(0.0, 2.0);
    double minX = fitter.GetMinimumX(0.0, 2.0);
@@ -731,7 +834,8 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    double yields = hsig->IntegralAndError(hsig->FindBin(0.), hsig->FindBin(minX), yields_err, "width");
    yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
 
-   delete hsig;
+   hsig->Add(&minfunc, -1);
+
    delete temp;
 
    return std::pair<double, double>(yields, yields_err);
