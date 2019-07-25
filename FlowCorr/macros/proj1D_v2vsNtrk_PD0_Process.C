@@ -678,7 +678,7 @@ const float yMin =0., const float yMax =0.)
    g_V2_Ref_low = new TGraphErrors(1);
    g_Jets_low = new TGraphErrors(ana::nMass);
    g_Jets_Ref_low = new TGraphErrors(1);
-   g_Nass_low = new TGraphErrors(1);
+   g_Nass_low = new TGraphErrors(ana::nMass);
    g_Nass_Ref_low = new TGraphErrors(1);
 
 

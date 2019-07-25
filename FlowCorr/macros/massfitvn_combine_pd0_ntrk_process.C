@@ -24,31 +24,7 @@
 #include "Math/WrappedMultiTF1.h"
 #include "HFitInterface.h"
 
-int iparmassfit_poly3bkg_floatwidth[13] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-int iparvnfit_poly3bkg_floatwidth[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-
-struct GlobalChi2_poly3bkg_floatwidth {
-    GlobalChi2_poly3bkg_floatwidth(  ROOT::Math::IMultiGenFunction & f1,
-                                   ROOT::Math::IMultiGenFunction & f2) :
-    fChi2_1(&f1), fChi2_2(&f2) {}
-    
-    // parameter vector is first background (in common 1 and 2)
-    // and then is signal (only in 2)
-    double operator() (const double *par) const {
-        double p1[13];
-        for(int i = 0; i < 13; ++i) p1[i] = par[iparmassfit_poly3bkg_floatwidth[i]];
-        
-        double p2[16];
-        for(int i = 0; i < 16; ++i) p2[i] = par[iparvnfit_poly3bkg_floatwidth[i]];
-        
-        return (*fChi2_1)(p1) + (*fChi2_2)(p2);
-    }
-    
-    const  ROOT::Math::IMultiGenFunction * fChi2_1;
-    const  ROOT::Math::IMultiGenFunction * fChi2_2;
-};
-
-void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
+void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
       const char* input_data = "",
       const char* output = "",
       const std::string dataset = "",
@@ -167,9 +143,9 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         //h_data->Scale(1./h_data->GetBinWidth(1));
         
         TH1D* h_Ntrk = (TH1D*)file1->Get(Form("hNtrk_trk%d",i));
-        TH1D* h_KET = (TH1D*)file1->Get(Form("hKET_trk%d",i));
+        //TH1D* h_KET = (TH1D*)file1->Get(Form("hKET_trk%d",i));
         trk[i] = h_Ntrk->GetMean();
-        KET_ncq[i] = h_KET->GetMean()/2.0;
+        //KET_ncq[i] = h_KET->GetMean()/2.0;
 
         c[i]->cd(1);
         /*The full fitting function is constructed as follow
@@ -353,7 +329,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         //fit vn
         //[13] is vn_sig
         //[14-15] is vn bkg, const + linear vn(pT)
-        TGraphErrors* vn_data = (TGraphErrors*)file1->Get(Form("g_v2_trk%d",i));
+        TGraphErrors* vn_data = (TGraphErrors*)file1->Get(Form("V2vsMass_trk%d",i));
         vn_data->SetMarkerStyle(20);
 
         bool zeros = true;
@@ -456,9 +432,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
         vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
         //
          auto hist =  vn_data->GetHistogram();
-         hist->GetXaxis()->SetRangeUser(0, 0.3);
          hist->SetLineWidth(0);
-         hist->GetYaxis()->SetRangeUser(0,0.3);
          hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
          hist->GetYaxis()->SetTitle("v_{2}");
          hist->GetXaxis()->CenterTitle();
@@ -476,7 +450,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
          hist->GetXaxis()->SetLabelSize(0.04);
          hist->GetYaxis()->SetLabelSize(0.04);
          hist->SetMinimum(0.001);
-         hist->SetMaximum(0.3);
+         hist->SetMaximum(0.05);
         vn_data->SetTitle("");
         vn_data->SetMarkerSize(0.8);
         vn_data->SetLineWidth(1);
@@ -604,7 +578,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
             str.erase(0, 1);
          }
 
-        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_vnfit_combine_trk%d_%s_%s.png",i, dataset.c_str(), str.c_str()));
+        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_Vnfit_combine_trk%d_%s_%s.png",i, dataset.c_str(), str.c_str()));
         
         delete leg;
         delete leg1;
@@ -619,11 +593,11 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
     }
 
     TGraphErrors* v2plot = new TGraphErrors(n_trk_bin_,trk ,v2,0,v2e);
-    TGraphErrors* v2ncqplot = new TGraphErrors(n_trk_bin_,KET_ncq,v2_ncq,0,v2e_ncq);
+    //TGraphErrors* v2ncqplot = new TGraphErrors(n_trk_bin_,KET_ncq,v2_ncq,0,v2e_ncq);
     TGraphErrors* v2bkgplot = new TGraphErrors(n_trk_bin_,trk,v2_bkg,0,0);
     
     v2plot->SetName("v2vsNtrk");
-    v2ncqplot->SetName("v2vsKET_ncq");
+    //v2ncqplot->SetName("v2vsKET_ncq");
     v2bkgplot->SetName("v2bkgvsNtrk");
     
     v2plot->Write();
@@ -632,7 +606,7 @@ void massfitvn_combine_pd0_ntrk_process(const char* input_mc = "",
 
     ofile.Close();
     delete v2plot;
-    delete v2ncqplot;
+    //delete v2ncqplot;
     delete v2bkgplot;
 
     for(unsigned int i=0; i<n_trk_bin_; i++) 
