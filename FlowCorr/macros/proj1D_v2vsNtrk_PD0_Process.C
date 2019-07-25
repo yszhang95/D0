@@ -84,6 +84,8 @@ const float yMin =0., const float yMax =0.)
    TH2D* h2DSignal_D0_low[ana::nMass];
    TH2D* h2DBackground_D0_low[ana::nMass];
    TH1D* hMult_raw_D0_low[ana::nMass];
+   TH1D* hMass_D0_low[ana::nMass];
+
    TH2D* h2DSignal_Ref_low;
    TH2D* h2DBackground_Ref_low;
    TH1D* hMult_Ref_low;
@@ -129,9 +131,11 @@ const float yMin =0., const float yMax =0.)
       TH2D* htemp_s;
       TH2D* htemp_b;
       TH1D* htemp_mult;
+      TH1D* htemp_mass;
       f3->GetObject(Form("hSignal_mass%d_trk0", imass), htemp_s);
       f3->GetObject(Form("hBackground_mass%d_trk0", imass), htemp_b);
       f3->GetObject(Form("hMult_raw_D0_mass%d_trk0", imass), htemp_mult);
+      f3->GetObject(Form("hMassD0_mass%d_trk0", imass), htemp_mass);
       if(!htemp_s) {
          cout << "not found hSignal_low" << endl;
          return;
@@ -144,12 +148,18 @@ const float yMin =0., const float yMax =0.)
          cout << "not found hmult_low" << endl;
          return;
       }
+      if(!htemp_mass) {
+         cout << "not found hmass_low" << endl;
+         return;
+      }
       h2DSignal_D0_low[imass] = new TH2D(*htemp_s);
       h2DSignal_D0_low[imass]->SetName(Form("hSignal_low_mass%d", imass));
       h2DBackground_D0_low[imass] = new TH2D(*htemp_b);
       h2DBackground_D0_low[imass]->SetName(Form("hBackground_low_mass%d", imass));
       hMult_raw_D0_low[imass] = new TH1D(*htemp_mult);
       hMult_raw_D0_low[imass]->SetName(Form("hMult_raw_D0_low_mass%d", imass));
+      hMass_D0_low[imass] = new TH1D(*htemp_mass);
+      hMass_D0_low[imass]->SetName(Form("hMass_D0_low_mass%d", imass));
    }
    if(true){
       TH2D* htemp_s;
@@ -381,6 +391,13 @@ const float yMin =0., const float yMax =0.)
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       hMass[i_trk_bin_] = (TH1D*) f1->Get(Form("hMass_%d", i_trk_bin_));
       hMass[i_trk_bin_]->SetName(Form("hmass_trk%d", i_trk_bin_));
+   }
+
+   TH1D* hMass_low;
+   if(true){
+      TH1D* temp = (TH1D*)f3->Get("hMass_0");
+      hMass_low = new TH1D(*temp);
+      hMass_low->SetName("hMass_low");
    }
 
    TH1D* hNtrk[n_trk_bin_];
@@ -632,16 +649,141 @@ const float yMin =0., const float yMax =0.)
       delete g_v2_sub[i_trk_bin_];
    }
 
+   TFile fraw(Form("%s_raw.root", input_d0), "recreate");
+
+   TGraphErrors* g_V2[n_trk_bin_]; // signal + background, nMass points, need to do fitting, filled
+   TGraphErrors* g_V2_Ref[n_trk_bin_]; // signal, 1 point, done
+   TGraphErrors* g_V2_low; // signal + background, nMass points, need to do fitting, filled, but to define hMass_D0_low
+   TGraphErrors* g_V2_Ref_low; // signal, 1 point, done
+   TGraphErrors* g_Jets[n_trk_bin_]; // signal + background, nMass points, need to do fitting, filled
+   TGraphErrors* g_Jets_low; // signal + background, nMass points, need to do fitting, filled
+   TGraphErrors* g_Jets_Ref[n_trk_bin_]; // signal, 1 point, done
+   TGraphErrors* g_Jets_Ref_low; // signal, 1 point, done
+   TGraphErrors* g_Nass[n_trk_bin_]; // signal, need to do average, nMass points, filled
+   TGraphErrors* g_Nass_low; // signal, need to do average, nMass points, filled
+   TGraphErrors* g_Nass_Ref[n_trk_bin_]; // signal, 1 point, done
+   TGraphErrors* g_Nass_Ref_low; // signal, 1 point, done
+
+   // high N
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      g_V2[i_trk_bin_] = new TGraphErrors(ana::nMass);
+      g_V2_Ref[i_trk_bin_] = new TGraphErrors(1);
+      g_Jets[i_trk_bin_] = new TGraphErrors(ana::nMass);
+      g_Jets_Ref[i_trk_bin_] = new TGraphErrors(1);
+      g_Nass[i_trk_bin_] = new TGraphErrors(ana::nMass);
+      g_Nass_Ref[i_trk_bin_] = new TGraphErrors(1);
+   }
+   // low N
+   g_V2_low = new TGraphErrors(ana::nMass);
+   g_V2_Ref_low = new TGraphErrors(1);
+   g_Jets_low = new TGraphErrors(ana::nMass);
+   g_Jets_Ref_low = new TGraphErrors(1);
+   g_Nass_low = new TGraphErrors(1);
+   g_Nass_Ref_low = new TGraphErrors(1);
+
+
+   for(int imass=0; imass<ana::nMass; imass++){
+      for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      // high N
+         g_V2[i_trk_bin_]->SetPoint(imass, hMass_D0[imass][i_trk_bin_]->GetMean(), V2_PD0[imass][i_trk_bin_]);
+         g_V2[i_trk_bin_]->SetPointError(imass, 0, V2_PD0_err[imass][i_trk_bin_]);
+
+         g_Jets[i_trk_bin_]->SetPoint(imass, hMass_D0[imass][i_trk_bin_]->GetMean(), yields_jet[imass][i_trk_bin_]);
+         g_Jets[i_trk_bin_]->SetPointError(imass, 0, yields_jet_err[imass][i_trk_bin_]);
+
+         g_Nass[i_trk_bin_]->SetPoint(imass, hMass_D0[imass][i_trk_bin_]->GetMean(), N_ass[imass][i_trk_bin_]);
+         g_Nass[i_trk_bin_]->SetPointError(imass, 0, N_ass_err[imass][i_trk_bin_]);
+      }
+      // low N
+      g_V2_low->SetPoint(imass, hMass_D0_low[imass]->GetMean(), V2_PD0_low[imass]);
+      g_V2_low->SetPointError(imass, 0, V2_PD0_low_err[imass]);
+
+      g_Jets_low->SetPoint(imass, hMass_D0_low[imass]->GetMean(), yields_jet_low[imass]);
+      g_Jets_low->SetPointError(imass, 0, yields_jet_low_err[imass]);
+
+      g_Nass_low->SetPoint(imass, hMass_D0_low[imass]->GetMean(), N_ass_low[imass]);
+      g_Nass_low->SetPointError(imass, 0, N_ass_low_err[imass]);
+   }
+   // high N
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      g_V2_Ref[i_trk_bin_]->SetPoint(0, 1, V2_REF[i_trk_bin_]);
+      g_V2_Ref[i_trk_bin_]->SetPointError(0, 1, V2_REF_err[i_trk_bin_]);
+
+      g_Jets_Ref[i_trk_bin_]->SetPoint(0, 1, yields_jet_ref[i_trk_bin_]);
+      g_Jets_Ref[i_trk_bin_]->SetPointError(0, 1, yields_jet_ref_err[i_trk_bin_]);
+
+      g_Nass_Ref[i_trk_bin_]->SetPoint(0, 1, N_ass_ref[i_trk_bin_]);
+      g_Nass_Ref[i_trk_bin_]->SetPointError(0, 1, N_ass_ref_err[i_trk_bin_]);
+   }
+   // low N
+   g_V2_Ref_low->SetPoint(0, 1, V2_REF_low);
+   g_V2_Ref_low->SetPointError(0, 1, V2_REF_low_err);
+
+   g_Jets_Ref_low->SetPoint(0, 1, yields_jet_ref_low);
+   g_Jets_Ref_low->SetPointError(0, 1, yields_jet_ref_low_err);
+
+   g_Nass_Ref_low->SetPoint(0, 1, N_ass_ref_low);
+   g_Nass_Ref_low->SetPointError(0, 1, N_ass_ref_low_err);
+
+   cout <<"test" << endl;
+
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      g_V2[i_trk_bin_]->Write(Form("V2vsMass_trk%d", i_trk_bin_)); // signal + background, nMass points, need to do fitting, filled
+      g_V2_Ref[i_trk_bin_]->Write(Form("V2_Ref_trk%d", i_trk_bin_)); // signal, 1 point, done
+      g_Jets[i_trk_bin_]->Write(Form("JetsvsMass_trk%d", i_trk_bin_)); // signal + background, nMass points, need to do fitting, filled
+      g_Jets_Ref[i_trk_bin_]->Write(Form("Jets_Ref_trk%d", i_trk_bin_)); // signal, 1 point, done
+      g_Nass[i_trk_bin_]->Write(Form("NassvsMass_trk%d", i_trk_bin_)); // signal, need to do average, nMass points, filled
+      g_Nass_Ref[i_trk_bin_]->Write(Form("Nass_Ref_trk%d", i_trk_bin_)); // signal, 1 point, done
+
+      hMass[i_trk_bin_]->Write();
+      hNtrk[i_trk_bin_]->Write();
+   }
+   g_V2_low->Write("V2_lowvsMass"); // signal + background, nMass points, need to do fitting, filled, but to define hMass_D0_low
+   g_V2_Ref_low->Write("V2_Ref_low"); // signal, 1 point, done
+   g_Jets_low->Write("Jets_lowvsMass"); // signal + background, nMass points, need to do fitting, filled
+   g_Jets_Ref_low->Write("Jets_ref_low"); // signal, 1 point, done
+   g_Nass_low->Write("Nass_lowvsMass"); // signal, need to do average, nMass points, filled
+   g_Nass_Ref_low->Write("Nass_ref_low"); // signal, 1 point, done
+
+   hMass_low->Write();
+
+   fraw.Close();
+
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      delete g_V2[i_trk_bin_]; // signal + background, nMass points, need to do fitting, filled
+      delete g_V2_Ref[i_trk_bin_]; // signal, 1 point, done
+      delete g_Jets[i_trk_bin_]; // signal + background, nMass points, need to do fitting, filled
+      delete g_Jets_Ref[i_trk_bin_]; // signal, 1 point, done
+      delete g_Nass[i_trk_bin_]; // signal, need to do average, nMass points, filled
+      delete g_Nass_Ref[i_trk_bin_]; // signal, 1 point, done
+   }
+   delete g_V2_low; // signal + background, nMass points, need to do fitting, filled, but to define hMass_D0_low
+   delete g_V2_Ref_low; // signal, 1 point, done
+   delete g_Jets_low; // signal + background, nMass points, need to do fitting, filled
+   delete g_Jets_Ref_low; // signal, 1 point, done
+   delete g_Nass_low; // signal, need to do average, nMass points, filled
+   delete g_Nass_Ref_low; // signal, 1 point, done
+
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       delete hDeltaPhi_Ref[i_trk_bin_];
       for(int imass=0; imass<ana::nMass; imass++){
          delete hDeltaPhi[imass][i_trk_bin_];
       }
    }
+
    for(int imass=0; imass<ana::nMass; imass++){
       delete hDeltaPhi_low[imass];
+      delete h2DSignal_D0_low[imass];
+      delete h2DBackground_D0_low[imass];
+      delete hMass_D0_low[imass];
+      delete hMult_raw_D0_low[imass];
    }
    delete hDeltaPhi_Ref_low;
+   delete h2DSignal_Ref_low;
+   delete h2DBackground_Ref_low;
+   delete hMult_Ref_low;
+
+   delete hMass_low;
 
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       delete c_lr[i_trk_bin_];
