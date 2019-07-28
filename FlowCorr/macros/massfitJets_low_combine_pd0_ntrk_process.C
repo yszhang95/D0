@@ -60,11 +60,11 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
     
    double trk[n_trk_bin_];
    double KET_ncq[n_trk_bin_];
-   double v2[n_trk_bin_];
-   double v2e[n_trk_bin_];
-   double v2_bkg[n_trk_bin_];
-   double v2_ncq[n_trk_bin_];
-   double v2e_ncq[n_trk_bin_];
+   double jet[n_trk_bin_];
+   double jete[n_trk_bin_];
+   double jet_bkg[n_trk_bin_];
+   double jet_ncq[n_trk_bin_];
+   double jete_ncq[n_trk_bin_];
    double a[n_trk_bin_];
    double b[n_trk_bin_];
    double sigfrac[n_trk_bin_];
@@ -256,7 +256,7 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         f1->FixParameter(6,f->GetParameter(6));
 
         fmasssig[i] = (TF1*)f1->Clone();
-        fmasssig[i]->SetName(Form("masssigfcn_pt%d",i));
+        fmasssig[i]->SetName(Form("masssigfcn_trk%d",i));
         fmasssig[i]->Write();
         
         f1->Draw("LSAME");
@@ -276,12 +276,10 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         f2->FixParameter(8,f->GetParameter(8));
         
         fmassswap[i] = (TF1*)f2->Clone();
-        fmassswap[i]->SetName(Form("massswapfcn_pt%d",i));
+        fmassswap[i]->SetName(Form("massswapfcn_trk%d",i));
         fmassswap[i]->Write();
 
-        
         f2->Draw("LSAME");
-
         
         //draw poly bkg separately
         TF1* f3 = new TF1(Form("f_bkg_%d",i),"[9] + [10]*x + [11]*x*x + [12]*x*x*x+0*[0]*[1]*[2]*[3]*[4]*[5]*[6]*[7]*[8]", fit_range_low, fit_range_high);
@@ -294,12 +292,11 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         f3->FixParameter(12,f->GetParameter(12));
         
         fmassbkg[i] = (TF1*)f3->Clone();
-        fmassbkg[i]->SetName(Form("massbkgfcn_pt%d",i));
+        fmassbkg[i]->SetName(Form("massbkgfcn_trk%d",i));
         fmassbkg[i]->Write();
         
         f3->Draw("LSAME");
 
-        
         if(vec_trkbin[n_trk_bin_-1]!=std::numeric_limits<unsigned int>::max())
            tex->DrawLatex(0.22,0.86,Form("%u #leq N_{trk}^{offline} < %u", vec_trkbin[i], vec_trkbin[i+1]));
         else
@@ -307,7 +304,6 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         tex->DrawLatex(0.22,0.80,Form("%.1f < p_{T} < %.1f GeV/c", pTMin, pTMax));
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
 
-        
         texCMS->DrawLatex(.18,.97,"#font[61]{CMS} #it{Preliminary}");
         texCMS->DrawLatex(0.62,0.97, "#scale[0.8]{pPb #sqrt{s_{NN}} = 8.16 TeV}");
         
@@ -328,31 +324,10 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         //fit vn
         //[13] is vn_sig
         //[14-15] is vn bkg, const + linear vn(pT)
-        TGraphErrors* vn_data = (TGraphErrors*)file1->Get("Jets_lowvsMass");
-        vn_data->SetMarkerStyle(20);
-
-        bool zeros = true;
-        for(int j=0; j<vn_data->GetN(); j++){
-           double x, y;
-           vn_data->GetPoint(j, x, y);
-           if(fabs(y)>=1e-9) {
-            cout << "test" << endl;
-            cout << y << endl;
-              zeros = false;
-              break;
-           }
-        }
-        if(zeros) {
-            delete leg;
-            delete f;
-            delete f1;
-            delete f2;
-            delete f3;
-           continue;
-        }
+        TGraphErrors* jet_data = (TGraphErrors*)file1->Get("Jets_lowvsMass");
+        jet_data->SetMarkerStyle(20);
         
         c[i]->cd(2);
-        
         
         TF1* fmass_combinemassvnfit = new TF1(Form("fmass_combinemassvnfit_%d",i),"[0]*([5]*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))+(1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6])))+(1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6]))) + [9] + [10]*x + [11]*x*x + [12]*x*x*x", fit_range_low, fit_range_high);
         
@@ -364,31 +339,25 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         fvn_combinemassvnfit->SetLineColor(2);
         fvn_combinemassvnfit->SetLineWidth(1);
 
-
         ROOT::Math::WrappedMultiTF1 wfmass_combinemassvnfit(*fmass_combinemassvnfit,1);
         ROOT::Math::WrappedMultiTF1 wfvn_combinemassvnfit(*fvn_combinemassvnfit,1);
 
-        
         ROOT::Fit::DataOptions opt;
         ROOT::Fit::DataRange range_massfit;
-
 
         range_massfit.SetRange(fit_range_low,fit_range_high);
         ROOT::Fit::BinData datamass(opt,range_massfit);
         ROOT::Fit::FillData(datamass, h_data);
-
         
         ROOT::Fit::DataRange range_vnfit;
         range_vnfit.SetRange(fit_range_low,fit_range_high);
         ROOT::Fit::BinData datavn(opt,range_vnfit);
-        ROOT::Fit::FillData(datavn, vn_data);
-
+        ROOT::Fit::FillData(datavn, jet_data);
         
         ROOT::Fit::Chi2Function chi2_B(datamass, wfmass_combinemassvnfit);
         ROOT::Fit::Chi2Function chi2_SB(datavn, wfvn_combinemassvnfit);
         
         GlobalChi2_poly3bkg_floatwidth globalChi2(chi2_B, chi2_SB);
-
 
         ROOT::Fit::Fitter fitter;
         
@@ -399,7 +368,6 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         par0[14] = 0.10;
         par0[15] = 0.05;
 
-        
         fitter.Config().SetParamsSettings(Npar,par0);
         // fix parameter
         fitter.Config().ParSettings(2).Fix();
@@ -409,7 +377,7 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         fitter.Config().ParSettings(7).Fix();
         fitter.Config().ParSettings(8).Fix();
 
-        fitter.Config().ParSettings(1).SetLimits(1.7, 2.0);
+        //fitter.Config().ParSettings(1).SetLimits(1.7, 2.0);
 
         fitter.Config().MinimizerOptions().SetPrintLevel(0);
         fitter.Config().SetMinimizer("Minuit2","Migrad");
@@ -428,12 +396,12 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
         fvn_combinemassvnfit->SetLineColor(2);
         fvn_combinemassvnfit->SetLineStyle(2);
-        vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
+        jet_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
         //
-         auto hist =  vn_data->GetHistogram();
+         auto hist =  jet_data->GetHistogram();
          hist->SetLineWidth(0);
          hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
-         hist->GetYaxis()->SetTitle("v_{2}");
+         hist->GetYaxis()->SetTitle("Y_{jet}");
          hist->GetXaxis()->CenterTitle();
          hist->GetYaxis()->CenterTitle();
          hist->GetXaxis()->SetTitleOffset(1.3);
@@ -450,19 +418,19 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
          hist->GetYaxis()->SetLabelSize(0.04);
          hist->SetMinimum(0.001);
          hist->SetMaximum(1);
-        vn_data->SetTitle("");
-        vn_data->SetMarkerSize(0.8);
-        vn_data->SetLineWidth(1);
+        jet_data->SetTitle("");
+        jet_data->SetMarkerSize(0.8);
+        jet_data->SetLineWidth(1);
         hist->Draw();
-        vn_data->Draw("A PE SAME");
+        jet_data->Draw("A PE SAME");
         
         fvn[i] = (TF1*)fvn_combinemassvnfit->Clone();
-        fvn[i]->SetName(Form("vnfit_pt%d",i));
+        fvn[i]->SetName(Form("vnfit_trk%d",i));
         fvn[i]->Draw("same");
         fvn[i]->Write();
 
         fmasstotal[i] = (TF1*)fmass_combinemassvnfit->Clone();
-        fmasstotal[i]->SetName(Form("masstotalfcn_pt%d",i));
+        fmasstotal[i]->SetName(Form("masstotalfcn_trk%d",i));
         fmasstotal[i]->Write();
         
         if(vec_trkbin[n_trk_bin_-1]!=std::numeric_limits<unsigned int>::max())
@@ -473,15 +441,14 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
         //tex->DrawLatex(0.22,0.68,"|#Delta#eta| > 2");
 
-        
         texCMS->DrawLatex(.18,.97,"#font[61]{CMS} #it{Preliminary}");
         texCMS->DrawLatex(0.62,0.97, "#scale[0.8]{pPb #sqrt{s_{NN}} = 8.16 TeV}");
         
-        v2[i] = fvn_combinemassvnfit->GetParameter(13);
-        v2e[i] = fvn_combinemassvnfit->GetParError(13);
-        v2_bkg[i] = fvn_combinemassvnfit->GetParameter(14) + fvn_combinemassvnfit->GetParameter(15) * 1.864;
-        v2_ncq[i] = v2[i]/2.0;
-        v2e_ncq[i] = v2e[i]/2.0;
+        jet[i] = fvn_combinemassvnfit->GetParameter(13);
+        jete[i] = fvn_combinemassvnfit->GetParError(13);
+        jet_bkg[i] = fvn_combinemassvnfit->GetParameter(14) + fvn_combinemassvnfit->GetParameter(15) * 1.864;
+        jet_ncq[i] = jet[i]/2.0;
+        jete_ncq[i] = jete[i]/2.0;
         a[i] = fvn_combinemassvnfit->GetParameter(14);
         b[i] = fvn_combinemassvnfit->GetParameter(15);
         
@@ -489,11 +456,16 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         fvnbkg->FixParameter(0,fvn_combinemassvnfit->GetParameter(14));
         fvnbkg->FixParameter(1,fvn_combinemassvnfit->GetParameter(15));
         
-        fvnbkg->SetName(Form("fvnbkg_fcn_pt%d",i));
+        fvnbkg->SetName(Form("fvnbkg_fcn_trk%d",i));
         fvnbkg->Write();
         
         fvnbkg->SetLineStyle(7);
         //fvnbkg->Draw("LSAME");
+        TLatex ltx;
+        ltx.SetTextFont(42);
+        ltx.SetTextSize(0.035);
+        ltx.DrawLatexNDC(0.55, 0.75, Form("Y_{jet}=%g", fvn_combinemassvnfit->GetParameter(13)));
+        ltx.DrawLatexNDC(0.55, 0.71, Form("Y_{jet} Err.=%g", fvn_combinemassvnfit->GetParError(13)));
         
         TLegend* leg1 = new TLegend(0.65,0.78,0.95,0.9,NULL,"brNDC");
         leg1->SetBorderSize(0);
@@ -514,14 +486,14 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
             falpha->FixParameter(j,fmass_combinemassvnfit->GetParameter(j));
         }
         
-        falpha->SetName(Form("sigfrac_fcn_pt%d",i));
+        falpha->SetName(Form("sigfrac_fcn_trk%d",i));
         falpha->Write();
         
         double xmass[200];
         double pullmass[200];
         
         float Chi2=0;
-        int ndf = 0.3/0.005 - 11;
+        int ndf = (fit_range_high-fit_range_low)/0.005 - 11;
         
         for(int k=0;k<h_data->GetNbinsX();k++)
         {
@@ -537,32 +509,28 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         c[i]->cd(1);
         tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2,ndf));
         
-        double xv2[200];
-        double pullv2[200];
-        double v2y[200];
+        double xjet[200];
+        double pulljet[200];
+        double jety[200];
         
-        float Chi2v2=0;
-        int ndfv2 = 0;
-        if(dataset=="PAHM1-6") ndfv2=14 - 2;
-        else ndfv2 = 13 - 2;
-        
+        float Chi2jet=0;
+        int ndfjet = 14 - 2;
 
-        for(int k=0;k<vn_data->GetN();k++)
+        for(int k=0;k<jet_data->GetN();k++)
         {
-           if(dataset!="PAHM1-6" && k==0) continue;
-            vn_data->GetPoint(k,xv2[k],v2y[k]);
-            //xv2[k] = vn_dara->GetBinCenter(k);
-            pullv2[k] = (v2y[k] - fvn_combinemassvnfit->Eval(xv2[k]))/vn_data->GetErrorY(k);
-            //cout<<pullv2[k]<<endl;
-            if(fabs(pullv2[k])<100)
+           jet_data->GetPoint(k,xjet[k],jety[k]);
+            //xjet[k] = vn_dara->GetBinCenter(k);
+            pulljet[k] = (jety[k] - fvn_combinemassvnfit->Eval(xjet[k]))/jet_data->GetErrorY(k);
+            //cout<<pulljet[k]<<endl;
+            if(fabs(pulljet[k])<100)
             {
                 //cout<<pullmass[k]<<endl;
-                Chi2v2 += pullv2[k]*pullv2[k];
+                Chi2jet += pulljet[k]*pulljet[k];
             }
         }
 
         c[i]->cd(2);
-        tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2v2,ndfv2));
+        tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2jet,ndfjet));
 
          std::string str = input_data;
          auto found = str.find("/");
@@ -577,7 +545,8 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
             str.erase(0, 1);
          }
 
-        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_Jets_low_fit_combine_trk%d_%s_%s.png",i, dataset.c_str(), str.c_str()));
+        //c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.png", dataset.c_str(), i, str.c_str()));
+        //c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.pdf", dataset.c_str(), i, str.c_str()));
         
         delete leg;
         delete leg1;
@@ -591,22 +560,22 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         delete falpha;
     }
 
-    TGraphErrors* v2plot = new TGraphErrors(n_trk_bin_,trk ,v2,0,v2e);
-    //TGraphErrors* v2ncqplot = new TGraphErrors(n_trk_bin_,KET_ncq,v2_ncq,0,v2e_ncq);
-    TGraphErrors* v2bkgplot = new TGraphErrors(n_trk_bin_,trk,v2_bkg,0,0);
+    TGraphErrors* jetplot = new TGraphErrors(n_trk_bin_,trk ,jet,0,jete);
+    //TGraphErrors* jetncqplot = new TGraphErrors(n_trk_bin_,KET_ncq,jet_ncq,0,jete_ncq);
+    TGraphErrors* jetbkgplot = new TGraphErrors(n_trk_bin_,trk,jet_bkg,0,0);
     
-    v2plot->SetName("v2vsNtrk");
-    //v2ncqplot->SetName("v2vsKET_ncq");
-    v2bkgplot->SetName("v2bkgvsNtrk");
+    jetplot->SetName("jetvsNtrk");
+    //jetncqplot->SetName("jetvsKET_ncq");
+    jetbkgplot->SetName("jetbkgvsNtrk");
     
-    v2plot->Write();
-    //v2ncqplot->Write();
-    v2bkgplot->Write();
+    jetplot->Write();
+    //jetncqplot->Write();
+    jetbkgplot->Write();
 
     ofile.Close();
-    delete v2plot;
-    //delete v2ncqplot;
-    delete v2bkgplot;
+    delete jetplot;
+    //delete jetncqplot;
+    delete jetbkgplot;
 
     for(unsigned int i=0; i<n_trk_bin_; i++) 
        delete c[i];

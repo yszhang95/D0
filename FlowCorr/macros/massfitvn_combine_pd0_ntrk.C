@@ -40,49 +40,53 @@ void massfitvn_combine_pd0_ntrk()
    gInterpreter->ProcessLine(".L massfitJets_combine_pd0_ntrk_process.C");
    gInterpreter->ProcessLine(".L massfitJets_low_combine_pd0_ntrk_process.C");
    gInterpreter->ProcessLine(".L fitNass.C");
+   gInterpreter->ProcessLine(".L calPD0v2_sub.C");
 
+   /*
    gInterpreter->ProcessLine(Form("massfitVn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT6.0-7.0_y-1.0-1.0.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub_fixed.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_raw.root", 
-            "../data/VnvsNtrk_pd0_PAHM185-250_pT6.0_7.0_y-1.0-1.0_new_raw.root", 
+            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
+            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
+            "../data/VnvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
             "PAHM1-6", 
-            1.0, 6.0, 7.0));
+            1.0, 4.0, 6.0));
 
    gInterpreter->ProcessLine(Form("massfitVn_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT6.0-7.0_y-1.0-1.0.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub_fixed.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_raw.root", 
-            "../data/Vnlow_pd0_PAHM185-250_pT6.0_7.0_y-1.0-1.0_new_raw.root", 
+            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
+            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
+            "../data/VnlowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
             "PAHM1-6", 
-            1.0, 6.0, 7.0));
+            1.0, 4.0, 6.0));
+   */
 
    gInterpreter->ProcessLine(Form("massfitJets_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT6.0-7.0_y-1.0-1.0.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub_fixed.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_raw.root", 
-            "../data/JetsvsNtrk_pd0_PAHM185-250_pT6.0_7.0_y-1.0-1.0_new_raw.root", 
+            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
+            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
+            "../data/JetsvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
             "PAHM1-6", 
-            1.0, 6.0, 7.0));
-   gInterpreter->ProcessLine(Form("massfitJets_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT6.0-7.0_y-1.0-1.0.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub_fixed.root", 
-            //"../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_v2_sub.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_raw.root", 
-            "../data/Jetslow_pd0_PAHM185-250_pT6.0_7.0_y-1.0-1.0_new_raw.root", 
-            "PAHM1-6", 
-            1.0, 6.0, 7.0));
+            1.0, 4.0, 6.0));
 
-   gInterpreter->ProcessLine(Form("fitNass(\"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT6.0-7.0_y-1.0-1.0_ntrk_new.root_raw.root", 
-            "../data/nass_pd0_PAHM185-250_pT6.0_7.0_y-1.0-1.0_new_raw.root", 
+   gInterpreter->ProcessLine(Form("massfitJets_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
+            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
+            "../data/JetslowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
             "PAHM1-6", 
-            1.0, 6.0, 7.0));
+            1.0, 4.0, 6.0));
+
+   /*
+   gInterpreter->ProcessLine(Form("fitNass(\"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
+            "../data/nass_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
+            "PAHM1-6", 
+            1.0, 4.0, 6.0));
+
+   gInterpreter->ProcessLine(Form("calPD0v2_sub(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
+            "../data/VnvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
+            "../data/VnlowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
+            "../data/JetsvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
+            "../data/JetslowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
+            "../data/nass_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
+            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
+            "PAHM1-6"
+            ));
+            */
 }

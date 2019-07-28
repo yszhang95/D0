@@ -105,7 +105,6 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
     
     
     for(int i=0;i<n_trk_bin_;i++)
-    //for(int i=0;i<1;i++)
     {
         TH1D* h_mc_match_signal = (TH1D*)file0->Get("hMassPD0");
         TH1D* h_mc_match_all = (TH1D*)file0->Get("hMassPD0_All");
@@ -257,7 +256,7 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         f1->FixParameter(6,f->GetParameter(6));
 
         fmasssig[i] = (TF1*)f1->Clone();
-        fmasssig[i]->SetName(Form("masssigfcn_pt%d",i));
+        fmasssig[i]->SetName(Form("masssigfcn_trk%d",i));
         fmasssig[i]->Write();
         
         f1->Draw("LSAME");
@@ -277,12 +276,10 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         f2->FixParameter(8,f->GetParameter(8));
         
         fmassswap[i] = (TF1*)f2->Clone();
-        fmassswap[i]->SetName(Form("massswapfcn_pt%d",i));
+        fmassswap[i]->SetName(Form("massswapfcn_trk%d",i));
         fmassswap[i]->Write();
 
-        
         f2->Draw("LSAME");
-
         
         //draw poly bkg separately
         TF1* f3 = new TF1(Form("f_bkg_%d",i),"[9] + [10]*x + [11]*x*x + [12]*x*x*x+0*[0]*[1]*[2]*[3]*[4]*[5]*[6]*[7]*[8]", fit_range_low, fit_range_high);
@@ -295,12 +292,11 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         f3->FixParameter(12,f->GetParameter(12));
         
         fmassbkg[i] = (TF1*)f3->Clone();
-        fmassbkg[i]->SetName(Form("massbkgfcn_pt%d",i));
+        fmassbkg[i]->SetName(Form("massbkgfcn_trk%d",i));
         fmassbkg[i]->Write();
         
         f3->Draw("LSAME");
 
-        
         if(vec_trkbin[n_trk_bin_-1]!=std::numeric_limits<unsigned int>::max())
            tex->DrawLatex(0.22,0.86,Form("%u #leq N_{trk}^{offline} < %u", vec_trkbin[i], vec_trkbin[i+1]));
         else
@@ -308,7 +304,6 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         tex->DrawLatex(0.22,0.80,Form("%.1f < p_{T} < %.1f GeV/c", pTMin, pTMax));
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
 
-        
         texCMS->DrawLatex(.18,.97,"#font[61]{CMS} #it{Preliminary}");
         texCMS->DrawLatex(0.62,0.97, "#scale[0.8]{pPb #sqrt{s_{NN}} = 8.16 TeV}");
         
@@ -331,29 +326,8 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         //[14-15] is vn bkg, const + linear vn(pT)
         TGraphErrors* vn_data = (TGraphErrors*)file1->Get(Form("V2vsMass_trk%d",i));
         vn_data->SetMarkerStyle(20);
-
-        bool zeros = true;
-        for(int j=0; j<vn_data->GetN(); j++){
-           double x, y;
-           vn_data->GetPoint(j, x, y);
-           if(fabs(y)>=1e-9) {
-            cout << "test" << endl;
-            cout << y << endl;
-              zeros = false;
-              break;
-           }
-        }
-        if(zeros) {
-            delete leg;
-            delete f;
-            delete f1;
-            delete f2;
-            delete f3;
-           continue;
-        }
         
         c[i]->cd(2);
-        
         
         TF1* fmass_combinemassvnfit = new TF1(Form("fmass_combinemassvnfit_%d",i),"[0]*([5]*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6]))+(1-[4])*TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6])))+(1-[5])*TMath::Gaus(x,[8],[7]*(1.0 +[6]))/(sqrt(2*3.14159)*[7]*(1.0 +[6]))) + [9] + [10]*x + [11]*x*x + [12]*x*x*x", fit_range_low, fit_range_high);
         
@@ -365,31 +339,25 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         fvn_combinemassvnfit->SetLineColor(2);
         fvn_combinemassvnfit->SetLineWidth(1);
 
-
         ROOT::Math::WrappedMultiTF1 wfmass_combinemassvnfit(*fmass_combinemassvnfit,1);
         ROOT::Math::WrappedMultiTF1 wfvn_combinemassvnfit(*fvn_combinemassvnfit,1);
 
-        
         ROOT::Fit::DataOptions opt;
         ROOT::Fit::DataRange range_massfit;
-
 
         range_massfit.SetRange(fit_range_low,fit_range_high);
         ROOT::Fit::BinData datamass(opt,range_massfit);
         ROOT::Fit::FillData(datamass, h_data);
-
         
         ROOT::Fit::DataRange range_vnfit;
         range_vnfit.SetRange(fit_range_low,fit_range_high);
         ROOT::Fit::BinData datavn(opt,range_vnfit);
         ROOT::Fit::FillData(datavn, vn_data);
-
         
         ROOT::Fit::Chi2Function chi2_B(datamass, wfmass_combinemassvnfit);
         ROOT::Fit::Chi2Function chi2_SB(datavn, wfvn_combinemassvnfit);
         
         GlobalChi2_poly3bkg_floatwidth globalChi2(chi2_B, chi2_SB);
-
 
         ROOT::Fit::Fitter fitter;
         
@@ -400,7 +368,6 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         par0[14] = 0.10;
         par0[15] = 0.05;
 
-        
         fitter.Config().SetParamsSettings(Npar,par0);
         // fix parameter
         fitter.Config().ParSettings(2).Fix();
@@ -434,7 +401,7 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
          auto hist =  vn_data->GetHistogram();
          hist->SetLineWidth(0);
          hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
-         hist->GetYaxis()->SetTitle("v_{2}");
+         hist->GetYaxis()->SetTitle("V_{2}");
          hist->GetXaxis()->CenterTitle();
          hist->GetYaxis()->CenterTitle();
          hist->GetXaxis()->SetTitleOffset(1.3);
@@ -458,12 +425,12 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         vn_data->Draw("A PE SAME");
         
         fvn[i] = (TF1*)fvn_combinemassvnfit->Clone();
-        fvn[i]->SetName(Form("vnfit_pt%d",i));
+        fvn[i]->SetName(Form("vnfit_trk%d",i));
         fvn[i]->Draw("same");
         fvn[i]->Write();
 
         fmasstotal[i] = (TF1*)fmass_combinemassvnfit->Clone();
-        fmasstotal[i]->SetName(Form("masstotalfcn_pt%d",i));
+        fmasstotal[i]->SetName(Form("masstotalfcn_trk%d",i));
         fmasstotal[i]->Write();
         
         if(vec_trkbin[n_trk_bin_-1]!=std::numeric_limits<unsigned int>::max())
@@ -474,7 +441,6 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         tex->DrawLatex(0.22,0.74,Form("|y| < %.1f", y));
         //tex->DrawLatex(0.22,0.68,"|#Delta#eta| > 2");
 
-        
         texCMS->DrawLatex(.18,.97,"#font[61]{CMS} #it{Preliminary}");
         texCMS->DrawLatex(0.62,0.97, "#scale[0.8]{pPb #sqrt{s_{NN}} = 8.16 TeV}");
         
@@ -490,12 +456,18 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         fvnbkg->FixParameter(0,fvn_combinemassvnfit->GetParameter(14));
         fvnbkg->FixParameter(1,fvn_combinemassvnfit->GetParameter(15));
         
-        fvnbkg->SetName(Form("fvnbkg_fcn_pt%d",i));
+        fvnbkg->SetName(Form("fvnbkg_fcn_trk%d",i));
         fvnbkg->Write();
         
         fvnbkg->SetLineStyle(7);
         //fvnbkg->Draw("LSAME");
         
+        TLatex ltx;
+        ltx.SetTextFont(42);
+        ltx.SetTextSize(0.035);
+        ltx.DrawLatexNDC(0.5, 0.6, Form("V_{n}=%g", fvn_combinemassvnfit->GetParameter(13)));
+        ltx.DrawLatexNDC(0.5, 0.55, Form("V_{n} Err.=%g", fvn_combinemassvnfit->GetParError(13)));
+
         TLegend* leg1 = new TLegend(0.65,0.78,0.95,0.9,NULL,"brNDC");
         leg1->SetBorderSize(0);
         leg1->SetTextSize(0.045);
@@ -515,14 +487,14 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
             falpha->FixParameter(j,fmass_combinemassvnfit->GetParameter(j));
         }
         
-        falpha->SetName(Form("sigfrac_fcn_pt%d",i));
+        falpha->SetName(Form("sigfrac_fcn_trk%d",i));
         falpha->Write();
         
         double xmass[200];
         double pullmass[200];
         
         float Chi2=0;
-        int ndf = 0.3/0.005 - 11;
+        int ndf = (fit_range_high-fit_range_low)/0.005 - 11;
         
         for(int k=0;k<h_data->GetNbinsX();k++)
         {
@@ -543,15 +515,11 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         double v2y[200];
         
         float Chi2v2=0;
-        int ndfv2 = 0;
-        if(dataset=="PAHM1-6") ndfv2=14 - 2;
-        else ndfv2 = 13 - 2;
-        
+        int ndfv2 = 14 - 2;
 
         for(int k=0;k<vn_data->GetN();k++)
         {
-           if(dataset!="PAHM1-6" && k==0) continue;
-            vn_data->GetPoint(k,xv2[k],v2y[k]);
+           vn_data->GetPoint(k,xv2[k],v2y[k]);
             //xv2[k] = vn_dara->GetBinCenter(k);
             pullv2[k] = (v2y[k] - fvn_combinemassvnfit->Eval(xv2[k]))/vn_data->GetErrorY(k);
             //cout<<pullv2[k]<<endl;
@@ -578,7 +546,8 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
             str.erase(0, 1);
          }
 
-        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_Vnfit_combine_trk%d_%s_%s.png",i, dataset.c_str(), str.c_str()));
+        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Vnfit_combine_trk%d_%s.png", dataset.c_str(), i, str.c_str()));
+        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Vnfit_combine_trk%d_%s.pdf", dataset.c_str(), i, str.c_str()));
         
         delete leg;
         delete leg1;
