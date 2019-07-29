@@ -45,11 +45,12 @@ void calv2()
        << V2_low->GetEY()[i] <<","
        << V2->GetEY()[i] << endl;
       cout << scale << endl;
+      cout << V2_low->GetY()[i] * scale << endl;
       double V2_sub_D0 = V2->GetY()[i] - V2_low->GetY()[i] *scale;
       double V2_sub_D0_err = sqrt( pow(V2->GetEY()[i],2) + pow(V2_low->GetEY()[i] * scale, 2));
       cout << "V2_sub_D0: " <<  V2_sub_D0 << "+/-" <<V2_sub_D0_err <<endl;
       double v2_sub_D0 = V2_sub_D0/ sqrt(V2_sub_REF);
-      double v2_sub_D0_err = fabs(v2_sub_D0)*sqrt(pow(V2_sub_D0_err/V2_sub_D0, 2)+ pow(V2_sub_REF_err/V2_sub_REF, 2));
+      double v2_sub_D0_err = fabs(v2_sub_D0)*sqrt(pow(V2_sub_D0_err/V2_sub_D0, 2)+ pow(V2_sub_REF_err/V2_sub_REF/2., 2));
       cout << "v2_sub_D0: " <<  v2_sub_D0 << "+/-" <<v2_sub_D0_err <<endl;
    }
 }

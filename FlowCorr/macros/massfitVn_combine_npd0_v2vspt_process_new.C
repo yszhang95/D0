@@ -386,7 +386,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         if(dataset == "PAHM1-6")hist->GetYaxis()->SetRangeUser(0,0.3);
         if(dataset == "PAMB") hist->GetYaxis()->SetRangeUser(-0.2, 0.7);
         hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
-        hist->GetYaxis()->SetTitle("v_{2}");
+        hist->GetYaxis()->SetTitle("V_{2}");
         hist->GetXaxis()->CenterTitle();
         hist->GetYaxis()->CenterTitle();
         hist->GetXaxis()->SetTitleOffset(1.3);
@@ -402,7 +402,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         hist->GetXaxis()->SetLabelSize(0.04);
         hist->GetYaxis()->SetLabelSize(0.04);
         hist->SetMinimum(0.001);
-        hist->SetMaximum(0.03);
+        hist->SetMaximum(0.025);
         hist->Draw();
         vn_data->SetTitle("");
         vn_data->SetMarkerSize(0.8);
@@ -413,8 +413,8 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         TLatex ltx;
         ltx.SetTextSize(42);
         ltx.SetTextSize(0.035);
-        ltx.DrawLatexNDC(0.65, 0.75, Form("Vn=%f", fvn_combinemassvnfit->GetParameter(13)));
-        ltx.DrawLatexNDC(0.65, 0.7, Form("VnErr=%f", fvn_combinemassvnfit->GetParError(13)));
+        ltx.DrawLatexNDC(0.65, 0.78, Form("Vn = %f", fvn_combinemassvnfit->GetParameter(13)));
+        ltx.DrawLatexNDC(0.65, 0.73, Form("VnErr = %f", fvn_combinemassvnfit->GetParError(13)));
         if(idca==0)ltx.DrawLatexNDC(0.65, 0.67, Form("DCA<%.3f cm", dcacut[i]));
         if(idca==1)ltx.DrawLatexNDC(0.65, 0.67, Form("DCA#geq%.3f cm", dcacut[i]));
         
