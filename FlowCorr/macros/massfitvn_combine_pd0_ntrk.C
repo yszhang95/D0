@@ -27,66 +27,103 @@ struct GlobalChi2_poly3bkg_floatwidth {
 void massfitvn_combine_pd0_ntrk()
 {
 
-   const char* input_mc= "../MC/d0ana_hists_mass_pT6.0-7.0_y-1.0-1.0.root";
-   const char* input_data = "../data/corr2D_d0_d0ana_ntrk_pT6.0-7.0_y-1.0-1.0.root_v2.root";
-   const char* output = "../data/v2vsNtrk_pd0_PAHM185-250_y1.0.root";
-   const std::string dataset = "PAHM1-6";
-   const float y=1.0;
+   const string dataset[] = {
+      "PAMB", "PAHM1-6", "PAHM7"
+   };
+   const string mult[] = {
+      "PAMB0-185", "PAHM185-250", "PAHM250-inf"
+   };
+   const string appendix[] = {
+      "", "_loose", "_tight"
+   };
+
+   const int mode = 0;
+
+   const float pTMin[] = {
+      2., 4., 6.
+   };
+   const float pTMax[] = {
+      4., 6., 8.
+   };
+   const float yMin = -1.;
+   const float yMax = 1.;
 
    gInterpreter->ProcessLine(".include ../include");
    gInterpreter->ProcessLine(".L ../src/functions.cxx");
    gInterpreter->ProcessLine(".L massfitVn_combine_pd0_ntrk_process.C");
    gInterpreter->ProcessLine(".L massfitVn_low_combine_pd0_ntrk_process.C");
    gInterpreter->ProcessLine(".L massfitJets_combine_pd0_ntrk_process.C");
+   gInterpreter->ProcessLine(".L massfitJets_combine_pd0_ntrk_process_test.C");
    gInterpreter->ProcessLine(".L massfitJets_low_combine_pd0_ntrk_process.C");
+   gInterpreter->ProcessLine(".L massfitJets_low_combine_pd0_ntrk_process_test.C");
    gInterpreter->ProcessLine(".L fitNass.C");
    gInterpreter->ProcessLine(".L calPD0v2_sub.C");
 
-   /*
-   gInterpreter->ProcessLine(Form("massfitVn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
-            "../data/VnvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "PAHM1-6", 
-            1.0, 4.0, 6.0));
+   for(int iset=1; iset<2; iset++){
+		for(int i=1; i<2; i++){
+	      string input_mc = string(
+	            Form("../MC/d0ana_hists_mass_pT%.1f-%.1f_y%.1f-%.1f.root%s", 
+	               pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+	            );
+		   string input_d0 = string(
+		         Form("../data/corr2D_trg_pd0_%s_d0ana_pT%.1f-%.1f_y%.1f-%.1f_ntrk_new.root%s_raw.root", 
+		            mult[iset].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+		         );
+         string input_d0_low = string(
+		         Form("../data/corr2D_trg_pd0_%s_d0ana_pT%.1f-%.1f_y%.1f-%.1f_ntrk_new.root%s_raw.root", 
+		            mult[0].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+               );
 
-   gInterpreter->ProcessLine(Form("massfitVn_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
-            "../data/VnlowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "PAHM1-6", 
-            1.0, 4.0, 6.0));
-   */
+         string output_Vn = string(
+	            Form("../data/VnvsNtrk_pd0_%s_pT%.1f-%.1f_y%.1f-%.1f_new_raw.root%s", 
+                  mult[iset].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+               );
+         string output_Vn_low = string(
+	            Form("../data/VnlowvsNtrk_pd0_%s_pT%.1f-%.1f_y%.1f-%.1f_new_raw.root%s", 
+                  mult[0].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+               );
+         string output_Jets = string(
+	            Form("../data/JetsvsNtrk_pd0_%s_pT%.1f-%.1f_y%.1f-%.1f_new_raw.root%s", 
+                  mult[iset].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+               );
+         string output_Jets_low = string(
+	            Form("../data/JetslowvsNtrk_pd0_%s_pT%.1f-%.1f_y%.1f-%.1f_new_raw.root%s", 
+                  mult[0].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+               );
+         string output_nass = string(
+               Form("../data/nass_pd0_%s_pT%.1f-%.1f_y%.1f-%.1f_new_raw.root%s", 
+                  mult[iset].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
+                  );
 
-   gInterpreter->ProcessLine(Form("massfitJets_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
-            "../data/JetsvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "PAHM1-6", 
-            1.0, 4.0, 6.0));
-
-   gInterpreter->ProcessLine(Form("massfitJets_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../MC/d0ana_hists_mass_pT4.0-6.0_y-1.0-1.0.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
-            "../data/JetslowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "PAHM1-6", 
-            1.0, 4.0, 6.0));
-
-   /*
-   gInterpreter->ProcessLine(Form("fitNass(\"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
-            "../data/nass_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "PAHM1-6", 
-            1.0, 4.0, 6.0));
-
-   gInterpreter->ProcessLine(Form("calPD0v2_sub(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
-            "../data/VnvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "../data/VnlowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "../data/JetsvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "../data/JetslowvsNtrk_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "../data/nass_pd0_PAHM185-250_pT4.0_6.0_y-1.0-1.0_new_raw.root", 
-            "../data/corr2D_trg_pd0_PAHM185-250_d0ana_pT4.0-6.0_y-1.0-1.0_ntrk_new.root_raw.root",
-            "PAHM1-6"
-            ));
-            */
+         /*
+	      gInterpreter->ProcessLine(Form("massfitVn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+               input_mc.c_str(), input_d0.c_str(), output_Vn.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+	
+	      gInterpreter->ProcessLine(Form("massfitVn_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+               input_mc.c_str(), input_d0.c_str(), output_Vn_low.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+               */
+	
+	      gInterpreter->ProcessLine(Form("massfitJets_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+               input_mc.c_str(), input_d0.c_str(), output_Jets.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+	      gInterpreter->ProcessLine(Form("massfitJets_combine_pd0_ntrk_process_test(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+               input_mc.c_str(), input_d0.c_str(), output_Jets.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+	
+         /*
+	      gInterpreter->ProcessLine(Form("massfitJets_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+               input_mc.c_str(), input_d0.c_str(), output_Jets_low.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+	      gInterpreter->ProcessLine(Form("massfitJets_low_combine_pd0_ntrk_process_test(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+               input_mc.c_str(), input_d0.c_str(), output_Jets_low.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+               */
+	
+         /*
+	      gInterpreter->ProcessLine(Form("fitNass(\"%s\", \"%s\", \"%s\", %f, %f, %f)", 
+               input_d0.c_str(), output_nass.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+	
+	      gInterpreter->ProcessLine(Form("calPD0v2_sub(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
+               output_Vn.c_str(), output_Vn_low.c_str(), output_Jets.c_str(), output_Jets_low.c_str(), 
+               output_nass.c_str(), input_d0.c_str(), dataset[iset].c_str()
+	            ));
+               */
+	   }
+   }
 }

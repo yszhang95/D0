@@ -377,15 +377,15 @@ void massfitVn_combine_pd0_ntrk_process(const char* input_mc = "",
         fitter.Config().ParSettings(7).Fix();
         fitter.Config().ParSettings(8).Fix();
 
-        fitter.Config().ParSettings(1).SetLimits(1.7, 2.0);
+        //fitter.Config().ParSettings(1).SetLimits(1.7, 2.0);
 
-        fitter.Config().MinimizerOptions().SetPrintLevel(0);
+        fitter.Config().MinimizerOptions().SetPrintLevel(3);
         fitter.Config().SetMinimizer("Minuit2","Migrad");
 
         fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
         ROOT::Fit::FitResult result = fitter.Result();
         result.Print(std::cout);
-        std::cout << result.Status() << std::endl;
+        std::cout << "Vn, fit status: " << result.Status() << std::endl;
         
         fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
         fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);

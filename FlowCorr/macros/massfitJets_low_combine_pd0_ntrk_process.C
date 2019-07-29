@@ -364,9 +364,9 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         const int Npar = 16;
         double par0[Npar];
         for( int ipar = 0; ipar < f->GetNpar(); ipar++ ) par0[ipar] = f->GetParameter(ipar);
-        par0[13] = 0.01;
-        par0[14] = 0.10;
-        par0[15] = 0.05;
+        par0[13] = 0.4;
+        par0[14] = -1.0;
+        par0[15] = 0.8;
 
         fitter.Config().SetParamsSettings(Npar,par0);
         // fix parameter
@@ -385,7 +385,7 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
         fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
         ROOT::Fit::FitResult result = fitter.Result();
         result.Print(std::cout);
-        std::cout << result.Status() << std::endl;
+        std::cout << "yileds of jets, low, fit status: " << result.Status() << std::endl;
         
         fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
         fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);
@@ -545,8 +545,8 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
             str.erase(0, 1);
          }
 
-        //c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.png", dataset.c_str(), i, str.c_str()));
-        //c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.pdf", dataset.c_str(), i, str.c_str()));
+        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.png", dataset.c_str(), i, str.c_str()));
+        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.pdf", dataset.c_str(), i, str.c_str()));
         
         delete leg;
         delete leg1;

@@ -925,8 +925,8 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
    hsig->Fit(&fitter, "R q");
    hsig->Fit(&fitter, "R q");
    hsig->Fit(&fitter, "R q");
-   hsig->Fit(&fitter, "R q");
-   hsig->Fit(&fitter, "R q");
+   hsig->Fit(&fitter, "E R q");
+   hsig->Fit(&fitter, "E R q");
    hsig->SetMarkerStyle(20);
    hsig->DrawCopy("E P");
 
@@ -954,8 +954,8 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
 std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1D* hsig)
 {
    c->cd(ipad);
-   double lw = 0.0;
-   //double lw = 0.1;
+   //double lw = 0.0;
+   double lw = 0.1;
    double up = 2.0;
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111111);
@@ -998,8 +998,8 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    hsig->Fit(&fitter, "R q");
    hsig->Fit(&fitter, "R q");
    fitter.ReleaseParameter(0);
-   hsig->Fit(&fitter, "R q");
-   hsig->Fit(&fitter, "R q");
+   hsig->Fit(&fitter, "E R q");
+   hsig->Fit(&fitter, "E R q");
 
    hsig->SetTitle(";#Delta#phi;dN/d(#Delta#phi)");
    hsig->SetMarkerStyle(20);
