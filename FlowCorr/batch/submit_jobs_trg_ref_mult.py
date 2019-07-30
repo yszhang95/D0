@@ -3,10 +3,10 @@ import subprocess
 tree = ["PromptD0", "NonPromptD0", "NonPromptD0"]
 treeNumber = 0
 
-#dataset_name = 'PAHM1-6'
+dataset_name = 'PAHM1-6'
 #dataset_name = 'PAHM0'
 #dataset_name = 'PAHM7'
-dataset_name = 'PAMB'
+#dataset_name = 'PAMB'
 
 dataset = {
       'PAMB'    : 'PAMB0-150_REF.list', # should be 0-185, I am too lazy to correct it
@@ -21,7 +21,8 @@ storage = {
       #'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-150-PD0-v2vsNtrk',
       'PAMB'    : '/afs/cern.ch/user/y/yousen/work/pPb2016/MB0-185-PD0-v2vsNtrk',
       #'PAHM0'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM150-185-PD0-v2vsNtrk', # we will not use it
-      'PAHM1-6' : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM185-250-PD0-v2vsNtrk',
+      #'PAHM1-6' : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM185-250-PD0-v2vsNtrk',
+      'PAHM1-6' : '/eos/cms/store/group/phys_heavyions/yousen/D0/pPb2016/HM185-250-PD0-v2vsNtrk',
       'PAHM7'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/HM250-inf-PD0-v2vsNtrk',
       'PPMB'    : '/afs/cern.ch/user/y/yousen/work/pp2018/MB0-80-PD0-v2vsNtrk',
       'PPHM_1'  : '/afs/cern.ch/user/y/yousen/work/pp2018/HM80-100-PD0-v2vsNtrk',

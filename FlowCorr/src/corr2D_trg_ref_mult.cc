@@ -88,12 +88,16 @@ int main(int argc, char** argv)
 
    // declare hists
    TH1D* hMult[nTrkBin];
+   TH1D* hMult_ass[nTrkBin];
+   TH1D* hMult_ass_eff[nTrkBin];
 
    TH2D* hSignal_Ref[nTrkBin];
    TH2D* hBackground_Ref[nTrkBin];
 
    for(int ibin=0; ibin<nTrkBin; ibin++){
-      hMult[ibin] = new TH1D(Form("hMult_trk%d", ibin), "", 600, 0, 600);
+      hMult[ibin] = new TH1D(Form("hMult_ntrkoffline_trk%d", ibin), "", 600, 0, 600);
+      hMult_ass[ibin] = new TH1D(Form("hMult_trk%d", ibin), "", 600, 0, 600);
+      hMult_ass_eff[ibin] = new TH1D(Form("hMult_eff_trk%d", ibin), "", 600, 0, 600);
 
       hSignal_Ref[ibin] = new TH2D(Form("hSignal_Ref_trk%d", ibin),
             "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
@@ -179,6 +183,8 @@ int main(int argc, char** argv)
       for(unsigned int iref=0; iref<nMult_ref; iref++){
          nMult_eff_ref += 1./effVect_ref.at(iref);
       }
+      hMult_ass[iTrkBin]->Fill(nMult_ref);
+      hMult_ass_eff[iTrkBin]->Fill(nMult_eff_ref);
 
       for(unsigned int itrg=0; itrg<nMult_ref; itrg++){
          for(unsigned int iass=itrg+1; iass<nMult_ref; iass++){
@@ -280,12 +286,16 @@ int main(int argc, char** argv)
    
    for(int ibin=0; ibin<nTrkBin; ibin++){
       hMult[ibin]->Write();
+      hMult_ass[ibin]->Write();
+      hMult_ass_eff[ibin]->Write();
       hSignal_Ref[ibin]->Write();
       hBackground_Ref[ibin]->Write();
    }
 
    for(int ibin=0; ibin<nTrkBin; ibin++){
       delete hMult[ibin];
+      delete hMult_ass[ibin];
+      delete hMult_ass_eff[ibin];
       delete hSignal_Ref[ibin];
       delete hBackground_Ref[ibin];
    }

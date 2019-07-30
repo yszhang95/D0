@@ -8,14 +8,14 @@ treeNumber = 0
 #pTMin = 4.0
 #pTMax = 6.0
 pTMin = 6.0
-#pTMax = 8.0
-pTMax = 7.0
+pTMax = 8.0
+#pTMax = 7.0
 yMin  = -1.0
 yMax  = 1.0
 
 #dataset_name = 'PAHM1-6'
-#dataset_name = 'PAHM7'
-dataset_name = 'PAMB'
+dataset_name = 'PAHM7'
+#dataset_name = 'PAMB'
 
 dataset = {
       #'PAMB'    : 'PAMB0-150.list', # list are the same but 0-150 should be renaemd after 0-185, I did not do that
