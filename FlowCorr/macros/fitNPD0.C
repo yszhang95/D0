@@ -27,6 +27,7 @@ string files[] = {
 double ptbin[] = {2., 5., 8.};
 
 /*
+//  old, wrong template
 double smallDca[2] ={ // nPt
 0.079946,
 0.0500907
@@ -39,30 +40,68 @@ double smallDca_e[2] = { // nPt
 0.000958518,
 0.0106871
 };
-
 double largeDca_e[2] = { // nPt
 0.0207466,
 0.00681814
 };
 */
+
+/*
+// fit range 0.006 - 0.08 // std
 double smallDca[2] ={ // nPt
-   0.0910661,
-   0.0984271
+0.098428,
+0.103564 
 };
 double largeDca[2] ={ // nPt
-   0.563719,
-      0.684439 
+0.577233,
+0.691316
 };
 double smallDca_e[2] = { // nPt
-   0.00335387,0.00285943
-   //0.0335387,0.0285943
+0.00470071,
+0.00453739
 };
-
 double largeDca_e[2] = { // nPt
-0.00996521,
-0.00695956
-//0.0996521,
-//0.0695956
+0.0256403,
+0.0242854
+};
+*/
+
+/*
+// fit range 0.004 - 0.08 // syst errors
+double smallDca[2] ={ // nPt
+   0.0898474,
+   0.0933014
+};
+double largeDca[2] ={ // nPt
+   0.552491,
+   0.666089
+};
+double smallDca_e[2] = { // nPt
+   0.000981349,
+   0.00353246
+};
+double largeDca_e[2] = { // nPt
+   0.00296709,
+   0.0199069
+};
+*/
+
+// fit range 0.008 - 0.08 // syst errors
+double smallDca[2] ={ // nPt
+   0.102076,
+   0.112225
+};
+double largeDca[2] ={ // nPt
+   0.587071,
+   0.71019
+};
+double smallDca_e[2] = { // nPt
+   0.00564512,
+   0.00690441
+};
+double largeDca_e[2] = { // nPt
+   0.0315394,
+   0.0351376
 };
 
 TGraphErrors* fitNPD0_Each(
@@ -127,8 +166,12 @@ TGraphErrors* fitNPD0_Each(
       //ltx->DrawLatexNDC(0.2, 0.88, "#scale[1.5]{CMS}");
       ltx->DrawLatexNDC(0.2, 0.88, "#scale[1.5]{CMS} #it{#scale[1.4]{Preliminary}}");
       ltx->DrawLatexNDC(0.67, 0.88, "#scale[1.3]{pPb 8.16TeV}");
-      if(!i%2) ltx->DrawLatexNDC(0.3, 0.2, "N_{trk}^{offline} < 35");
-      if(i%2) ltx->DrawLatexNDC(0.3, 0.2, " 185#leq N_{trk}^{offline} < 250");
+      if(outputs == "Jets_low") ltx->DrawLatexNDC(0.3, 0.2, "N_{trk}^{offline} < 35");
+      if(outputs == "Jets") ltx->DrawLatexNDC(0.3, 0.2, " 185#leq N_{trk}^{offline} < 250");
+      if(outputs == "V2_low") ltx->DrawLatexNDC(0.3, 0.2, "N_{trk}^{offline} < 35");
+      if(outputs == "V2") ltx->DrawLatexNDC(0.3, 0.2, " 185#leq N_{trk}^{offline} < 250");
+      if(outputs == "Nass_low") ltx->DrawLatexNDC(0.3, 0.2, "N_{trk}^{offline} < 35");
+      if(outputs == "Nass") ltx->DrawLatexNDC(0.3, 0.2, " 185#leq N_{trk}^{offline} < 250");
       if(outputs == "Jets_low") h->GetYaxis()->SetTitle("Y_{jets}");
       if(outputs == "Jets") h->GetYaxis()->SetTitle("Y_{jets}");
       if(outputs == "V2_low") h->GetYaxis()->SetTitle("V_{2}");
