@@ -46,7 +46,6 @@ double largeDca_e[2] = { // nPt
 };
 */
 
-/*
 // fit range 0.006 - 0.08 // std
 double smallDca[2] ={ // nPt
 0.098428,
@@ -64,7 +63,6 @@ double largeDca_e[2] = { // nPt
 0.0256403,
 0.0242854
 };
-*/
 
 /*
 // fit range 0.004 - 0.08 // syst errors
@@ -86,6 +84,7 @@ double largeDca_e[2] = { // nPt
 };
 */
 
+/*
 // fit range 0.008 - 0.08 // syst errors
 double smallDca[2] ={ // nPt
    0.102076,
@@ -103,6 +102,7 @@ double largeDca_e[2] = { // nPt
    0.0315394,
    0.0351376
 };
+*/
 
 TGraphErrors* fitNPD0_Each(
       const char* large,

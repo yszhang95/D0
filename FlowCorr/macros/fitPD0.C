@@ -23,6 +23,8 @@
       "Nass"
    };
 
+/*
+//  old, wrong template
 double smallDca[2] ={ // nPt
 0.079946,
 0.0500907
@@ -35,11 +37,69 @@ double smallDca_e[2] = { // nPt
 0.000958518,
 0.0106871
 };
-
 double largeDca_e[2] = { // nPt
 0.0207466,
 0.00681814
 };
+*/
+
+// fit range 0.006 - 0.08 // std
+double smallDca[2] ={ // nPt
+0.098428,
+0.103564 
+};
+double largeDca[2] ={ // nPt
+0.577233,
+0.691316
+};
+double smallDca_e[2] = { // nPt
+0.00470071,
+0.00453739
+};
+double largeDca_e[2] = { // nPt
+0.0256403,
+0.0242854
+};
+
+/*
+// fit range 0.004 - 0.08 // syst errors
+double smallDca[2] ={ // nPt
+   0.0898474,
+   0.0933014
+};
+double largeDca[2] ={ // nPt
+   0.552491,
+   0.666089
+};
+double smallDca_e[2] = { // nPt
+   0.000981349,
+   0.00353246
+};
+double largeDca_e[2] = { // nPt
+   0.00296709,
+   0.0199069
+};
+*/
+
+/*
+// fit range 0.008 - 0.08 // syst errors
+double smallDca[2] ={ // nPt
+   0.102076,
+   0.112225
+};
+double largeDca[2] ={ // nPt
+   0.587071,
+   0.71019
+};
+double smallDca_e[2] = { // nPt
+   0.00564512,
+   0.00690441
+};
+double largeDca_e[2] = { // nPt
+   0.0315394,
+   0.0351376
+};
+*/
 
 TGraphErrors* fitPD0_Each(
       const char* large,
