@@ -46,6 +46,25 @@ double largeDca_e[2] = { // nPt
 };
 */
 
+// loose
+double smallDca[2] ={ // nPt
+   0.0943763,
+0.0977935
+};
+double largeDca[2] ={ // nPt
+   0.573572,
+0.678117
+};
+double smallDca_e[2] = { // nPt
+   0.0037425,
+0.00296384
+};
+double largeDca_e[2] = { // nPt
+   0.022745,
+0.0205518
+};
+
+/*
 // fit range 0.006 - 0.08 // std
 double smallDca[2] ={ // nPt
 0.098428,
@@ -63,6 +82,7 @@ double largeDca_e[2] = { // nPt
 0.0256403,
 0.0242854
 };
+*/
 
 /*
 // fit range 0.004 - 0.08 // syst errors
@@ -114,6 +134,8 @@ TGraphErrors* fitNPD0_Each(
 {
    TFile* flarge = new TFile(large);
    TFile* fsmall = new TFile(small);
+   if(!flarge->IsOpen()) cout << "not open flarge" << endl;
+   if(!fsmall->IsOpen()) cout << "not open fsmall" << endl;
    TGraphErrors* glarge;
    TGraphErrors* gsmall;
    flarge->GetObject(g_large, glarge);
@@ -203,12 +225,15 @@ TGraphErrors* fitNPD0_Each(
          ltx->DrawLatexNDC(0.2, 0.65, Form("N_{assoc}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
       }
       c[i]->Print(Form("c_%s_%d.pdf",outputs.c_str(), i));
+      delete fl[i];
+      delete ltx;
+      delete c[i];
    }
    return ret;
 }
 
 void fitNPD0(){
-   TGraphErrors* ret[4];
+   TGraphErrors* ret[6];
    TFile ofile("ofile_npd0.root", "recreate");
    for(int i=0; i<6; i++){
    //for(int i=2; i<3; i++){
