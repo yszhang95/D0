@@ -823,8 +823,8 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
 std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1D* hsig)
 {
    c->cd(ipad);
-   //double lw = 0.0;
-   double lw = 0.1;
+   double lw = 0.0;
+   //double lw = 0.1;
    double up = 2.0;
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111111);
@@ -832,8 +832,10 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    c->SetBottomMargin(0.15);
 
    int negBinMin = 1;
-   int negBinMax = 10;
-   int posBinMin = 24;
+   int negBinMax = 10; // delta eta = -2
+   //int negBinMax = 14;
+   int posBinMin = 24; // delta eta = -2
+   //int posBinMin = 20;
    int posBinMax = 33;
 
    TH1D* hNeg = h2DSignal->ProjectionY("hneg", negBinMin, negBinMax);
@@ -843,6 +845,17 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    hsig->SetName("hsig");
    delete hNeg;
    delete hPos;
+
+   // symmetrize
+   for(int i=1; i<=8; i++){
+      hsig->SetBinContent(i+8, hsig->GetBinContent(9-i)+hsig->GetBinContent(i+8));
+      hsig->SetBinError(i+8, sqrt(pow(hsig->GetBinError(9-i), 2)+pow(hsig->GetBinError(i+8), 2)));
+   }
+   for(int i=1; i<=8; i++){
+      hsig->SetBinContent(i+16, hsig->GetBinContent(33-i)+hsig->GetBinContent(i+16));
+      hsig->SetBinError(i+16, sqrt(pow(hsig->GetBinError(33-i), 2)+pow(hsig->GetBinError(i+16), 2)));
+   }
+   hsig->GetXaxis()->SetRange(9, 24);
 
    TH1D* temp_neg = h2DBackground->ProjectionY("hneg_bkg", negBinMin, negBinMax);
    TH1D* temp_pos = h2DBackground->ProjectionY("hpos_bkg", posBinMin, posBinMax);
@@ -887,7 +900,8 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
 
    double yields_err;
    double yields = hsig->IntegralAndError(hsig->FindBin(0.), hsig->FindBin(minX), yields_err, "width");
-   yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
+   //yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
+   yields = yields - 0.5*hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
 
    delete hsig;
    delete temp;
