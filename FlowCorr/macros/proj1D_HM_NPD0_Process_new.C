@@ -746,10 +746,14 @@ TF1 draw1D_longrange(TH1* hDeltaPhi, const char* name,
 
 TH1D* proj1D_longrange(TH2* h2DSignal, TH2* h2DBackground, const char* name)
 {
-   int negBinMin = 0;
-   int negBinMax = h2DSignal->GetXaxis()->FindBin(-1.* deltaEtaBound)-1 ;
-   int posBinMin = h2DSignal->GetXaxis()->FindBin(1.* deltaEtaBound)+1 ;
-   int posBinMax = h2DSignal->GetXaxis()->GetNbins()+1;
+   //int negBinMin = 0;
+   int negBinMin = 1;
+   //int negBinMax = h2DSignal->GetXaxis()->FindBin(-1.* deltaEtaBound)-1 ;
+   int negBinMax = h2DSignal->GetXaxis()->FindBin(-1.* deltaEtaBound) ;
+   //int posBinMin = h2DSignal->GetXaxis()->FindBin(1.* deltaEtaBound)+1 ;
+   int posBinMin = h2DSignal->GetXaxis()->FindBin(1.* deltaEtaBound) ;
+   //int posBinMax = h2DSignal->GetXaxis()->GetNbins()+1;
+   int posBinMax = h2DSignal->GetXaxis()->GetNbins();
    TH1D* hNeg = h2DSignal->ProjectionY("hneg", negBinMin, negBinMax);
    TH1D* hPos = h2DSignal->ProjectionY("hpos", posBinMin, posBinMax);
    hNeg->Add(hPos);

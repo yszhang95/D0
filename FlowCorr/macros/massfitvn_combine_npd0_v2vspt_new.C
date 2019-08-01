@@ -48,8 +48,8 @@ void massfitvn_combine_npd0_v2vspt_new(
 
       gInterpreter->ProcessLine(
             Form("massfitVn_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/V2vspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca0_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 0));
@@ -57,24 +57,24 @@ void massfitvn_combine_npd0_v2vspt_new(
 
       gInterpreter->ProcessLine(
             Form("massfitVn_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/V2vspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca1_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 1));
 
       gInterpreter->ProcessLine(
             Form("massfitVn_low_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/V2_lowvspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca0_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 0));
 
       gInterpreter->ProcessLine(
             Form("massfitVn_low_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/V2_lowvspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca1_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 1));
@@ -82,37 +82,37 @@ void massfitvn_combine_npd0_v2vspt_new(
 
       gInterpreter->ProcessLine(
             Form("massfitJets_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/Jetsvspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca0_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 0));
 
       gInterpreter->ProcessLine(
             Form("massfitJets_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/Jetsvspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca1_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 1));
 
       gInterpreter->ProcessLine(
             Form("massfitJets_low_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/Jets_lowvspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca0_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 0));
       gInterpreter->ProcessLine(
             Form("massfitJets_low_combine_npd0_v2vspt_process_new(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %d)",
-            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_loose.root",
-            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root",
+            "../MC/npd0ana1_hists_mass_pT2.0-8.0_y-1.0-1.0_ptbin2_tight.root",
+            "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root",
             "../data/Jets_lowvspt_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_dca1_new_binning_raw.root",
             "PAHM1-6",
             1.0, 2.0, 8.0, 1));
 
       gInterpreter->ProcessLine(
-            Form("fitNass_npd0(\"%s\", \"%s\")", "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root", "../data/nass_npd0_pT2.0-8.0_y-1.0-1.0_new_binning.root")
+            Form("fitNass_npd0(\"%s\", \"%s\")", "../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root", "../data/nass_npd0_pT2.0-8.0_y-1.0-1.0_new_binning.root")
             );
 
 }

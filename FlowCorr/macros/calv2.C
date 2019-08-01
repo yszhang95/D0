@@ -2,7 +2,7 @@ void calv2()
 {
    TFile* file0 = new TFile("ofile_npd0.root");
    //TFile* file0 = new TFile("ofile_pd0.root");
-   TFile* file1 = new TFile("../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_loose_raw.root");
+   TFile* file1 = new TFile("../data/corr2D_trg_npd0_PAHM185-250_pT2.0-8.0_y-1.0-1.0_new_binning.root_tight_raw.root");
    TGraphErrors*	V2_Ref_low  = (TGraphErrors*)file1->Get("V2_Ref_low"); 
    TGraphErrors*	Jets_ref_low  = (TGraphErrors* )file1->Get("Jets_ref_low"); 
    TGraphErrors*	Nass_ref_low  = (TGraphErrors*) file1->Get("Nass_ref_low"); 

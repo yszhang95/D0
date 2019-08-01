@@ -366,18 +366,26 @@ void massfitVn_low_combine_npd0_v2vspt_process_new(
         fitter.Config().MinimizerOptions().SetPrintLevel(0);
         fitter.Config().SetMinimizer("Minuit2","Migrad");
 
-        fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
-        ROOT::Fit::FitResult result = fitter.Result();
-        result.Print(std::cout);
+        //fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
+        //ROOT::Fit::FitResult result = fitter.Result();
+        //result.Print(std::cout);
         
-        fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
-        fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);
+        //fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
+        //fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);
+        for(int ipar=0; ipar<13; ipar++){
+           fvn_combinemassvnfit->FixParameter(ipar, f->GetParameter(ipar));
+        }
+        
+        vn_data->Fit(fvn_combinemassvnfit, "Q R E", "", fit_range_low, fit_range_high);
+        vn_data->Fit(fvn_combinemassvnfit, "Q R E", "", fit_range_low, fit_range_high);
+        vn_data->Fit(fvn_combinemassvnfit, "R E V", "", fit_range_low, fit_range_high);
+
         fmass_combinemassvnfit->SetLineColor(kRed);
         h_data->GetListOfFunctions()->Add(fmass_combinemassvnfit);
         
-        fvn_combinemassvnfit->SetFitResult( result, iparvnfit_poly3bkg_floatwidth);
-        fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
-        fvn_combinemassvnfit->SetLineColor(2);
+        //fvn_combinemassvnfit->SetFitResult( result, iparvnfit_poly3bkg_floatwidth);
+        //fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
+        //fvn_combinemassvnfit->SetLineColor(2);
         //fvn_combinemassvnfit->SetLineStyle(2);
         vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
         auto hist = vn_data->GetHistogram();

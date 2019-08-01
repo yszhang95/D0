@@ -46,6 +46,7 @@ double largeDca_e[2] = { // nPt
 };
 */
 
+/*
 // loose
 double smallDca[2] ={ // nPt
    0.0943763,
@@ -62,6 +63,25 @@ double smallDca_e[2] = { // nPt
 double largeDca_e[2] = { // nPt
    0.022745,
 0.0205518
+};
+*/
+
+// tight
+double smallDca[2] ={ // nPt
+   0.0992745,
+0.105411
+};
+double largeDca[2] ={ // nPt
+   0.586248,
+0.702325
+};
+double smallDca_e[2] = { // nPt
+   0.00357923,
+0.0228574
+};
+double largeDca_e[2] = { // nPt
+   0.00970914,
+0.0506754
 };
 
 /*
