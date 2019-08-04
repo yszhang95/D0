@@ -53,14 +53,12 @@ void massfitvn_combine_pd0_ntrk()
    gInterpreter->ProcessLine(".L massfitVn_combine_pd0_ntrk_process.C");
    gInterpreter->ProcessLine(".L massfitVn_low_combine_pd0_ntrk_process.C");
    gInterpreter->ProcessLine(".L massfitJets_combine_pd0_ntrk_process.C");
-   gInterpreter->ProcessLine(".L massfitJets_combine_pd0_ntrk_process_test.C");
    gInterpreter->ProcessLine(".L massfitJets_low_combine_pd0_ntrk_process.C");
-   gInterpreter->ProcessLine(".L massfitJets_low_combine_pd0_ntrk_process_test.C");
    gInterpreter->ProcessLine(".L fitNass.C");
    gInterpreter->ProcessLine(".L calPD0v2_sub.C");
 
-   for(int iset=1; iset<2; iset++){
-		for(int i=1; i<2; i++){
+   for(int iset=0; iset<1; iset++){
+		for(int i=0; i<1; i++){
 	      string input_mc = string(
 	            Form("../MC/d0ana_hists_mass_pT%.1f-%.1f_y%.1f-%.1f.root%s", 
 	               pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
@@ -95,35 +93,25 @@ void massfitvn_combine_pd0_ntrk()
                   mult[iset].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
                   );
 
-         /*
 	      gInterpreter->ProcessLine(Form("massfitVn_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
                input_mc.c_str(), input_d0.c_str(), output_Vn.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
 	
 	      gInterpreter->ProcessLine(Form("massfitVn_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-               input_mc.c_str(), input_d0.c_str(), output_Vn_low.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
-               */
+               input_mc.c_str(), input_d0.c_str(), output_Vn_low.c_str(), dataset[0].c_str(), yMax, pTMin[i], pTMax[i]));
 	
 	      gInterpreter->ProcessLine(Form("massfitJets_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
                input_mc.c_str(), input_d0.c_str(), output_Jets.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
-	      gInterpreter->ProcessLine(Form("massfitJets_combine_pd0_ntrk_process_test(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-               input_mc.c_str(), input_d0.c_str(), output_Jets.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
 	
-         /*
 	      gInterpreter->ProcessLine(Form("massfitJets_low_combine_pd0_ntrk_process(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-               input_mc.c_str(), input_d0.c_str(), output_Jets_low.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
-	      gInterpreter->ProcessLine(Form("massfitJets_low_combine_pd0_ntrk_process_test(\"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-               input_mc.c_str(), input_d0.c_str(), output_Jets_low.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
-               */
+               input_mc.c_str(), input_d0.c_str(), output_Jets_low.c_str(), dataset[0].c_str(), yMax, pTMin[i], pTMax[i]));
 	
-         /*
-	      gInterpreter->ProcessLine(Form("fitNass(\"%s\", \"%s\", \"%s\", %f, %f, %f)", 
-               input_d0.c_str(), output_nass.c_str(), dataset[iset].c_str(), yMax, pTMin[i], pTMax[i]));
+	      gInterpreter->ProcessLine(Form("fitNass(\"%s\", \"%s\", \"%s\")", 
+               input_d0.c_str(), output_nass.c_str(), dataset[iset].c_str()));
 	
 	      gInterpreter->ProcessLine(Form("calPD0v2_sub(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
                output_Vn.c_str(), output_Vn_low.c_str(), output_Jets.c_str(), output_Jets_low.c_str(), 
                output_nass.c_str(), input_d0.c_str(), dataset[iset].c_str()
 	            ));
-               */
 	   }
    }
 }

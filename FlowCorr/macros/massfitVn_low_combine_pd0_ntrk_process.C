@@ -379,28 +379,32 @@ void massfitVn_low_combine_pd0_ntrk_process(const char* input_mc = "",
 
         //fitter.Config().ParSettings(1).SetLimits(1.7, 2.0);
 
-        fitter.Config().MinimizerOptions().SetPrintLevel(3);
-        //fitter.Config().SetMinimizer("Minuit2","Migrad");
-        fitter.Config().SetMinimizer("Minuit2","MIGrad");
-        //fitter.Config().SetMinimizer("Minuit2","Scan");
-        //fitter.Config().SetMinimizer("Minuit2","Simplex");
-        //fitter.Config().SetMinimizer("Minuit2","Minimize");
+        fitter.Config().MinimizerOptions().SetPrintLevel(0);
+        fitter.Config().SetMinimizer("Minuit2","Migrad");
+        for(int ipar=0; ipar<13; ipar++){
+           fvn_combinemassvnfit->FixParameter(ipar, f->GetParameter(ipar));
+        }
+        vn_data->Fit(fvn_combinemassvnfit, "QER", "", fit_range_low, fit_range_high);
+        vn_data->Fit(fvn_combinemassvnfit, "QER", "", fit_range_low, fit_range_high);
+        vn_data->Fit(fvn_combinemassvnfit, "QER", "", fit_range_low, fit_range_high);
+        auto result = vn_data->Fit(fvn_combinemassvnfit, "SQER", "", fit_range_low, fit_range_high);
+        result->Print();
 
-        fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
-        ROOT::Fit::FitResult result = fitter.Result();
-        result.Print(std::cout);
-        cout << "Vn_low, fit status: " << result.Status() << endl;
+        //fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
+        //ROOT::Fit::FitResult result = fitter.Result();
+        //result.Print(std::cout);
+        //cout << "Vn_low, fit status: " << result.Status() << endl;
         
-        fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
-        fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);
-        fmass_combinemassvnfit->SetLineColor(kRed);
-        h_data->GetListOfFunctions()->Add(fmass_combinemassvnfit);
+        //fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
+        //fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);
+        //fmass_combinemassvnfit->SetLineColor(kRed);
+        //h_data->GetListOfFunctions()->Add(fmass_combinemassvnfit);
 
-        fvn_combinemassvnfit->SetFitResult( result, iparvnfit_poly3bkg_floatwidth);
-        fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
-        fvn_combinemassvnfit->SetLineColor(2);
-        fvn_combinemassvnfit->SetLineStyle(2);
-        vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
+        //fvn_combinemassvnfit->SetFitResult( result, iparvnfit_poly3bkg_floatwidth);
+        //fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
+        //fvn_combinemassvnfit->SetLineColor(2);
+        //fvn_combinemassvnfit->SetLineStyle(2);
+        //vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
         //
          auto hist =  vn_data->GetHistogram();
          hist->SetLineWidth(0);
@@ -550,8 +554,8 @@ void massfitVn_low_combine_pd0_ntrk_process(const char* input_mc = "",
             str.erase(0, 1);
          }
 
-        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Vn_lowfit_combine_trk%d_%s.png", dataset.c_str(), i, str.c_str()));
-        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Vn_lowfit_combine_trk%d_%s.pdf", dataset.c_str(), i, str.c_str()));
+        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_Vn_low_fit_combine_trk_pT%1.f-pT%.1f.png", pTMin, pTMax));
+        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_Vn_low_fit_combine_trk_pT%1.f-pT%.1f.pdf", pTMin, pTMax));
         
         delete leg;
         delete leg1;

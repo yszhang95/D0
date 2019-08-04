@@ -417,7 +417,7 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
          hist->GetXaxis()->SetLabelSize(0.04);
          hist->GetYaxis()->SetLabelSize(0.04);
          hist->SetMinimum(0.001);
-         hist->SetMaximum(1);
+         hist->SetMaximum(2);
         jet_data->SetTitle("");
         jet_data->SetMarkerSize(0.8);
         jet_data->SetLineWidth(1);
@@ -545,8 +545,8 @@ void massfitJets_low_combine_pd0_ntrk_process(const char* input_mc = "",
             str.erase(0, 1);
          }
 
-        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.png", dataset.c_str(), i, str.c_str()));
-        c[i]->Print(Form("../plots/v2vsNtrk/%s/D0_mass_Jets_low_fit_combine_trk%d_%s.pdf", dataset.c_str(), i, str.c_str()));
+        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_Jets_low_fit_combine_trk_pT%1.f-pT%.1f.png", pTMin, pTMax));
+        c[i]->Print(Form("../plots/v2vsNtrk/D0_mass_Jets_low_fit_combine_trk_pT%1.f-pT%.1f.pdf", pTMin, pTMax));
         
         delete leg;
         delete leg1;

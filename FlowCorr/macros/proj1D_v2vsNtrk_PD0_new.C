@@ -1,10 +1,10 @@
 #include "../include/myAnaConsts.h"
 
-void proj1D_v2vsNtrk_PD0()
+void proj1D_v2vsNtrk_PD0_new()
 {
    gInterpreter->ProcessLine(".include ../include");
    gInterpreter->ProcessLine(".L ../src/functions.cxx");
-   gInterpreter->ProcessLine(".L proj1D_v2vsNtrk_PD0_Process.C");
+   gInterpreter->ProcessLine(".L proj1D_v2vsNtrk_PD0_Process_new.C");
 
    const string dataset[] = {
       "PAMB", "PAHM1-6", "PAHM7"
@@ -28,7 +28,7 @@ void proj1D_v2vsNtrk_PD0()
    const float yMax = 1.;
 
    for(int iset=0; iset<1; iset++){
-		for(int i=0; i<3; i++){
+		for(int i=0; i<1; i++){
 		   string input_d0 = string(
 		         Form("../data/corr2D_trg_pd0_%s_d0ana_pT%.1f-%.1f_y%.1f-%.1f_ntrk_new.root%s", 
 		            mult[iset].c_str(), pTMin[i], pTMax[i], yMin, yMax, appendix[mode].c_str())
@@ -44,7 +44,7 @@ void proj1D_v2vsNtrk_PD0()
 		         Form("../data/corr2D_trg_ref_%s_d0ana_ntrk.root", mult[0].c_str())
 		      );
 		   gInterpreter->ProcessLine(
-	            Form("proj1D_v2vsNtrk_PD0_Process(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %f)", 
+	            Form("proj1D_v2vsNtrk_PD0_Process_new(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %f, %f, %f, %f)", 
 		         input_d0.c_str(), input_ref.c_str(), dataset[iset].c_str(), input_d0_low.c_str(), input_ref_low.c_str(),
 		         pTMin[i], pTMax[i], yMin, yMax)
 	         );

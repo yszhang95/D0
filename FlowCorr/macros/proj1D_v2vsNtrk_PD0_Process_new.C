@@ -3,9 +3,11 @@
 
 const double deltaEtaBound = 1;
 
+typedef TH1* TH1ptr;
+
 TH1D* proj1D_longrange(TH2*, TH2*, const char*);
-std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
-std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
+std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1ptr&);
+std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1ptr&);
 
 std::pair<double, double> calYields(const pair<double, double>&, const pair<double,double>&);
 
@@ -14,7 +16,7 @@ TF1 draw1D_longrange(TH1*,
 
 string ouput_prefix(const char* name);
 
-void proj1D_v2vsNtrk_PD0_Process(const char* input_d0= "",
+void proj1D_v2vsNtrk_PD0_Process_new(const char* input_d0= "",
       const char* input_ref = "", 
 const string dataset="", 
 const char* input_d0_low_mult="", 
@@ -277,7 +279,6 @@ const float yMin =0., const float yMax =0.)
          N_ass_err[imass][i_trk_bin_] = func.GetParError(0);
       }
    }
-
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       c_lr[i_trk_bin_]->Print(
                Form("../plots/v2vsNtrk/%s/%s_deltaPhi_trk%d.png", 
@@ -425,36 +426,22 @@ const float yMin =0., const float yMax =0.)
    c_sry_ref_low->Divide(1,1);
    TCanvas* c_lry_ref_low = new TCanvas("c_lry_ref_low", "", 550, 550);
    c_lry_ref_low->Divide(1,1);
-   TH1D* h_sry_ref_low;
-   TH1D* h_lry_ref_low;
+   TH1ptr h_sry_ref_low;
+   TH1ptr h_lry_ref_low;
    if(true){
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_Ref_low, h2DBackground_Ref_low, 
-            Form("N_{trk}^{offline}<35, %.1f#leqp_{T}<%.1f", pTMin, pTMax),
-            c_sry_ref_low, 1, h_sry_ref_low);
+            "sry_ref_low", c_sry_ref_low, 1, h_sry_ref_low);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_Ref_low, h2DBackground_Ref_low, 
-            Form("N_{trk}^{offline}<35, %.1f#leqp_{T}<%.1f", pTMin, pTMax),
-            c_lry_ref_low, 1, h_lry_ref_low);
+            "lry_ref_low", c_lry_ref_low, 1, h_lry_ref_low);
       auto yields_pair = calYields(sr_pair, lr_pair);
       yields_jet_ref_low = yields_pair.first;
       yields_jet_ref_low_err = yields_pair.second;
    }
-   c_sry_ref_low->Print(
-            "../plots/v2vsNtrk/ref_low_sr.png"
-            );
-   c_lry_ref_low->Print(
-            "../plots/v2vsNtrk/ref_low_lr.png"
-            );
-   c_sry_ref_low->Print(
-            "../plots/v2vsNtrk/ref_low_sr.pdf" 
-            );
-   c_lry_ref_low->Print(
-            "../plots/v2vsNtrk/ref_low_lr.pdf"
-            );
 
    TCanvas* c_sry_ref[n_trk_bin_];
    TCanvas* c_lry_ref[n_trk_bin_];
-   TH1D* h_sry_ref[n_trk_bin_];
-   TH1D* h_lry_ref[n_trk_bin_];
+   TH1ptr h_sry_ref[n_trk_bin_];
+   TH1ptr h_lry_ref[n_trk_bin_];
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       c_sry_ref[i_trk_bin_] = new TCanvas(Form("c_sry_ref_%d", i_trk_bin_), "", 550, 550);
       c_sry_ref[i_trk_bin_]->Divide(1, 1);
@@ -463,37 +450,15 @@ const float yMin =0., const float yMax =0.)
    }
    // higher mult, ref
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-
-      std::string ntrk;
-      auto trkRange = ana::get_Mult_Edges(dataset);
-      if(trkRange.size() && trkRange[i_trk_bin_+1]!=std::numeric_limits<unsigned int>::max()) 
-         ntrk = std::string(Form("%u#leqN_{trk}^{offline}<%u", trkRange[i_trk_bin_], trkRange[i_trk_bin_+1]));
-      if(trkRange.size() && trkRange[i_trk_bin_+1]==std::numeric_limits<unsigned int>::max()) 
-            ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
-
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_Ref[i_trk_bin_], h2DBackground_Ref[i_trk_bin_], 
-            Form("%s, %.1f#leqp_{T}<%.1f", ntrk.c_str(), pTMin, pTMax),
+            Form("sr_ref_trk%d", i_trk_bin_), 
             c_sry_ref[i_trk_bin_], 1, h_sry_ref[i_trk_bin_]);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_Ref[i_trk_bin_], h2DBackground_Ref[i_trk_bin_], 
-            Form("%s, %.1f#leqp_{T}<%.1f", ntrk.c_str(), pTMin, pTMax),
+            Form("lr_ref_trk%d", i_trk_bin_), 
             c_lry_ref[i_trk_bin_], 1, h_lry_ref[i_trk_bin_]);
       auto yields_pair = calYields(sr_pair, lr_pair);
       yields_jet_ref[i_trk_bin_]= yields_pair.first;
       yields_jet_ref_err[i_trk_bin_] = yields_pair.second;
-   }
-   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-      c_sry_ref[i_trk_bin_]->Print(
-            Form("../plots/v2vsNtrk/%s/ref_deltaPhi_trk%d_sr.png", dataset.c_str(), i_trk_bin_)
-            );
-      c_lry_ref[i_trk_bin_]->Print(
-            Form("../plots/v2vsNtrk/%s/ref_deltaPhi_trk%d_lr.png", dataset.c_str(), i_trk_bin_)
-            );
-      c_sry_ref[i_trk_bin_]->Print(
-            Form("../plots/v2vsNtrk/%s/ref_deltaPhi_trk%d_sr.pdf", dataset.c_str(), i_trk_bin_)
-            );
-      c_lry_ref[i_trk_bin_]->Print(
-            Form("../plots/v2vsNtrk/%s/ref_deltaPhi_trk%d_lr.pdf", dataset.c_str(), i_trk_bin_)
-            );
    }
 
    // low mult, d0
@@ -501,39 +466,23 @@ const float yMin =0., const float yMax =0.)
    c_sry_low->Divide(3,5);
    TCanvas* c_lry_low = new TCanvas("c_lry_low", "", 550*3, 550*5);
    c_lry_low->Divide(3,5);
-   TH1D* h_sry_low;
-   TH1D* h_lry_low;
+   TH1ptr h_sry_low[ana::nMass];
+   TH1ptr h_lry_low[ana::nMass];
    for(int imass=0; imass<ana::nMass; imass++){
       string str = ouput_prefix(input_d0);
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_D0_low[imass], h2DBackground_D0_low[imass], 
-            Form("N_{trk}^{offline}<35, %.1f#leqp_{T}<%.1f", pTMin, pTMax),
-            c_sry_low, imass+1, h_sry_low);
+            Form("sr_low_mass%d", imass),
+            c_sry_low, imass+1, h_sry_low[imass]);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_D0_low[imass], h2DBackground_D0_low[imass], 
-            Form("N_{trk}^{offline}<35, %.1f#leqp_{T}<%.1f", pTMin, pTMax),
-            c_lry_low, imass+1, h_lry_low);
-      auto yields_pair = calYields(sr_pair, lr_pair);
-      yields_jet_low[imass]= yields_pair.first;
-      yields_jet_low_err[imass] = yields_pair.second;
-      //cout << "yields_jet_low: " << yields_jet_low[imass] << endl;
+            Form("lr_low_mass%d", imass),
+            c_lry_low, imass+1, h_lry_low[imass]);
    }
-   c_sry_low->Print(
-            Form("../plots/v2vsNtrk/deltaPhi_low_sr_pT%.1f-%.1f.png", pTMin, pTMax)
-            );
-   c_lry_low->Print(
-            Form("../plots/v2vsNtrk/deltaPhi_low_lr_pT%.1f-%.1f.png", pTMin, pTMax)
-         );
-   c_sry_low->Print(
-            Form("../plots/v2vsNtrk/deltaPhi_low_sr_pT%.1f-%.1f.pdf", pTMin, pTMax)
-         );
-   c_lry_low->Print(
-            Form("../plots/v2vsNtrk/deltaPhi_low_lr_pT%.1f-%.1f.pdf", pTMin, pTMax)
-         );
 
    // higher mult, d0
    TCanvas* c_sry[n_trk_bin_];
    TCanvas* c_lry[n_trk_bin_];
-   TH1D* h_sry[n_trk_bin_];
-   TH1D* h_lry[n_trk_bin_];
+   TH1ptr h_sry[n_trk_bin_][ana::nMass];
+   TH1ptr h_lry[n_trk_bin_][ana::nMass];
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       c_sry[i_trk_bin_] = new TCanvas(Form("c_sry_low_%d", i_trk_bin_), "", 550*3, 550*5);
       c_sry[i_trk_bin_]->Divide(3, 5);
@@ -542,43 +491,108 @@ const float yMin =0., const float yMax =0.)
    }
    for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
       for(int imass=0; imass<ana::nMass; imass++){
-         std::string ntrk;
-         auto trkRange = ana::get_Mult_Edges(dataset);
-         if(trkRange.size() && trkRange[i_trk_bin_+1]!=std::numeric_limits<unsigned int>::max()) 
-            ntrk = std::string(Form("%u#leqN_{trk}^{offline}<%u", trkRange[i_trk_bin_], trkRange[i_trk_bin_+1]));
-         if(trkRange.size() && trkRange[i_trk_bin_+1]==std::numeric_limits<unsigned int>::max()) 
-            ntrk = std::string(Form("N_{trk}^{offline}>%u", trkRange[i_trk_bin_]));
-
          string str = ouput_prefix(input_d0);
          auto sr_pair = proj1D_shortrange_yields(h2DSignal_D0[imass][i_trk_bin_], h2DBackground_D0[imass][i_trk_bin_], 
-               Form("%s, %.1f#leqp_{T}<%.1f", ntrk.c_str(), pTMin, pTMax),
-               c_sry[i_trk_bin_], imass+1, h_sry[i_trk_bin_]
+               Form("sr_mass%d_trk%d", imass, i_trk_bin_),
+               c_sry[i_trk_bin_], imass+1, h_sry[i_trk_bin_][imass]
                );
          auto lr_pair = proj1D_longrange_yields(h2DSignal_D0[imass][i_trk_bin_], h2DBackground_D0[imass][i_trk_bin_], 
-               Form("%s, %.1f#leqp_{T}<%.1f", ntrk.c_str(), pTMin, pTMax),
-               c_lry[i_trk_bin_], imass+1, h_lry[i_trk_bin_]
+               Form("sr_mass%d_trk%d", imass, i_trk_bin_),
+               c_lry[i_trk_bin_], imass+1, h_lry[i_trk_bin_][imass]
                   );
-         auto yields_pair = calYields(sr_pair, lr_pair);
-         yields_jet[imass][i_trk_bin_]= yields_pair.first;
-         yields_jet_err[imass][i_trk_bin_] = yields_pair.second;
-         //cout << "yields_jet: " << yields_jet[imass][i_trk_bin_] << endl;
       }
    }
-   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
-      c_sry[i_trk_bin_]->Print(
-               Form("../plots/v2vsNtrk/%s/%s_deltaPhi_trk%d_sr.png", dataset.c_str(), str.c_str(), i_trk_bin_)
-            );
-      c_lry[i_trk_bin_]->Print(
-               Form("../plots/v2vsNtrk/%s/%s_deltaPhi_trk%d_lr.png", dataset.c_str(), str.c_str(), i_trk_bin_)
-            );
-      c_sry[i_trk_bin_]->Print(
-               Form("../plots/v2vsNtrk/%s/%s_deltaPhi_trk%d_sr.pdf", dataset.c_str(), str.c_str(), i_trk_bin_)
-            );
-      c_lry[i_trk_bin_]->Print(
-               Form("../plots/v2vsNtrk/%s/%s_deltaPhi_trk%d_lr.pdf", dataset.c_str(), str.c_str(), i_trk_bin_)
-            );
-   }
 
+   TCanvas* csub[n_trk_bin_];
+   for(int i_trk_bin_=0; i_trk_bin_<n_trk_bin_; i_trk_bin_++){
+      csub[i_trk_bin_] = new TCanvas(Form("csub_trk%d", i_trk_bin_), "", 500*3, 500*5);
+      csub[i_trk_bin_]->Divide(3, 5);
+      for(int imass=0; imass<ana::nMass; imass++){
+         csub[i_trk_bin_]->cd(imass+1);
+         h_sry[i_trk_bin_][imass]->GetListOfFunctions()->Clear();
+         h_sry[i_trk_bin_][imass]->Add(h_lry[i_trk_bin_][imass], -1);
+         h_sry[i_trk_bin_][imass]->Draw();
+         for(int i=1; i<=8; i++){
+            h_sry[i_trk_bin_][imass]->SetBinContent(i+8, h_sry[i_trk_bin_][imass]->GetBinContent(9-i)+h_sry[i_trk_bin_][imass]->GetBinContent(i+8));
+            h_sry[i_trk_bin_][imass]->SetBinError(i+8, sqrt(pow(h_sry[i_trk_bin_][imass]->GetBinError(9-i), 2)+pow(h_sry[i_trk_bin_][imass]->GetBinError(i+8), 2)));
+         }
+         for(int i=1; i<=8; i++){
+            h_sry[i_trk_bin_][imass]->SetBinContent(i+16, h_sry[i_trk_bin_][imass]->GetBinContent(33-i)+h_sry[i_trk_bin_][imass]->GetBinContent(i+16));
+            h_sry[i_trk_bin_][imass]->SetBinError(i+16, sqrt(pow(h_sry[i_trk_bin_][imass]->GetBinError(33-i), 2)+pow(h_sry[i_trk_bin_][imass]->GetBinError(i+16), 2)));
+         }
+         h_sry[i_trk_bin_][imass]->GetXaxis()->SetRange(9, 24);
+         TF1 fitter("f", "[0]*x*x+[1]*x+[2]", 0.3, 2.0);
+         fitter.SetParameters(0.1, -0.4, 0);
+         fitter.SetParLimits(0, 0 , 5);
+         h_sry[i_trk_bin_][imass]->Fit(&fitter, "QR", "", 0.3, 2.0);
+         h_sry[i_trk_bin_][imass]->Fit(&fitter, "QR", "", 0.3, 2.0);
+         h_sry[i_trk_bin_][imass]->Fit(&fitter, "QR", "", 0.3, 2.0);
+         h_sry[i_trk_bin_][imass]->Fit(&fitter, "QER", "", 0.3, 2.0);
+         //fitter.ReleaseParameter(0);
+         h_sry[i_trk_bin_][imass]->Fit(&fitter, "QER", "", 0.3, 2.0);
+         h_sry[i_trk_bin_][imass]->Fit(&fitter, "QER", "", 0.3, 2.0);
+         auto result = h_sry[i_trk_bin_][imass]->Fit(&fitter, "SQER", "", 0.3, 2.0);
+         double min = fitter.GetMinimum();
+         double minX = fitter.GetMinimumX();
+         TF1 min_func("min", "[0]", -0.5*3.141593, 1.5*3.141593);
+         min_func.SetParameter(0, min);
+         h_sry[i_trk_bin_][imass]->Add(&min_func, -1);
+         //int binlw = h_sry[i_trk_bin_][imass]->FindBin(-1.);
+         //int binup = h_sry[i_trk_bin_][imass]->FindBin(1.);
+         int binlw = h_sry[i_trk_bin_][imass]->FindBin(-1*minX);
+         int binup = h_sry[i_trk_bin_][imass]->FindBin(minX);
+         //yields_jet[imass][i_trk_bin_] = h_sry[i_trk_bin_][imass]->IntegralAndError(
+               //binlw, binup, yields_jet_err[imass][i_trk_bin_], "width");
+         yields_jet[imass][i_trk_bin_] = h_sry[i_trk_bin_][imass]->IntegralAndError(
+               9, binup, yields_jet_err[imass][i_trk_bin_], "width");
+         cout << yields_jet[imass][i_trk_bin_] << endl;
+      }
+      csub[i_trk_bin_]->Print(Form("../plots/v2vsNtrk/%s/trk%d.png", dataset.c_str(),i_trk_bin_));
+      csub[i_trk_bin_]->Print(Form("../plots/v2vsNtrk/%s/trk%d.pdf", dataset.c_str(),i_trk_bin_));
+      delete csub[i_trk_bin_];
+   }
+   TCanvas* csub_low;
+   csub_low = new TCanvas("csub_low", "", 500*3, 500*5);
+   csub_low->Divide(3, 5);
+   for(int imass=0; imass<ana::nMass; imass++){
+      csub_low->cd(imass+1);
+      h_sry_low[imass]->GetListOfFunctions()->Clear();
+      h_sry_low[imass]->Add(h_lry_low[imass], -1);
+      h_sry_low[imass]->Draw();
+         for(int i=1; i<=8; i++){
+            h_sry_low[imass]->SetBinContent(i+8, h_sry_low[imass]->GetBinContent(9-i)+h_sry_low[imass]->GetBinContent(i+8));
+            h_sry_low[imass]->SetBinError(i+8, sqrt(pow(h_sry_low[imass]->GetBinError(9-i), 2)+pow(h_sry_low[imass]->GetBinError(i+8), 2)));
+         }
+         for(int i=1; i<=8; i++){
+            h_sry_low[imass]->SetBinContent(i+16, h_sry_low[imass]->GetBinContent(33-i)+h_sry_low[imass]->GetBinContent(i+16));
+            h_sry_low[imass]->SetBinError(i+16, sqrt(pow(h_sry_low[imass]->GetBinError(33-i), 2)+pow(h_sry_low[imass]->GetBinError(i+16), 2)));
+         }
+         h_sry_low[imass]->GetXaxis()->SetRange(9, 24);
+      TF1 fitter("f", "[0]*x*x+[1]*x+[2]", 0.3, 2.0);
+      fitter.SetParameters(0.1, -0.4, 0);
+      fitter.SetParLimits(0, 0 , 5);
+      h_sry_low[imass]->Fit(&fitter, "QR", "", 0.3, 2.0);
+      h_sry_low[imass]->Fit(&fitter, "QR", "", 0.3, 2.0);
+      h_sry_low[imass]->Fit(&fitter, "QR", "", 0.3, 2.0);
+      h_sry_low[imass]->Fit(&fitter, "QER", "", 0.3, 2.0);
+      double min = fitter.GetMinimum();
+      double minX = fitter.GetMinimumX();
+      TF1 min_func("min", "[0]", -0.5*3.141593, 1.5*3.141593);
+      min_func.SetParameter(0, min);
+      h_sry_low[imass]->Add(&min_func, -1);
+      //int binlw = h_sry_low[imass]->FindBin(-1.);
+      //int binup = h_sry_low[imass]->FindBin(1.);
+      int binlw = h_sry_low[imass]->FindBin(-1.*minX);
+      int binup = h_sry_low[imass]->FindBin(minX);
+      //yields_jet_low[imass] = h_sry_low[imass]->IntegralAndError(
+            //binlw, binup, yields_jet_low_err[imass], "width");
+      yields_jet_low[imass] = h_sry_low[imass]->IntegralAndError(
+            9, binup, yields_jet_low_err[imass], "width");
+   }
+   csub_low->Print(("../plots/v2vsNtrk/low.png"));
+   csub_low->Print(("../plots/v2vsNtrk/low.pdf"));
+
+   // output
    TFile fraw(Form("%s_raw.root", input_d0), "recreate");
 
    TGraphErrors* g_V2[n_trk_bin_]; // signal + background, nMass points, need to do fitting, filled
@@ -806,7 +820,7 @@ TF1 draw1D_longrange(TH1* hDeltaPhi,
    return func;
 }
 
-std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad, TH1D* hsig)
+std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad, TH1ptr& hsig)
 {
    c->cd(ipad);
    gStyle->SetOptStat(0);
@@ -815,7 +829,7 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
    gPad->SetBottomMargin(0.15);
    int negBin = h2DSignal->GetXaxis()->FindBin(-1.);
    int posBin = h2DSignal->GetXaxis()->FindBin(1.);
-   hsig = h2DSignal->ProjectionY("hsig", negBin, posBin);
+   hsig = h2DSignal->ProjectionY(Form("hsig_%s", name), negBin, posBin);
    hsig->SetTitle(";#Delta#phi;dN/d(#Delta#phi)");
 
    TH1D* temp = h2DBackground->ProjectionY("hbkg", negBin, posBin);
@@ -823,16 +837,6 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
    int center = h2DBackground->FindBin(0., 0.);
    hsig->Divide(temp);
    hsig->Scale(h2DBackground->GetBinContent(center) / temp->GetBinWidth(1)/h2DBackground->GetXaxis()->GetBinWidth(1));
-
-   for(int i=1; i<=8; i++){
-      hsig->SetBinContent(i+8, hsig->GetBinContent(9-i)+hsig->GetBinContent(i+8));
-      hsig->SetBinError(i+8, sqrt(pow(hsig->GetBinError(9-i), 2)+pow(hsig->GetBinError(i+8), 2)));
-   }
-   for(int i=1; i<=8; i++){
-      hsig->SetBinContent(i+16, hsig->GetBinContent(33-i)+hsig->GetBinContent(i+16));
-      hsig->SetBinError(i+16, sqrt(pow(hsig->GetBinError(33-i), 2)+pow(hsig->GetBinError(i+16), 2)));
-   }
-   hsig->GetXaxis()->SetRange(9, 24);
 
    TF1 fitter("fitter", "[0]*x^2+[1]*x+[2]", 0.6, 2.2);
    fitter.SetParameters(1, 1, 1);
@@ -846,9 +850,7 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
    hsig->DrawCopy("E P");
 
    TLatex ltx;
-   ltx.SetTextFont(42);
    ltx.DrawLatexNDC(0.2, 0.8, "#font[42]{|#Delta#eta|<1}");
-   ltx.DrawLatexNDC(0.2, 0.6, name);
 
    double min = fitter.GetMinimum(0.6, 2.2);
    double minX = fitter.GetMinimumX(0.6, 2.2);
@@ -859,22 +861,20 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
 
    double yields_err;
    double yields = hsig->IntegralAndError(hsig->FindBin(0.), hsig->FindBin(minX), yields_err, "width");
-   //yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
-   //yields = 2*yields;
+   yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
 
    hsig->Add(&minfunc, -1);
 
-   delete hsig;
    delete temp;
 
    return std::pair<double, double>(yields, yields_err);
 }
 
-std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1D* hsig)
+std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1ptr& hsig)
 {
    c->cd(ipad);
-   double lw = 0.0;
-   //double lw = 0.1;
+   //double lw = 0.0;
+   double lw = 0.1;
    double up = 2.0;
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111111);
@@ -890,7 +890,7 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    TH1D* hPos = h2DSignal->ProjectionY("hpos", posBinMin, posBinMax);
    hNeg->Add(hPos);
    hsig = new TH1D(*hNeg);
-   hsig->SetName("hsig");
+   hsig->SetName(Form("hsig_%s", name));
    delete hNeg;
    delete hPos;
 
@@ -907,26 +907,16 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    hsig->Divide(temp);
    hsig->Scale(h2DBackground->GetBinContent(center) / temp->GetBinWidth(1)/h2DBackground->GetXaxis()->GetBinWidth(1));
 
-   for(int i=1; i<=8; i++){
-      hsig->SetBinContent(i+8, hsig->GetBinContent(9-i)+hsig->GetBinContent(i+8));
-      hsig->SetBinError(i+8, sqrt(pow(hsig->GetBinError(9-i), 2)+pow(hsig->GetBinError(i+8), 2)));
-   }
-   for(int i=1; i<=8; i++){
-      hsig->SetBinContent(i+16, hsig->GetBinContent(33-i)+hsig->GetBinContent(i+16));
-      hsig->SetBinError(i+16, sqrt(pow(hsig->GetBinError(33-i), 2)+pow(hsig->GetBinError(i+16), 2)));
-   }
-   hsig->GetXaxis()->SetRange(9, 24);
-
    TF1 fitter("fitter", "[0]*x^2+[1]*x+[2]", lw, up);
    fitter.SetParameters(1, 1, 1);
-   fitter.SetParLimits(0, 0, 2);
+   fitter.SetParLimits(0, 0, 10);
 
    hsig->Fit(&fitter, "R q");
    hsig->Fit(&fitter, "R q");
    hsig->Fit(&fitter, "R q");
    hsig->Fit(&fitter, "R q");
    hsig->Fit(&fitter, "R q");
-   //fitter.ReleaseParameter(0);
+   fitter.ReleaseParameter(0);
    hsig->Fit(&fitter, "E R q");
    hsig->Fit(&fitter, "E R q");
 
@@ -935,9 +925,7 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    hsig->DrawCopy("E P");
 
    TLatex ltx;
-   ltx.SetTextFont(42);
-   ltx.DrawLatexNDC(0.2, 0.8, "#font[42]{|#Delta#eta|>2}");
-   ltx.DrawLatexNDC(0.2, 0.6, name);
+   ltx.DrawLatexNDC(0.2, 0.8, "#font[42]{|#Delta#eta|>1}");
 
    double min = fitter.GetMinimum(lw, up);
    double minX = fitter.GetMinimumX(lw, up);
@@ -948,10 +936,10 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
 
    double yields_err;
    double yields = hsig->IntegralAndError(hsig->FindBin(0.), hsig->FindBin(minX), yields_err, "width");
-   //yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
-   //yields = 2*yields;
+   yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
 
-   delete hsig;
+   hsig->Add(&minfunc, -1);
+
    delete temp;
 
    return std::pair<double, double>(yields, yields_err);
