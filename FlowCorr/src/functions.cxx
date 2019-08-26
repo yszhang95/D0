@@ -49,6 +49,24 @@ bool ana::pass_pPb2016_8TeV_PD0_MVA(const float& pT, const float& mva)
    return false;
 }
 
+bool ana::pass_pPb2016_8TeV_PD0_tightMVA(const float& pT, const float& mva)
+{
+   if(pT<4.) return mva > (0.58+0.05);
+   else if(pT < 6. && pT >= 4.) return mva > (0.46+0.05);
+   else if(pT < 8. && pT >= 6.) return mva > (0.28+0.05);
+   else if(pT < 20. && pT >= 8.) return mva > (0.1+0.05);
+   return false;
+}
+
+bool ana::pass_pPb2016_8TeV_PD0_looseMVA(const float& pT, const float& mva)
+{
+   if(pT<4.) return mva > (0.58-0.05);
+   else if(pT < 6. && pT >= 4.) return mva > (0.46-0.05);
+   else if(pT < 8. && pT >= 6.) return mva > (0.28-0.05);
+   else if(pT < 20. && pT >= 8.) return mva > (0.1-0.05);
+   return false;
+}
+
 bool ana::pass_pPb2016_8TeV_NPD0_MVA(const float& pT, const float& mva)
 {
    if(pT<4.) return mva > 0.52;

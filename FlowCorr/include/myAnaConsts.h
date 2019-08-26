@@ -137,6 +137,9 @@ namespace ana{
    int findZVtxBin(const float&);
 
    bool pass_pPb2016_8TeV_PD0_MVA(const float&, const float&);
+   bool pass_pPb2016_8TeV_PD0_tightMVA(const float&, const float&);
+   bool pass_pPb2016_8TeV_PD0_looseMVA(const float&, const float&);
+
    bool pass_pPb2016_8TeV_NPD0_MVA(const float&, const float&);
    bool pass_pp2018_13TeV_PD0_MVA(const float&);
 
