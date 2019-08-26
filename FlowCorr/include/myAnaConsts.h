@@ -59,8 +59,10 @@ namespace ana{
    const double massbin_HM[nMass+1] = {1.70, 1.74, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
       1.87, 1.88, 1.9, 1.92, 1.96, 2.0};
    
-   const int nPt_NPD0_pPb = 6;
-   const double ptbin_NPD0_pPb[nPt_NPD0_pPb+1] = {2., 3., 4., 5., 6., 7., 8.};
+   //const int nPt_NPD0_pPb = 6;
+   //const double ptbin_NPD0_pPb[nPt_NPD0_pPb+1] = {2., 3., 4., 5., 6., 7., 8.};
+   const int nPt_NPD0_pPb = 2;
+   const double ptbin_NPD0_pPb[nPt_NPD0_pPb+1] = {2., 5., 8.};
    const int nPt_PD0_pPb = 8;
    const double ptbin_PD0_pPb[nPt_PD0_pPb+1] = {1.5, 2.4, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0};
    const int nPt_PD0_pp = 3;
