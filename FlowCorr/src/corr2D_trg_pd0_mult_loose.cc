@@ -24,6 +24,15 @@
 using namespace std;
 
 static bool isPromptD0 = true;
+const int nPt = 3;
+const double ptMin[nPt] = {2., 4., 6.};
+const double ptMax[nPt] = {4., 6., 8.};
+int findPtBin(const float& pT){
+   for(int ipt=0; ipt<nPt; ipt++){
+      if(pT<ptMax[ipt] && pT>=ptMin[ipt]) return ipt;
+   }
+   return -1;
+}
 
 void setBranchStatus(Event*);
 bool checkBranchStatus(Event*);
@@ -119,26 +128,26 @@ int main(int argc, char** argv)
    // declare hists
    TH1D* hEvt;
    TH1D* hMult;
-   TH1D* hMult_ass[ana::nMass][nTrkBin];
+   TH1D* hMult_ass[ana::nMass][nTrkBin][nPt];//[nmass][ntrk][npt]
 
-   TH1D* hKET_D0[nTrkBin];
-   TH1D* hPt_D0[nTrkBin];
-   TH1D* hEta_D0[nTrkBin];
-   TH1D* hRapidity_D0[nTrkBin];
+   TH1D* hKET_D0[nTrkBin][nPt];
+   TH1D* hPt_D0[nTrkBin][nPt];
+   TH1D* hEta_D0[nTrkBin][nPt];
+   TH1D* hRapidity_D0[nTrkBin][nPt];
 
    TH1D* hNtrk_D0[nTrkBin];
 
-   TH1D* hMass_D0[ana::nMass][nTrkBin];
-   TH1D* hMass[nTrkBin];
+   TH1D* hMass_D0[ana::nMass][nTrkBin][nPt];
+   TH1D* hMass[nTrkBin][nPt];
 
    TH2D* hNtrkofflineVsNtrkgood;
 
-   TH3D* hDcaVsMassAndMva[nTrkBin];
+   TH3D* hDcaVsMassAndMva[nTrkBin][nPt];
 
-   TH1D* hMult_raw_D0[ana::nMass][nTrkBin];
-   TH1D* hMult_eff_D0[ana::nMass][nTrkBin];
-   TH2D* hSignal_D0[ana::nMass][nTrkBin];
-   TH2D* hBackground_D0[ana::nMass][nTrkBin];
+   TH1D* hMult_raw_D0[ana::nMass][nTrkBin][nPt];
+   TH1D* hMult_eff_D0[ana::nMass][nTrkBin][nPt];
+   TH2D* hSignal_D0[ana::nMass][nTrkBin][nPt];
+   TH2D* hBackground_D0[ana::nMass][nTrkBin][nPt];
 
    hEvt  = new TH1D("hEvt", "", 600, 0, 600);
    hMult = new TH1D("hMult", "", 600, 0, 600);
@@ -146,28 +155,30 @@ int main(int argc, char** argv)
    hNtrkofflineVsNtrkgood = new TH2D("hNtrkofflineVsNtrkgood", "", 300, 0, 300, 300, 0, 300);
 
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
-      hKET_D0[iTrkBin] = new TH1D(Form("hKET_trk%d", iTrkBin), "", 3000, 0, 30);
-      hPt_D0[iTrkBin] = new TH1D(Form("hPt_trk%d", iTrkBin), "", 3000, 0, 30);
-      hEta_D0[iTrkBin] = new TH1D(Form("hEta_trk%d", iTrkBin), "", 24, -2.4, 2.4);
-      hRapidity_D0[iTrkBin] = new TH1D(Form("hRapidity_trk%d", iTrkBin), "", 24, -2.4, 2.4);
       hNtrk_D0[iTrkBin] = new TH1D(Form("hNtrk_trk%d", iTrkBin), "", 3000, 0, 3000);
-      hDcaVsMassAndMva[iTrkBin] = new TH3D(Form("hDcaVsMassAndMva_trk%d", iTrkBin), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 160, 0, 0.08);
-      hMass[iTrkBin] = new TH1D(Form("hMass_%d", iTrkBin), "", 60, 1.7, 2.0);
+      for(int ipt=0; ipt<nPt; ipt++){
+         hKET_D0[iTrkBin][ipt] = new TH1D(Form("hKET_trk%d_pt%d", iTrkBin, ipt), "", 3000, 0, 30);
+         hPt_D0[iTrkBin][ipt] = new TH1D(Form("hPt_trk%d_pt%d", iTrkBin, ipt), "", 3000, 0, 30);
+         hEta_D0[iTrkBin][ipt] = new TH1D(Form("hEta_trk%d_pt%d", iTrkBin, ipt), "", 24, -2.4, 2.4);
+         hRapidity_D0[iTrkBin][ipt] = new TH1D(Form("hRapidity_trk%d_pt%d", iTrkBin, ipt), "", 24, -2.4, 2.4);
+         hDcaVsMassAndMva[iTrkBin][ipt] = new TH3D(Form("hDcaVsMassAndMva_trk%d_pt%d", iTrkBin, ipt), "", 60, 1.7, 2.0, 100, -0.3, 0.7, 160, 0, 0.08);
+         hMass[iTrkBin][ipt] = new TH1D(Form("hMass_%d_pt%d", iTrkBin, ipt), "", 60, 1.7, 2.0);
 
-      for(int imass=0; imass<ana::nMass; imass++){
-         hMult_ass[imass][iTrkBin] = new TH1D(Form("hMult_ass_mass%d_trk%d", imass, iTrkBin), "", 600, 0, 600);
-         hMass_D0[imass][iTrkBin] = new TH1D(Form("hMassD0_mass%d_trk%d", imass, iTrkBin),
-               "", 200, 1.5, 2.5);
-         hMult_raw_D0[imass][iTrkBin] = new TH1D(Form("hMult_raw_D0_mass%d_trk%d", imass, iTrkBin),
-               "", 50, 0, 50);
-         hMult_eff_D0[imass][iTrkBin] = new TH1D(Form("hMult_eff_D0_mass%d_trk%d", imass, iTrkBin),
-               "", 50, 0, 50);
-         hSignal_D0[imass][iTrkBin] = new TH2D(Form("hSignal_mass%d_trk%d", imass, iTrkBin),
-               "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
-               ana::nPhiBin, ana::phiBegin, ana::phiEnd);
-         hBackground_D0[imass][iTrkBin] = new TH2D(Form("hBackground_mass%d_trk%d", imass, iTrkBin),
-               "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
-               ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+         for(int imass=0; imass<ana::nMass; imass++){
+            hMult_ass[imass][iTrkBin][ipt] = new TH1D(Form("hMult_ass_mass%d_trk%d_pt%d", imass, iTrkBin, ipt), "", 600, 0, 600);
+            hMass_D0[imass][iTrkBin][ipt] = new TH1D(Form("hMassD0_mass%d_trk%d_pt%d", imass, iTrkBin, ipt),
+                  "", 200, 1.5, 2.5);
+            hMult_raw_D0[imass][iTrkBin][ipt] = new TH1D(Form("hMult_raw_D0_mass%d_trk%d_pt%d", imass, iTrkBin, ipt),
+                  "", 50, 0, 50);
+            hMult_eff_D0[imass][iTrkBin][ipt] = new TH1D(Form("hMult_eff_D0_mass%d_trk%d_pt%d", imass, iTrkBin, ipt),
+                  "", 50, 0, 50);
+            hSignal_D0[imass][iTrkBin][ipt] = new TH2D(Form("hSignal_mass%d_trk%d_pt%d", imass, iTrkBin, ipt),
+                  "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
+                  ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+            hBackground_D0[imass][iTrkBin][ipt] = new TH2D(Form("hBackground_mass%d_trk%d_pt%d", imass, iTrkBin, ipt),
+                  "", ana::nEtaBin, ana::etaBegin, ana::etaEnd,
+                  ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+         }
       }
    }
 
@@ -175,6 +186,7 @@ int main(int argc, char** argv)
    vector<TVector3> pVect_trg_d0[ana::nMass];
    vector<double>   effVect_trg_d0[ana::nMass];
    vector<int>      indexVect_d0[ana::nMass];
+   vector<int>      ptIndex_d0[ana::nMass];
 
    vector<TVector3> pVect_dau1_d0[ana::nMass];
    vector<TVector3> pVect_dau2_d0[ana::nMass];
@@ -238,33 +250,37 @@ int main(int argc, char** argv)
 
          int imass = ana::findMassBin(evt->Mass(id0));
          if(imass == -1) continue;
+         int ipt   = findPtBin(evt->Pt(id0));
+         if(ipt < 0) continue;
 
          if(!passD0PreSelections(evt, id0)) continue;
          if(!passD0KinematicCuts(evt, id0)) continue;
          if(!passD0MVA(dataset_trigger, evt, id0, isPromptD0)) continue;
 
          double effks = h_eff->GetBinContent(h_eff->FindBin(evt->Pt(id0), evt->Y(id0)));
+         double DCA = evt->DecayL3D(id0)* evt->PointingAngle3D(id0);
          
-         hDcaVsMassAndMva[iTrkBin]->Fill(evt->Mass(id0), evt->Mva(id0), 0., 1./effks);
+         hDcaVsMassAndMva[iTrkBin][ipt]->Fill(evt->Mass(id0), evt->Mva(id0), DCA, 1./effks);
 
          p_dau1.SetPtEtaPhi(evt->PtD1(id0), evt->etaD1(id0), evt->phiD1(id0));
          p_dau2.SetPtEtaPhi(evt->PtD2(id0), evt->etaD2(id0), evt->phiD2(id0));
          p_d0.SetPtEtaPhi(evt->Pt(id0), evt->Eta(id0), evt->Phi(id0));
 
-         hMass_D0[imass][iTrkBin]->Fill(evt->Mass(id0), 1./effks);
-         hPt_D0[iTrkBin]->Fill(evt->Pt(id0), 1./effks);
-         hEta_D0[iTrkBin]->Fill(p_d0.Eta(), 1./effks);
-         hRapidity_D0[iTrkBin]->Fill(evt->Y(id0), 1./effks);
+         hMass_D0[imass][iTrkBin][ipt]->Fill(evt->Mass(id0), 1./effks);
+         hPt_D0[iTrkBin][ipt]->Fill(evt->Pt(id0), 1./effks);
+         hEta_D0[iTrkBin][ipt]->Fill(p_d0.Eta(), 1./effks);
+         hRapidity_D0[iTrkBin][ipt]->Fill(evt->Y(id0), 1./effks);
          double KET = sqrt(pow(evt->Mass(id0), 2) + pow(evt->Pt(id0), 2)
                - evt->Mass(id0));
-         hKET_D0[iTrkBin]->Fill(KET, 1./effks);
-         hMass[iTrkBin]->Fill(evt->Mass(id0), 1./effks);
+         hKET_D0[iTrkBin][ipt]->Fill(KET, 1./effks);
+         hMass[iTrkBin][ipt]->Fill(evt->Mass(id0), 1./effks);
 
          pVect_trg_d0[imass].push_back(p_d0);
          effVect_trg_d0[imass].push_back(effks);
          indexVect_d0[imass].push_back(id0);
          pVect_dau1_d0[imass].push_back(p_dau1);
          pVect_dau2_d0[imass].push_back(p_dau2);
+         ptIndex_d0[imass].push_back(ipt);
       }
 
       for(unsigned int itrack=0; itrack<evt->CandSizeTrk(); itrack++){
@@ -288,30 +304,39 @@ int main(int argc, char** argv)
       // calculate signal
       unsigned int nMult_ass = (unsigned int) pVect_ass.size();
       for(int imass=0; imass<ana::nMass; imass++){
-         if(pVect_trg_d0[imass].size()) hMult_ass[imass][iTrkBin]->Fill(nMult_ass);
+         for(int ipt=0; ipt<nPt; ipt++){
+            if(find(ptIndex_d0[imass].begin(), ptIndex_d0[imass].end(), ipt)!=ptIndex_d0[imass].end()) 
+               hMult_ass[imass][iTrkBin][ipt]->Fill(nMult_ass);
+         }
       }
       
-      unsigned int nMult_trg_raw_d0[ana::nMass]; // Ntrig for mass & pt bins
-      double nMult_trg_eff_d0[ana::nMass]; // eff corrected Ntrig for mass & pt bins
+      unsigned int nMult_trg_raw_d0[ana::nMass][nPt]; // Ntrig for mass & pt bins
+      double nMult_trg_eff_d0[ana::nMass][nPt]; // eff corrected Ntrig for mass & pt bins
 
       for(int imass=0; imass<ana::nMass; imass++){
-         nMult_trg_raw_d0[imass] = 0;
-         nMult_trg_eff_d0[imass] = 0;
+         for(int ipt=0; ipt<nPt; ipt++){
+            nMult_trg_raw_d0[imass][ipt] = 0;
+            nMult_trg_eff_d0[imass][ipt] = 0;
+         }
       }
 
       for(int imass=0; imass<ana::nMass; imass++){
          unsigned int nMult_trg_d0 = (unsigned int) pVect_trg_d0[imass].size();
          for(unsigned int id0=0; id0<nMult_trg_d0; id0++){
             double effks = effVect_trg_d0[imass].at(id0);
+            int    ipt   = ptIndex_d0[imass].at(id0);
             //int index = indexVect_d0[imass].at(id0);
-            nMult_trg_raw_d0[imass] += 1;
-            nMult_trg_eff_d0[imass] += 1./effks;
+            nMult_trg_raw_d0[imass][ipt] += 1;
+            nMult_trg_eff_d0[imass][ipt] += 1./effks;
          }
-         hMult_raw_D0[imass][iTrkBin]->Fill(nMult_trg_raw_d0[imass]);
-         hMult_eff_D0[imass][iTrkBin]->Fill(nMult_trg_eff_d0[imass]);
+         for(int ipt=0; ipt<nPt; ipt++){
+            hMult_raw_D0[imass][iTrkBin][ipt]->Fill(nMult_trg_raw_d0[imass][ipt]);
+            hMult_eff_D0[imass][iTrkBin][ipt]->Fill(nMult_trg_eff_d0[imass][ipt]);
+         }
 
          for(unsigned int id0=0; id0<nMult_trg_d0; id0++){
             double effks = effVect_trg_d0[imass].at(id0);
+            int ipt = ptIndex_d0[imass].at(id0);
             for(unsigned int iass=0; iass<nMult_ass; iass++){
                TVector3 pvector_ass = pVect_ass.at(iass);
                double effweight_ass = effVect_ass.at(iass);
@@ -329,8 +354,8 @@ int main(int argc, char** argv)
                if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
 
                //int index = indexVect_d0[imass].at(id0);
-               hSignal_D0[imass][iTrkBin]->Fill(deltaEta, deltaPhi, 
-                        1./nMult_trg_eff_d0[imass]/effks/effweight_ass);
+               hSignal_D0[imass][iTrkBin][ipt]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0[imass][ipt]/effks/effweight_ass);
             }
          }
       }
@@ -342,6 +367,7 @@ int main(int argc, char** argv)
          for(int imass=0; imass<ana::nMass; imass++){
             unsigned int nMult_trg_d0 = (unsigned int) pVect_trg_d0[imass].size();
             for(unsigned int id0=0; id0<nMult_trg_d0; id0++){
+               int ipt = ptIndex_d0[imass].at(id0);
                double effks = effVect_trg_d0[imass].at(id0);
                // simultaneously read momentum and efficiency
                auto ievt_eff_ass = effVectList_ass[iz][iTrkBin].begin();
@@ -360,8 +386,8 @@ int main(int argc, char** argv)
                      if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
 
                      //int index = indexVect_d0[imass].at(id0);
-                     hBackground_D0[imass][iTrkBin]->Fill(deltaEta, deltaPhi, 
-                        1./nMult_trg_eff_d0[imass]/effks/effweight_ass);
+                     hBackground_D0[imass][iTrkBin][ipt]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0[imass][ipt]/effks/effweight_ass);
                   }
                   ievt_eff_ass++;
                }
@@ -389,6 +415,7 @@ int main(int argc, char** argv)
          pVect_dau1_d0[imass].clear();
          pVect_dau2_d0[imass].clear();
          indexVect_d0[imass].clear();
+         ptIndex_d0[imass].clear();
       }
       pVect_ass.clear();
       effVect_ass.clear();
@@ -426,20 +453,22 @@ int main(int argc, char** argv)
    hMult->Write();
    hNtrkofflineVsNtrkgood->Write();
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
-      hKET_D0[iTrkBin]->Write(); 
-      hPt_D0[iTrkBin]->Write();
-      hEta_D0[iTrkBin]->Write();
-      hRapidity_D0[iTrkBin]->Write();
       hNtrk_D0[iTrkBin]->Write();
-      hDcaVsMassAndMva[iTrkBin]->Write();
-      hMass[iTrkBin]->Write();
-      for(int imass=0; imass<ana::nMass; imass++){
-         hMult_ass[imass][iTrkBin]->Write();
-         hMass_D0[imass][iTrkBin]->Write();
-         hMult_raw_D0[imass][iTrkBin]->Write();
-         hMult_eff_D0[imass][iTrkBin]->Write();
-         hSignal_D0[imass][iTrkBin]->Write();
-         hBackground_D0[imass][iTrkBin]->Write();
+      for(int ipt=0; ipt<nPt; ipt++){
+         hKET_D0[iTrkBin][ipt]->Write(); 
+         hPt_D0[iTrkBin][ipt]->Write();
+         hEta_D0[iTrkBin][ipt]->Write();
+         hRapidity_D0[iTrkBin][ipt]->Write();
+         hDcaVsMassAndMva[iTrkBin][ipt]->Write();
+         hMass[iTrkBin][ipt]->Write();
+         for(int imass=0; imass<ana::nMass; imass++){
+            hMult_ass[imass][iTrkBin][ipt]->Write();
+            hMass_D0[imass][iTrkBin][ipt]->Write();
+            hMult_raw_D0[imass][iTrkBin][ipt]->Write();
+            hMult_eff_D0[imass][iTrkBin][ipt]->Write();
+            hSignal_D0[imass][iTrkBin][ipt]->Write();
+            hBackground_D0[imass][iTrkBin][ipt]->Write();
+         }
       }
    }
 
@@ -447,20 +476,22 @@ int main(int argc, char** argv)
    delete hMult;
    delete hNtrkofflineVsNtrkgood;
    for(int iTrkBin=0; iTrkBin<nTrkBin; iTrkBin++){
-      delete hKET_D0[iTrkBin]; 
-      delete hPt_D0[iTrkBin];
-      delete hEta_D0[iTrkBin];
-      delete hRapidity_D0[iTrkBin];
       delete hNtrk_D0[iTrkBin];
-      delete hDcaVsMassAndMva[iTrkBin];
-      delete hMass[iTrkBin];
-      for(int imass=0; imass<ana::nMass; imass++){
-         delete hMult_ass[imass][iTrkBin];
-         delete hMass_D0[imass][iTrkBin];
-         delete hMult_raw_D0[imass][iTrkBin];
-         delete hMult_eff_D0[imass][iTrkBin];
-         delete hSignal_D0[imass][iTrkBin];
-         delete hBackground_D0[imass][iTrkBin];
+      for(int ipt=0; ipt<nPt; ipt++){
+         delete hKET_D0[iTrkBin][ipt]; 
+         delete hPt_D0[iTrkBin][ipt];
+         delete hEta_D0[iTrkBin][ipt];
+         delete hRapidity_D0[iTrkBin][ipt];
+         delete hDcaVsMassAndMva[iTrkBin][ipt];
+         delete hMass[iTrkBin][ipt];
+         for(int imass=0; imass<ana::nMass; imass++){
+            delete hMult_ass[imass][iTrkBin][ipt];
+            delete hMass_D0[imass][iTrkBin][ipt];
+            delete hMult_raw_D0[imass][iTrkBin][ipt];
+            delete hMult_eff_D0[imass][iTrkBin][ipt];
+            delete hSignal_D0[imass][iTrkBin][ipt];
+            delete hBackground_D0[imass][iTrkBin][ipt];
+         }
       }
    }
 
@@ -571,9 +602,9 @@ bool passD0MVA(const int& trigger, Event* event, const int& icand,
       const bool& isPrompt)
 {
    if(isPrompt){
-      if(event->Pt(icand)<4.) return event->Mva(icand) > 0.54;
-      else if (event->Pt(icand) <6. && event->Pt(icand)>=4.) return event->Mva(icand) > 0.42;
-      else if (event->Pt(icand) <8. && event->Pt(icand)>=6.) return event->Mva(icand) > 0.24;
+      if(event->Pt(icand)<4.) return event->Mva(icand) > 0.53;
+      else if (event->Pt(icand) <6. && event->Pt(icand)>=4.) return event->Mva(icand) > 0.41;
+      else if (event->Pt(icand) <8. && event->Pt(icand)>=6.) return event->Mva(icand) > 0.23;
    } else{
       // non-prompt would not be measured
       return false;
