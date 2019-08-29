@@ -5,18 +5,16 @@ treeNumber = 2
 
 pTMin = 2.0
 pTMax = 8.0
-#yMin  = -1.0
-#yMax  = 1.0
-yMin  = -2.0
-yMax  = 2.0
+yMin  = -1.0
+yMax  = 1.0
 
 dcaCut_CSV = "dcacut.csv"
 
-dataset_name = 'PAHM1-6'
-#dataset_name = 'PAMB'
+#dataset_name = 'PAHM1-6'
+dataset_name = 'PAMB'
 
 dataset = {
-      'PAMB' : 'PAMB0-150.list', # too lazy to change it
+      'PAMB' : 'PAMB0-185_new_list', # too lazy to change it
       #'PAHM1-6' : 'PAHM185-250.list',
       'PAHM1-6' : 'PAHM185-250_new.list',
       }
@@ -26,9 +24,8 @@ storage = {
       }
 
 sublist_number = {
-      'PAMB'    : 458,
-      #'PAHM1-6' : 146,
-      'PAHM1-6' : 240,
+      'PAMB'    : 659,
+      'PAHM1-6' : 186,
       }
 
 if sublist_number[dataset_name] != 0:
