@@ -10,6 +10,11 @@ R__ADD_INCLUDE_PATH(../src);
 #define __FIT_SIMULTANEOUS__
 using namespace std;
 
+double* tmp_x;
+double* tmp_y;
+double* tmp_x_e;
+double* tmp_y_e;
+
 int iparmassfit_poly3bkg_floatwidth[13] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 int iparvarfit_poly3bkg_floatwidth[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
@@ -395,6 +400,52 @@ pair<double, double> fit_simultaneous_process(
 }
 #endif
 
+pair<double, double> 
+fit_nass(
+      string dataset = "", 
+      string input_var = "",
+      string output = "",
+      int ipt = -1, int itrk=-1,
+      const vector<float>* ptbin = nullptr,
+      const vector<unsigned int>* trkbin=nullptr
+      )
+{
+   gStyle->SetOptStat(0);
+   gStyle->SetOptFit(111);
+
+   TString ntrk_str;
+   if(trkbin->at(itrk+1) == numeric_limits<unsigned int>::max()) ntrk_str = Form("N_{trk}^{offline} #geq %u", trkbin->at(itrk));
+   else ntrk_str = Form("%u #leq N_{trk}^{offline} < %u", trkbin->at(itrk), trkbin->at(itrk+1));
+
+   TFile* fin_var = TFile::Open(input_var.c_str());
+   if(isFailed(fin_var, "nass vs mass")) return pair<double, double>(-1, -1);
+   TGraphErrors* g_nass = (TGraphErrors*) fin_var->Get(Form("nass_pt%d_trk%d", ipt, itrk));
+   TF1 f("f", "[0]", 1.7, 2.0);
+   g_nass->Fit(&f);
+   g_nass->Fit(&f);
+   g_nass->Fit(&f);
+   double nass = f.GetParameter(0);
+   double nass_err = f.GetParError(0);
+   TCanvas c("c", "", 550, 450);
+   c.SetLeftMargin(0.18);
+   g_nass->SetMarkerStyle(20);
+   g_nass->SetTitle(";mass (GeV);N_{ass}");
+   g_nass->Draw("AP");
+   TLatex tex;
+   tex.DrawLatexNDC(0.22,0.86,Form("%s", ntrk_str.Data()));
+   tex.DrawLatexNDC(0.22,0.80,Form("%.1f < p_{T} < %.1f GeV/c",  ptbin->at(ipt), ptbin->at(ipt+1)));
+   tex.DrawLatexNDC(0.22,0.74,Form("|y| < 1.0"));
+   c.Print(Form("%s.pdf", output.c_str()));
+   return pair<double, double>(nass, nass_err);
+}
+
+double get_mean(const string& dataset, const string& input, const int& itrk)
+{
+   TFile* fin = TFile::Open(input.c_str());
+   TH1D* h = (TH1D*) fin->Get(Form("hNtrk_trk%d", itrk));
+   return h->GetMean();
+}
+
 void fit_simultaneous()
 {
    vector<pair<double, double>> vec_Vn;
@@ -408,7 +459,7 @@ void fit_simultaneous()
    string dataTrigger[] = {"PAMB", "PAHM", "PAHM"};
 
    string type[] = {"", "_loose", "_tight"};
-   int itype = 0;
+   int itype = 2;
 
    string cmdDirPlots = 
    Form("if [ ! -d \"../plots\" ]; then\n"
@@ -422,18 +473,37 @@ void fit_simultaneous()
    Form("if [ ! -d \"../plots/Jet\" ]; then\n"
          "    mkdir ../plots/Jet\n"
          "fi");
+   string cmdDirPlotsnass = 
+   Form("if [ ! -d \"../plots/nass\" ]; then\n"
+         "    mkdir ../plots/nass\n"
+         "fi");
    gSystem->Exec(cmdDirPlots.c_str());
    gSystem->Exec(cmdDirPlotsVn.c_str());
    gSystem->Exec(cmdDirPlotsJet.c_str());
+   gSystem->Exec(cmdDirPlotsnass.c_str());
 
-   for(int iset=0; iset<1; iset++){
-   //for(int iset=1; iset<2; iset++){
-   //for(int iset=2; iset<3; iset++){
+
+   vector<double> Vn[nPt];
+   vector<double> Vn_err[nPt];
+   vector<double> jet[nPt];
+   vector<double> jet_err[nPt];
+   vector<double> nass[nPt];
+   vector<double> nass_err[nPt];
+   vector<double> mean;
+   vector<double> e;
+
+   for(int iset=0; iset<3; iset++){
 
       cout << dataset[iset] << endl;
 
       auto trkbin = ana::get_Mult_Edges(dataset[iset]);
       int ntrk = trkbin.size() - 1;
+
+      for(int itrk=0; itrk<ntrk; itrk++){
+         auto ret = get_mean(dataset[iset], Form("../data/corr2D_trg_pd0_%s.root", dataMult[iset].c_str()), itrk);
+         mean.push_back(ret);
+         e.push_back(0.);
+      }
 
       for(int itrk=0; itrk<ntrk; itrk++){
          for(int ipt=0; ipt<nPt; ipt++){
@@ -452,7 +522,9 @@ void fit_simultaneous()
                   "Vn",
                   output.Data(), "", itrk, ipt, &ptbin, &trkbin
                   );
-            vec_Vn.push_back(ret);
+            //vec_Vn.push_back(ret);
+            Vn[ipt].push_back(ret.first);
+            Vn_err[ipt].push_back(ret.second);
          }
       }
 
@@ -473,15 +545,65 @@ void fit_simultaneous()
                   "jets",
                   output.Data(), "", itrk, ipt, &ptbin, &trkbin
                   );
-            vec_jet.push_back(ret);
+            //vec_jet.push_back(ret);
+            jet[ipt].push_back(ret.first);
+            jet_err[ipt].push_back(ret.second);
          }
       }
+
       for(int itrk=0; itrk<ntrk; itrk++){
          for(int ipt=0; ipt<nPt; ipt++){
-            printf("Vn = %.5f+/-%.5f\n", vec_Vn[itrk*nPt+ipt].first, vec_Vn[itrk*nPt+ipt].second);
-            printf("jet = %.5f+/-%.5f\n", vec_jet[itrk*nPt+ipt].first, vec_jet[itrk*nPt+ipt].second);
+
+            TString output;
+            if(trkbin.at(itrk+1) == numeric_limits<unsigned int>::max()) 
+               output= Form("../plots/nass/%s%u-inf_pT%.0f-%.0f%s", dataTrigger[iset].c_str(), 
+                     trkbin[itrk], ptbin[ipt], ptbin[ipt+1], type[itype].c_str());
+            else 
+               output = Form("../plots/nass/%s%u-%u_pT%.0f-%.0f%s", dataTrigger[iset].c_str(), 
+                     trkbin[itrk], trkbin[itrk+1], ptbin[ipt], ptbin[ipt+1], type[itype].c_str());
+
+            auto ret = fit_nass( dataset[iset],
+                  Form("../data/%s_VarVsMass%s.root", dataMult[iset].c_str(),
+                      type[itype].c_str()),
+                  output.Data(), ipt, itrk, &ptbin, &trkbin
+                  );
+            nass[ipt].push_back(ret.first);
+            nass_err[ipt].push_back(ret.second);
          }
-         printf("\n");
       }
+
    }
+   TFile fout(Form("../data/PA_vars_%s.root", type[itype].c_str()), "recreate");
+
+   tmp_x = new double[mean.size()];
+   tmp_x_e = new double[mean.size()];
+   copy(mean.begin(), mean.end(), tmp_x);
+   copy(e.begin(), e.end(), tmp_x_e);
+
+   tmp_y = new double[mean.size()];
+   tmp_y_e = new double[mean.size()];
+
+   for(int ipt=0; ipt<nPt; ipt++){
+      copy(Vn[ipt].begin(), Vn[ipt].end(), tmp_y);
+      copy(Vn_err[ipt].begin(), Vn_err[ipt].end(), tmp_y_e);
+      TGraphErrors* gVn = new TGraphErrors(mean.size(), tmp_x, tmp_y, tmp_x_e, tmp_y_e);
+      gVn->Write(Form("gVn_pt%d", ipt));
+      delete gVn;
+
+      copy(jet[ipt].begin(), jet[ipt].end(), tmp_y);
+      copy(jet_err[ipt].begin(), jet_err[ipt].end(), tmp_y_e);
+      TGraphErrors* gjet = new TGraphErrors(mean.size(), tmp_x, tmp_y, tmp_x_e, tmp_y_e);
+      gjet->Write(Form("gjet_pt%d", ipt));
+      delete gjet;
+
+      copy(nass[ipt].begin(), nass[ipt].end(), tmp_y);
+      copy(nass_err[ipt].begin(), nass_err[ipt].end(), tmp_y_e);
+      TGraphErrors* gnass = new TGraphErrors(mean.size(), tmp_x, tmp_y, tmp_x_e, tmp_y_e);
+      gnass->Write(Form("gnass_pt%d", ipt));
+      delete gnass;
+   }
+   delete [] tmp_x;
+   delete [] tmp_x_e;
+   delete [] tmp_y;
+   delete [] tmp_y_e;
 }

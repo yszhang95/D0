@@ -321,16 +321,17 @@ void draw_proj1D(string dataset = "", string input = "", string output = "",
       TF1 func("func", "[0]+[1]*fabs(x)+[2]*x*x", -2.0, 2.0);
       func.GetNpar();
       func.SetParameters(1, 1, 1);
-      if(isHM1to6){
-         hlr[imass]->Fit(&func, "Q R", "", 0.1, 2.0);
-         hlr[imass]->Fit(&func, "Q R", "", 0.1, 2.0);
-         hlr[imass]->Fit(&func, "Q E R", "", 0.1, 2.0);
-      }
-      else{
+      func.SetParLimits(2, 0, 4);
+      //if(isHM1to6){
+         //hlr[imass]->Fit(&func, "Q R", "", 0.1, 2.0);
+         //hlr[imass]->Fit(&func, "Q R", "", 0.1, 2.0);
+         //hlr[imass]->Fit(&func, "Q E R", "", 0.1, 2.0);
+      //}
+      //else{
          hlr[imass]->Fit(&func, "Q R", "", -2.0, 2.0);
          hlr[imass]->Fit(&func, "Q R", "", -2.0, 2.0);
          hlr[imass]->Fit(&func, "Q E R", "", -2.0, 2.0);
-      }
+      //}
       auto fitResult = hlr[imass]->Fit(&func, "Q E R S", "", -2.0, 2.0);
       //fitResult->Print("v");
       cout << "lr fit result: " << fitResult->Status() << endl;
@@ -402,7 +403,7 @@ void draw1D()
    string dataTrigger[] = {"PAMB", "PAHM", "PAHM"};
 
    string type[] = {"", "_loose", "_tight"};
-   int itype = 0;
+   int itype = 2;
 
    string cmdDirPlots = 
    Form("if [ ! -d \"../plots\" ]; then\n"

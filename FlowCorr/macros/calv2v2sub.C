@@ -23,7 +23,7 @@ void calv2v2sub()
    string dataTrigger[] = {"PAMB", "PAHM", "PAHM"};
 
    string type[] = {"", "_loose", "_tight"};
-   int itype = 0;
+   int itype = 1;
 
    const int n_v2 = 6;
    const int n_v2sub = 5;
@@ -35,6 +35,16 @@ void calv2v2sub()
    double v2sub[nPt][n_v2sub];
    double v2_err[nPt][n_v2];
    double v2sub_err[nPt][n_v2sub];
+
+   double v2_upper[nPt][n_v2];
+   double v2sub_upper[nPt][n_v2sub];
+   double v2_err_upper[nPt][n_v2];
+   double v2sub_err_upper[nPt][n_v2sub];
+
+   double v2_lower[nPt][n_v2];
+   double v2sub_lower[nPt][n_v2sub];
+   double v2_err_lower[nPt][n_v2];
+   double v2sub_err_lower[nPt][n_v2sub];
 
    double Vn_ref[n_v2];
    double Vn_ref_err[n_v2];
@@ -85,8 +95,7 @@ void calv2v2sub()
    for(int iset=0; iset<3; iset++){
 
       TString input_ref = 
-      Form("../data/%s_ref%s.root", dataMult[iset].c_str(), 
-                     type[itype].c_str());
+         Form("../data/%s_ref.root", dataMult[iset].c_str());
 
       TFile* f_ref = TFile::Open(input_ref.Data());
 
@@ -131,6 +140,52 @@ void calv2v2sub()
       mean = gVn->GetX();
    }
 
+   TCanvas* cjetratio = new TCanvas("cjetratio", "", 450*3, 550);
+   cjetratio->Divide(3, 1);
+   TGraphErrors* gjet_ratio[3];
+   TGraphErrors* gconf[3];
+   TGraphErrors* gratio_limits[3];
+   TF1* fratio[3];
+   for(int ipt=0; ipt<3; ipt++){
+      cjetratio->cd(ipt+1);
+      gjet_ratio[ipt] = new TGraphErrors(n_v2);
+      gratio_limits[ipt] = new TGraphErrors(n_v2);
+      gconf[ipt] = new TGraphErrors(300);
+      fratio[ipt] = new TF1(Form("fratio_pt%d", ipt), "1.+exp([0]+[1]/x)", 0, 300);
+      for(int ip=0; ip<n_v2; ip++){
+         double ratio = jet[ipt][ip]/jet[ipt][0];
+         double ratio_err = ratio*sqrt(
+               pow(jet_err[ipt][ip]/jet[ipt][ip], 2) + pow(jet_err[ipt][0]/jet[ipt][0], 2)
+               );
+         if(ip==0) ratio_err = 0.;
+         cout << ratio_err << endl;
+         gjet_ratio[ipt]->SetPoint(ip, mean[ip], ratio);
+         gjet_ratio[ipt]->SetPointError(ip, 0, ratio_err);
+         gratio_limits[ipt]->SetPoint(ip, mean[ip], 0);
+      }
+      for(int ip=0; ip<300; ip++){
+         gconf[ipt]->SetPoint(ip, ip, 0);
+      }
+      fratio[ipt]->SetParameters(0.01, 0.001);
+      gjet_ratio[ipt]->Fit(fratio[ipt], "R", 0, 300);
+      gjet_ratio[ipt]->Fit(fratio[ipt], "R", 0, 300);
+      gjet_ratio[ipt]->Fit(fratio[ipt], "R", 0, 300);
+      (TVirtualFitter::GetFitter())->GetConfidenceIntervals(gconf[ipt], 0.683);
+      (TVirtualFitter::GetFitter())->GetConfidenceIntervals(gratio_limits[ipt], 0.683);
+      gjet_ratio[ipt]->SetMarkerStyle(20);
+      gjet_ratio[ipt]->SetMarkerColor(kRed);
+      gjet_ratio[ipt]->SetTitle(";N_{trk}^{offline};Y_{jet} ratio");
+      auto h = gjet_ratio[ipt]->GetHistogram();
+      h->SetMaximum(2.5);
+      h->SetMinimum(0.);
+      gjet_ratio[ipt]->Draw("A P");
+      gconf[ipt]->SetFillStyle(1001);
+      gconf[ipt]->SetFillColorAlpha(kBlue-7, 0.3);
+      gconf[ipt]->Draw("E3 SAME");
+   }
+   cjetratio->Print(Form("jet_ratio%s.pdf", type[itype].c_str()));
+   cjetratio->Print(Form("jet_ratio%s.svg", type[itype].c_str()));
+
    for(int ipt = 0; ipt < nPt; ipt++){
       for(int i=0; i<n_v2; i++){
          v2[ipt][i] = Vn[ipt][i]/sqrt(Vn_ref[i]);
@@ -139,9 +194,20 @@ void calv2v2sub()
       }
       //note, i=1
       for(int i=1; i<n_v2; i++){
-         double scale_d0 = nass[ipt][0]/nass[ipt][i] * jet[ipt][i]/jet[ipt][0];
+         //double scale_d0 = nass[ipt][0]/nass[ipt][i] * jet[ipt][i]/jet[ipt][0];
+         double scale_d0 = nass[ipt][0]/nass[ipt][i] * fratio[ipt]->Eval(mean[i]);
+         double scale_d0_upper = nass[ipt][0]/nass[ipt][i] * (gratio_limits[ipt]->GetY()[i] + gratio_limits[ipt]->GetEY()[i]) ;
+         double scale_d0_lower = nass[ipt][0]/nass[ipt][i] * (gratio_limits[ipt]->GetY()[i] - gratio_limits[ipt]->GetEY()[i]) ;
+         //cout << mean[i] << "  " << fratio[ipt]->Eval(mean[i]) << "  " << jet[ipt][i]/jet[ipt][0] << endl;
          double V2_sub = Vn[ipt][i] - Vn[ipt][0] * scale_d0;
          double V2_sub_err = sqrt(pow(Vn_err[ipt][i], 2) + pow(Vn_err[ipt][0]*scale_d0, 2));
+
+         double V2_sub_upper = Vn[ipt][i] - Vn[ipt][0] * scale_d0_upper;
+         double V2_sub_err_upper = sqrt(pow(Vn_err[ipt][i], 2) + pow(Vn_err[ipt][0]*scale_d0_upper, 2));
+
+         double V2_sub_lower = Vn[ipt][i] - Vn[ipt][0] * scale_d0_lower;
+         double V2_sub_err_lower = sqrt(pow(Vn_err[ipt][i], 2) + pow(Vn_err[ipt][0]*scale_d0_lower, 2));
+
          //cout << V2_sub << endl;
 
          double scale_ref = nass_ref[0]/nass_ref[i] * jet_ref[i] / jet_ref[0];
@@ -155,7 +221,15 @@ void calv2v2sub()
          //cout << V2_ref_sub << endl;
 
          v2sub[ipt][i-1] = V2_sub/ sqrt(V2_ref_sub);
-         v2sub_err[ipt][i-1] = v2sub[ipt][i-1]* sqrt(pow(V2_sub_err/V2_sub, 2) 
+         v2sub_err[ipt][i-1] = fabs(v2sub[ipt][i-1])* sqrt(pow(V2_sub_err/V2_sub, 2) 
+                  + pow(V2_ref_sub_err/V2_ref_sub/2., 2));
+
+         v2sub_upper[ipt][i-1] = V2_sub_upper/ sqrt(V2_ref_sub);
+         v2sub_err_upper[ipt][i-1] = fabs(v2sub_upper[ipt][i-1])* sqrt(pow(V2_sub_err_upper/V2_sub_upper, 2) 
+                  + pow(V2_ref_sub_err/V2_ref_sub/2., 2));
+
+         v2sub_lower[ipt][i-1] = V2_sub_lower/ sqrt(V2_ref_sub);
+         v2sub_err_lower[ipt][i-1] = fabs(v2sub_lower[ipt][i-1])* sqrt(pow(V2_sub_err_lower/V2_sub_lower, 2) 
                   + pow(V2_ref_sub_err/V2_ref_sub/2., 2));
       }
    }
@@ -174,7 +248,7 @@ void calv2v2sub()
    }
 
    double e[n_v2] = {0.};
-   TFile fout("output.root", "recreate");
+   TFile fout(Form("output%s.root", type[itype].c_str()), "recreate");
    for(int ipt=0; ipt<nPt; ipt++){
       //TGraphErrors* jetratio = new TGraphErrors(n_v2, mean, jet_ratio_d0[ipt], e, jet_ratio_d0_err[ipt]);
       //jetratio->Write(Form("jets_ratio_pt%d", ipt));
@@ -182,5 +256,11 @@ void calv2v2sub()
       gv2->Write(Form("v2_pt%d", ipt));
       TGraphErrors* gv2sub = new TGraphErrors(n_v2sub, &mean[1], v2sub[ipt], e, v2sub_err[ipt]);
       gv2sub->Write(Form("v2sub_pt%d", ipt));
+
+      TGraphErrors* gv2sub_upper = new TGraphErrors(n_v2sub, &mean[1], v2sub_upper[ipt], e, v2sub_err_upper[ipt]);
+      gv2sub_upper->Write(Form("v2sub_upper_pt%d", ipt));
+
+      TGraphErrors* gv2sub_lower = new TGraphErrors(n_v2sub, &mean[1], v2sub_lower[ipt], e, v2sub_err_lower[ipt]);
+      gv2sub_lower->Write(Form("v2sub_lower_pt%d", ipt));
    }
 }

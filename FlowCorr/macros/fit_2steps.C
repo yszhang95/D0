@@ -15,6 +15,8 @@ double* tmp_y;
 double* tmp_x_e;
 double* tmp_y_e;
 
+int itype = 2;
+
 pair<double, double> fit_2steps_process(
       string dataset = "", 
       string input_d0_mass = "", string input_d0_mc = "", 
@@ -265,6 +267,7 @@ pair<double, double> fit_2steps_process(
    fvar_combinemassvarfit->SetParameter(13, var_data->GetY()[0]);
    fvar_combinemassvarfit->SetParameter(14, var_data->GetY()[0]);
    fvar_combinemassvarfit->SetParameter(15, 0.001);
+   if(itype==2 && var_name == "jets")fvar_combinemassvarfit->SetParLimits(13, 0.02, 5);
    var_data->Fit(fvar_combinemassvarfit, "QER", "", fit_range_low, fit_range_high);
    var_data->Fit(fvar_combinemassvarfit, "QER", "", fit_range_low, fit_range_high);
    var_data->Fit(fvar_combinemassvarfit, "QER", "", fit_range_low, fit_range_high);
@@ -398,7 +401,6 @@ void fit_2steps()
    string dataTrigger[] = {"PAMB", "PAHM", "PAHM"};
 
    string type[] = {"", "_loose", "_tight"};
-   int itype = 0;
 
    string cmdDirPlots = 
    Form("if [ ! -d \"../plots\" ]; then\n"
