@@ -46,6 +46,14 @@ double largeDca_e[2] = { // nPt
 };
 */
 
+double smallDca[2] ={ // nPt
+   0.105, 0.110
+};
+double smallDca_e[2] = {0.006, 0.005};
+double largeDca[2] = {0.624, 0.735};
+double largeDca_e[2] = {0.03, 0.03};
+
+/*
 // fit range 0.006 - 0.08 // std
 double smallDca[2] ={ // nPt
 0.098428,
@@ -63,6 +71,7 @@ double largeDca_e[2] = { // nPt
 0.0256403,
 0.0242854
 };
+*/
 
 /*
 // fit range 0.004 - 0.08 // syst errors
@@ -136,6 +145,7 @@ TGraphErrors* fitNPD0_Each(
       ///gStyle->SetPadTickX(1);
       //gStyle->SetPadTickY(1);
       c[i] = new TCanvas(Form("c_%s_%d",outputs.c_str(), i), Form("pt%d", i), 500, 500);
+      c[i]->SetLeftMargin(0.2);
       //c[i]->SetLeftMargin(0.16);
       fl[i] = new TF1(Form("f1_%d", i), "[0]*x+(1-x)*[1]", 0, 1);
       fl[i]->SetParameters(var[i]->GetY()[1], var[i]->GetY()[0]);
@@ -153,6 +163,11 @@ TGraphErrors* fitNPD0_Each(
       double ymax = max(fl[i]->GetParameter(0), fl[i]->GetParameter(1));
       cout << gsmall->GetY()[i] << endl;
       h->SetMaximum(ymax*2);
+
+      if(outputs == "V2") h->SetMaximum(0.016);
+      if(outputs == "V2_low") h->SetMaximum(0.03);
+
+      h->GetYaxis()->SetTitleOffset(1.5);
       h->Draw();
       var[i]->SetMarkerStyle(20);
       var[i]->SetMarkerSize(1.2);
@@ -179,28 +194,28 @@ TGraphErrors* fitNPD0_Each(
       if(outputs == "Nass_low") h->GetYaxis()->SetTitle("N_{assoc}");
       if(outputs == "Nass") h->GetYaxis()->SetTitle("N_{assoc}");
       if(outputs == "Jets_low") {
-         ltx->DrawLatexNDC(0.2, 0.73, Form("Y_{jets}^{signal} = Y_{jets}^{nonprompt D^{0}}*Frac. + Y_{jets}^{prompt D^{0}}*(1-Frac.)"));
-         ltx->DrawLatexNDC(0.2, 0.65, Form("Y_{jets}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
+         //ltx->DrawLatexNDC(0.2, 0.73, Form("Y_{jets}^{signal} = Y_{jets}^{nonprompt D^{0}}*Frac. + Y_{jets}^{prompt D^{0}}*(1-Frac.)"));
+         //ltx->DrawLatexNDC(0.2, 0.65, Form("Y_{jets}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
       }
       if(outputs == "Jets") {
-         ltx->DrawLatexNDC(0.2, 0.73, Form("Y_{jets}^{signal} = Y_{jets}^{nonprompt D^{0}}*Frac. + Y_{jets}^{prompt D^{0}}*(1-Frac.)"));
-         ltx->DrawLatexNDC(0.2, 0.65, Form("Y_{jets}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
+         //ltx->DrawLatexNDC(0.2, 0.73, Form("Y_{jets}^{signal} = Y_{jets}^{nonprompt D^{0}}*Frac. + Y_{jets}^{prompt D^{0}}*(1-Frac.)"));
+         //ltx->DrawLatexNDC(0.2, 0.65, Form("Y_{jets}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
       }
       if(outputs == "V2_low") {
-         ltx->DrawLatexNDC(0.2, 0.73, Form("V_{2}^{signal} = V_{2}^{nonprompt D^{0}}*Frac. + V_{2}^{prompt D^{0}}*(1-Frac.)"));
-         ltx->DrawLatexNDC(0.2, 0.65, Form("V_{2}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
+         //ltx->DrawLatexNDC(0.2, 0.73, Form("V_{2}^{signal} = V_{2}^{nonprompt D^{0}}*Frac. + V_{2}^{prompt D^{0}}*(1-Frac.)"));
+         //ltx->DrawLatexNDC(0.2, 0.65, Form("V_{2}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
       }
       if(outputs == "V2") {
-         ltx->DrawLatexNDC(0.2, 0.73, Form("V_{2}^{signal} = V_{2}^{nonprompt D^{0}}*Frac. + V_{2}^{prompt D^{0}}*(1-Frac.)"));
-         ltx->DrawLatexNDC(0.2, 0.65, Form("V_{2}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
+         //ltx->DrawLatexNDC(0.2, 0.73, Form("V_{2}^{signal} = V_{2}^{nonprompt D^{0}}*Frac. + V_{2}^{prompt D^{0}}*(1-Frac.)"));
+         //ltx->DrawLatexNDC(0.2, 0.65, Form("V_{2}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
       }
       if(outputs == "Nass_low"){
-         ltx->DrawLatexNDC(0.2, 0.73, Form("N_{assoc}^{signal} = N_{assoc}^{nonprompt D^{0}}*Frac. + N_{assoc}^{prompt D^{0}}*(1-Frac.)"));
-         ltx->DrawLatexNDC(0.2, 0.65, Form("N_{assoc}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
+         //ltx->DrawLatexNDC(0.2, 0.73, Form("N_{assoc}^{signal} = N_{assoc}^{nonprompt D^{0}}*Frac. + N_{assoc}^{prompt D^{0}}*(1-Frac.)"));
+         //ltx->DrawLatexNDC(0.2, 0.65, Form("N_{assoc}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
       }
       if(outputs == "Nass"){
-         ltx->DrawLatexNDC(0.2, 0.73, Form("N_{assoc}^{signal} = N_{assoc}^{nonprompt D^{0}}*Frac. + N_{assoc}^{prompt D^{0}}*(1-Frac.)"));
-         ltx->DrawLatexNDC(0.2, 0.65, Form("N_{assoc}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
+         //ltx->DrawLatexNDC(0.2, 0.73, Form("N_{assoc}^{signal} = N_{assoc}^{nonprompt D^{0}}*Frac. + N_{assoc}^{prompt D^{0}}*(1-Frac.)"));
+         //ltx->DrawLatexNDC(0.2, 0.65, Form("N_{assoc}^{nonprompt D^{0}} = %g+/-%g", fl[i]->GetParameter(0), fl[i]->GetParError(0) ));
       }
       c[i]->Print(Form("c_%s_%d.pdf",outputs.c_str(), i));
    }
@@ -208,7 +223,7 @@ TGraphErrors* fitNPD0_Each(
 }
 
 void fitNPD0(){
-   TGraphErrors* ret[4];
+   TGraphErrors* ret[6];
    TFile ofile("ofile_npd0.root", "recreate");
    for(int i=0; i<6; i++){
    //for(int i=2; i<3; i++){

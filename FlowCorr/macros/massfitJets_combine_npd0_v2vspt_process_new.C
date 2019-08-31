@@ -364,23 +364,34 @@ void massfitJets_combine_npd0_v2vspt_process_new(
 
         fitter.Config().ParSettings(1).SetLimits(1.72, 2.0);
 
-        fitter.Config().MinimizerOptions().SetPrintLevel(0);
-        fitter.Config().SetMinimizer("Minuit2","Migrad");
+        //fitter.Config().MinimizerOptions().SetPrintLevel(0);
+        //fitter.Config().SetMinimizer("Minuit2","Migrad");
 
-        fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
-        ROOT::Fit::FitResult result = fitter.Result();
-        result.Print(std::cout);
+        //fitter.FitFCN(Npar,globalChi2,0,datamass.Size()+datavn.Size(),true);
+        //ROOT::Fit::FitResult result = fitter.Result();
+        //result.Print(std::cout);
         
-        fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
-        fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);
-        fmass_combinemassvnfit->SetLineColor(kRed);
-        h_data->GetListOfFunctions()->Add(fmass_combinemassvnfit);
+        //fmass_combinemassvnfit->SetFitResult( result, iparmassfit_poly3bkg_floatwidth);
+        //fmass_combinemassvnfit->SetRange(range_massfit().first, range_massfit().second);
+        //fmass_combinemassvnfit->SetLineColor(kRed);
+        //h_data->GetListOfFunctions()->Add(fmass_combinemassvnfit);
         
-        fvn_combinemassvnfit->SetFitResult( result, iparvnfit_poly3bkg_floatwidth);
-        fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
-        fvn_combinemassvnfit->SetLineColor(2);
+        //fvn_combinemassvnfit->SetFitResult( result, iparvnfit_poly3bkg_floatwidth);
+        //fvn_combinemassvnfit->SetRange(range_vnfit().first, range_vnfit().second);
+        //fvn_combinemassvnfit->SetLineColor(2);
         //fvn_combinemassvnfit->SetLineStyle(2);
-        vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
+        //vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
+        //
+        for(int ipar=0; ipar<13; ipar++){
+           fvn_combinemassvnfit->FixParameter(ipar, f->GetParameter(ipar));
+        }
+        fvn_combinemassvnfit->SetParameter(13, 0.1);
+        fvn_combinemassvnfit->SetParameter(14, 0.5);
+        fvn_combinemassvnfit->SetParameter(15, 0.0005);
+        vn_data->Fit(fvn_combinemassvnfit, "RQ");
+        vn_data->Fit(fvn_combinemassvnfit, "RQ");
+        vn_data->Fit(fvn_combinemassvnfit, "REQ");
+        vn_data->Fit(fvn_combinemassvnfit, "SREQ");
         auto hist = vn_data->GetHistogram();
         hist->SetLineWidth(0);
         if(dataset == "PAHM1-6")hist->GetYaxis()->SetRangeUser(0,0.3);
@@ -487,7 +498,8 @@ void massfitJets_combine_npd0_v2vspt_process_new(
         for(int k=0;k<h_data->GetNbinsX();k++)
         {
             xmass[k] = h_data->GetBinCenter(k);
-            pullmass[k] = (h_data->GetBinContent(k) - fmass_combinemassvnfit->Eval(xmass[k]))/h_data->GetBinError(k);
+            //pullmass[k] = (h_data->GetBinContent(k) - fmass_combinemassvnfit->Eval(xmass[k]))/h_data->GetBinError(k);
+            pullmass[k] = (h_data->GetBinContent(k) - f->Eval(xmass[k]))/h_data->GetBinError(k);
             if(fabs(pullmass[k])<5)
             {
                 //cout<<pullmass[k]<<endl;

@@ -6,8 +6,8 @@ const float dcacut[2] = {
 }; // npt
 
 TH1D* proj1D_longrange(TH2*, TH2*, const char*);
-std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
-std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*);
+std::pair<double, double> proj1D_shortrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*, bool isSymm);
+std::pair<double, double> proj1D_longrange_yields(TH2*, TH2*, const char*, TCanvas* c, const int& ipad, TH1D*, double up, double lw);
 
 std::pair<double, double> calYields(const pair<double, double>&, const pair<double,double>&);
 
@@ -438,9 +438,9 @@ void proj1D_HM_NPD0_Process_new(const char* input_d0= "",
       TH1D* h_sry_ref_low;
       TH1D* h_lry_ref_low;
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_Ref_low, h2DBackground_Ref_low, 
-            "", c_sry_ref_low, 1, h_sry_ref_low);
+            "", c_sry_ref_low, 1, h_sry_ref_low, true);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_Ref_low, h2DBackground_Ref_low, 
-            "", c_lry_ref_low, 1, h_lry_ref_low);
+            "", c_lry_ref_low, 1, h_lry_ref_low, 0.0, 2.0);
       auto yields_pair = calYields(sr_pair, lr_pair);
       yields_jet_ref_low = yields_pair.first;
       yields_jet_ref_low_err = yields_pair.second;
@@ -463,9 +463,9 @@ void proj1D_HM_NPD0_Process_new(const char* input_d0= "",
       TH1D* h_sry_ref;
       TH1D* h_lry_ref;
       auto sr_pair = proj1D_shortrange_yields(h2DSignal_Ref, h2DBackground_Ref, 
-            "", c_sry_ref, 1, h_sry_ref);
+            "", c_sry_ref, 1, h_sry_ref, true);
       auto lr_pair = proj1D_longrange_yields(h2DSignal_Ref, h2DBackground_Ref, 
-            "", c_lry_ref, 1, h_lry_ref);
+            "", c_lry_ref, 1, h_lry_ref, 0.4, 2.0);
       auto yields_pair = calYields(sr_pair, lr_pair);
       yields_jet_ref = yields_pair.first;
       yields_jet_ref_err = yields_pair.second;
@@ -499,13 +499,20 @@ void proj1D_HM_NPD0_Process_new(const char* input_d0= "",
             string dcacut_str;
             if(idca==0) dcacut_str = string(Form("DCA < %.3f cm", dcacut[ipt]));
             if(idca==1) dcacut_str = string(Form("DCA > %.3f cm", dcacut[ipt]));
-            auto sr_pair = proj1D_shortrange_yields(h2DSignal_D0[imass][ipt][idca], h2DBackground_D0[imass][ipt][idca], 
+            pair<double, double> sr_pair;
+            if(ipt == 0)
+               sr_pair = proj1D_shortrange_yields(h2DSignal_D0[imass][ipt][idca], h2DBackground_D0[imass][ipt][idca], 
                   dcacut_str.c_str(),
-               c_sry[ipt][idca], imass+1, h_sry[ipt][idca]
+               c_sry[ipt][idca], imass+1, h_sry[ipt][idca], true
+               );
+            else
+               sr_pair = proj1D_shortrange_yields(h2DSignal_D0[imass][ipt][idca], h2DBackground_D0[imass][ipt][idca], 
+                  dcacut_str.c_str(),
+               c_sry[ipt][idca], imass+1, h_sry[ipt][idca], false
                );
             auto lr_pair = proj1D_longrange_yields(h2DSignal_D0[imass][ipt][idca], h2DBackground_D0[imass][ipt][idca], 
                   dcacut_str.c_str(),
-               c_lry[ipt][idca], imass+1, h_lry[ipt][idca]
+               c_lry[ipt][idca], imass+1, h_lry[ipt][idca], 0.0, 2.0
                   );
             auto yields_pair = calYields(sr_pair, lr_pair);
             yields_jet[imass][ipt][idca] = yields_pair.first;
@@ -546,13 +553,20 @@ void proj1D_HM_NPD0_Process_new(const char* input_d0= "",
             string dcacut_str;
             if(idca==0) dcacut_str = string(Form("DCA < %.3f cm", dcacut[ipt]));
             if(idca==1) dcacut_str = string(Form("DCA > %.3f cm", dcacut[ipt]));
-            auto sr_pair = proj1D_shortrange_yields(h2DSignal_D0_low[imass][ipt][idca], h2DBackground_D0_low[imass][ipt][idca], 
-                  dcacut_str.c_str(),
-               c_sry_low[ipt][idca], imass+1, h_sry_low[ipt][idca]
-               );
+            pair<double, double> sr_pair;
+            if(ipt == 0)
+               sr_pair = proj1D_shortrange_yields(h2DSignal_D0_low[imass][ipt][idca], h2DBackground_D0_low[imass][ipt][idca], 
+                     dcacut_str.c_str(),
+                  c_sry_low[ipt][idca], imass+1, h_sry_low[ipt][idca], true
+                  );
+            else
+               sr_pair = proj1D_shortrange_yields(h2DSignal_D0_low[imass][ipt][idca], h2DBackground_D0_low[imass][ipt][idca], 
+                     dcacut_str.c_str(),
+                  c_sry_low[ipt][idca], imass+1, h_sry_low[ipt][idca], false
+                  );
             auto lr_pair = proj1D_longrange_yields(h2DSignal_D0_low[imass][ipt][idca], h2DBackground_D0_low[imass][ipt][idca], 
                   dcacut_str.c_str(),
-               c_lry_low[ipt][idca], imass+1, h_lry_low[ipt][idca]
+               c_lry_low[ipt][idca], imass+1, h_lry_low[ipt][idca], 0.0, 2.0
                   );
             auto yields_pair = calYields(sr_pair, lr_pair);
             yields_jet_low[imass][ipt][idca] = yields_pair.first;
@@ -770,7 +784,7 @@ TH1D* proj1D_longrange(TH2* h2DSignal, TH2* h2DBackground, const char* name)
 
    return hNeg;
 }
-std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad, TH1D* hsig)
+std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad, TH1D* hsig, bool isSymm)
 {
    c->cd(ipad);
    gStyle->SetOptStat(0);
@@ -787,6 +801,18 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
    int center = h2DBackground->FindBin(0., 0.);
    hsig->Divide(temp);
    hsig->Scale(h2DBackground->GetBinContent(center) / (TMath::Pi()/16.)/ 0.3);
+
+   if(isSymm){
+      for(int i=1; i<=8; i++){
+         hsig->SetBinContent(i+8, hsig->GetBinContent(9-i)+hsig->GetBinContent(i+8));
+         hsig->SetBinError(i+8, sqrt(pow(hsig->GetBinError(9-i), 2)+pow(hsig->GetBinError(i+8), 2)));
+      }
+      for(int i=1; i<=8; i++){
+         hsig->SetBinContent(i+16, hsig->GetBinContent(33-i)+hsig->GetBinContent(i+16));
+         hsig->SetBinError(i+16, sqrt(pow(hsig->GetBinError(33-i), 2)+pow(hsig->GetBinError(i+16), 2)));
+      }
+      hsig->GetXaxis()->SetRange(9, 24);
+   }
 
    TF1 fitter("fitter", "[0]*x^2+[1]*x+[2]", 0.6, 2.2);
    fitter.SetParameters(1, 1, 1);
@@ -812,7 +838,10 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
 
    double yields_err;
    double yields = hsig->IntegralAndError(hsig->FindBin(0.), hsig->FindBin(minX), yields_err, "width");
-   yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
+   if(!isSymm){
+      yields *= 2 ;
+      yields_err *= sqrt(2);
+   }
 
    delete hsig;
    delete temp;
@@ -820,12 +849,12 @@ std::pair<double, double> proj1D_shortrange_yields(TH2* h2DSignal, TH2* h2DBackg
    return std::pair<double, double>(yields, yields_err);
 }
 
-std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1D* hsig)
+std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackground, const char* name, TCanvas* c, const int& ipad , TH1D* hsig, double lw, double up)
 {
    c->cd(ipad);
-   double lw = 0.0;
+   //double lw = 0.0;
    //double lw = 0.1;
-   double up = 2.0;
+   //double up = 2.0;
    gStyle->SetOptStat(0);
    gStyle->SetOptFit(1111111);
    c->SetLeftMargin(0.15);
@@ -901,7 +930,7 @@ std::pair<double, double> proj1D_longrange_yields(TH2* h2DSignal, TH2* h2DBackgr
    double yields_err;
    double yields = hsig->IntegralAndError(hsig->FindBin(0.), hsig->FindBin(minX), yields_err, "width");
    //yields = 2*yields - hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
-   yields = yields - 0.5*hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
+   //yields = yields - 0.5*hsig->GetBinContent(hsig->FindBin(0.)) * TMath::Pi()/16.;
 
    delete hsig;
    delete temp;
