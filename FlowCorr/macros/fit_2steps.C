@@ -15,7 +15,7 @@ double* tmp_y;
 double* tmp_x_e;
 double* tmp_y_e;
 
-int itype = 2;
+int itype = 0;
 
 pair<double, double> fit_2steps_process(
       string dataset = "", 
@@ -317,15 +317,15 @@ pair<double, double> fit_2steps_process(
    ltx.SetTextSize(42);
    ltx.SetTextSize(0.035);
    if(var_name == "jets"){
-      ltx.DrawLatexNDC(0.65, 0.75, Form("Y_{jets}=%f", fvar_combinemassvarfit->GetParameter(13)));
-      ltx.DrawLatexNDC(0.65, 0.7, Form("Y_{jets}Err=%f", fvar_combinemassvarfit->GetParError(13)));
+      //ltx.DrawLatexNDC(0.65, 0.75, Form("Y_{jets}=%f", fvar_combinemassvarfit->GetParameter(13)));
+      //ltx.DrawLatexNDC(0.65, 0.7, Form("Y_{jets}Err=%f", fvar_combinemassvarfit->GetParError(13)));
    }
    if(var_name == "Vn"){
-      ltx.DrawLatexNDC(0.65, 0.75, Form("V_{n}=%f", fvar_combinemassvarfit->GetParameter(13)));
-      ltx.DrawLatexNDC(0.65, 0.7, Form("V_{n}Err=%f", fvar_combinemassvarfit->GetParError(13)));
+      //ltx.DrawLatexNDC(0.65, 0.75, Form("V_{n}=%f", fvar_combinemassvarfit->GetParameter(13)));
+      //ltx.DrawLatexNDC(0.65, 0.7, Form("V_{n}Err=%f", fvar_combinemassvarfit->GetParError(13)));
    }
 
-   c.Print(Form("%s.png", output.c_str()));
+   //c.Print(Form("%s.png", output.c_str()));
    c.Print(Form("%s.pdf", output.c_str()));
 
    var = fvar_combinemassvarfit->GetParameter(13);
