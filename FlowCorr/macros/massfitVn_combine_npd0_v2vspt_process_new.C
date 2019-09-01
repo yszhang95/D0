@@ -116,7 +116,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         h_data->SetMarkerStyle(20);
         h_data->SetLineWidth(1);
         h_data->SetOption("e");
-        h_data->GetXaxis()->SetRangeUser(1.7,2);
+        h_data->GetXaxis()->SetRangeUser(1.72,2);
         h_data->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
         h_data->GetYaxis()->SetTitle("Entries / 5 MeV");
         h_data->GetXaxis()->CenterTitle();
@@ -383,8 +383,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         vn_data->GetListOfFunctions()->Add(fvn_combinemassvnfit);
         auto hist = vn_data->GetHistogram();
         hist->SetLineWidth(0);
-        if(dataset == "PAHM1-6")hist->GetYaxis()->SetRangeUser(0,0.3);
-        if(dataset == "PAMB") hist->GetYaxis()->SetRangeUser(-0.2, 0.7);
+        hist->GetXaxis()->SetLimits(1.72, 2.0);
         hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
         hist->GetYaxis()->SetTitle("V_{2}");
         hist->GetXaxis()->CenterTitle();
@@ -402,7 +401,8 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         hist->GetXaxis()->SetLabelSize(0.04);
         hist->GetYaxis()->SetLabelSize(0.04);
         hist->SetMinimum(0.001);
-        hist->SetMaximum(0.025);
+        double max_vn = *max_element(vn_data->GetY(), vn_data->GetY()+vn_data->GetN());
+        hist->SetMaximum(2*max_vn);
         hist->Draw();
         vn_data->SetTitle("");
         vn_data->SetMarkerSize(0.8);
@@ -413,8 +413,8 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         TLatex ltx;
         ltx.SetTextSize(42);
         ltx.SetTextSize(0.035);
-        ltx.DrawLatexNDC(0.65, 0.78, Form("Vn = %f", fvn_combinemassvnfit->GetParameter(13)));
-        ltx.DrawLatexNDC(0.65, 0.73, Form("VnErr = %f", fvn_combinemassvnfit->GetParError(13)));
+        //ltx.DrawLatexNDC(0.65, 0.78, Form("Vn = %f", fvn_combinemassvnfit->GetParameter(13)));
+        //ltx.DrawLatexNDC(0.65, 0.73, Form("VnErr = %f", fvn_combinemassvnfit->GetParError(13)));
         if(idca==0)ltx.DrawLatexNDC(0.65, 0.67, Form("DCA<%.3f cm", dcacut[i]));
         if(idca==1)ltx.DrawLatexNDC(0.65, 0.67, Form("DCA#geq%.3f cm", dcacut[i]));
         
@@ -521,6 +521,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2v2,ndfv2));
 
         c[i]->Print(Form("plots/dcaFull/v2/D0_mass_Vnfit_combine_pt%d_y%.1f_dca%d.png",i, yMax, idca));
+        c[i]->Print(Form("plots/dcaFull/v2/D0_mass_Vnfit_combine_pt%d_y%.1f_dca%d.pdf",i, yMax, idca));
 
         TH1D* hPt = (TH1D*)file1->Get(Form("hPt_pt%d_dca%d", i, idca));
         pt[i] = hPt->GetMean();

@@ -116,7 +116,7 @@ void massfitJets_combine_npd0_v2vspt_process_new(
         h_data->SetMarkerStyle(20);
         h_data->SetLineWidth(1);
         h_data->SetOption("e");
-        h_data->GetXaxis()->SetRangeUser(1.7,2);
+        h_data->GetXaxis()->SetRangeUser(1.72,2);
         h_data->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
         h_data->GetYaxis()->SetTitle("Entries / 5 MeV");
         h_data->GetXaxis()->CenterTitle();
@@ -394,8 +394,7 @@ void massfitJets_combine_npd0_v2vspt_process_new(
         vn_data->Fit(fvn_combinemassvnfit, "SREQ");
         auto hist = vn_data->GetHistogram();
         hist->SetLineWidth(0);
-        if(dataset == "PAHM1-6")hist->GetYaxis()->SetRangeUser(0,0.3);
-        if(dataset == "PAMB") hist->GetYaxis()->SetRangeUser(-0.2, 0.7);
+        hist->GetXaxis()->SetLimits(1.72, 2.0);
         hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
         hist->GetYaxis()->SetTitle("Y_{jets}");
         hist->GetXaxis()->CenterTitle();
@@ -413,7 +412,8 @@ void massfitJets_combine_npd0_v2vspt_process_new(
         hist->GetXaxis()->SetLabelSize(0.04);
         hist->GetYaxis()->SetLabelSize(0.04);
         hist->SetMinimum(0.001);
-        hist->SetMaximum(2);
+        double max_vn = *max_element(vn_data->GetY(), vn_data->GetY()+vn_data->GetN());
+        hist->SetMaximum(2*max_vn);
         hist->Draw();
         vn_data->SetTitle("");
         vn_data->SetMarkerSize(0.8);
@@ -533,6 +533,7 @@ void massfitJets_combine_npd0_v2vspt_process_new(
         tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2v2,ndfv2));
 
         c[i]->Print(Form("plots/dcaFull/v2/D0_mass_Jetsfit_combine_pt%d_y%.1f_dca%d.png",i, yMax, idca));
+        c[i]->Print(Form("plots/dcaFull/v2/D0_mass_Jetsfit_combine_pt%d_y%.1f_dca%d.pdf",i, yMax, idca));
 
         TH1D* hPt = (TH1D*)file1->Get(Form("hPt_pt%d_dca%d", i, idca));
         pt[i] = hPt->GetMean();

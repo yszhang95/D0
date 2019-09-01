@@ -161,6 +161,30 @@ void calv2()
       g_v2_low->SetPointError(ipt, 0, v2_err);
    }
 
+   TCanvas* c = new TCanvas("c", "", 550, 475);
+   TGraphErrors* ratio = new TGraphErrors(2);
+   for(int i=0; i<2; i++){
+      ratio->SetPoint(i,
+           pt_HM[i],
+         Jets->GetY()[i]/Jets_low->GetY()[i]
+         );
+      ratio->SetPointError(i, 0, 
+            sqrt(pow(Jets->GetEY()[i]/Jets_low->GetY()[i], 2)+
+               pow(Jets->GetY()[i]*Jets_low->GetEY()[i]/Jets->GetY()[i]/Jets->GetY()[i], 2))
+            );
+   }
+   auto h = ratio->GetHistogram();
+   h->SetTitle(";p_{T} (GeV);Y_{jet}/Y_{jet}(N^{offline}_{trk}<35)");
+   h->GetYaxis()->SetRangeUser(0.5, 2.5);
+   h->GetXaxis()->SetLimits(2, 8);
+   TLatex* ltx = new TLatex();
+   ratio->SetMarkerStyle(20);
+   ratio->Draw("AP");
+   ltx->DrawLatexNDC(0.2, 0.83, "#scale[1.5]{CMS} #font[52]{preliminary}");
+   ltx->DrawLatexNDC(0.2, 0.75, "pPb 8.16TeV");
+
+   ltx->DrawLatexNDC(0.2, 0.68, "185 #leq N_{trk}^{offline} < 250");
+
    TFile ofile("nonprompt.root", "recreate");
    g_v2sub->Write("v2sub");
    g_v2sub_upper->Write("v2sub_upper");
