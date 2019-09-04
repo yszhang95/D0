@@ -385,7 +385,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         hist->SetLineWidth(0);
         hist->GetXaxis()->SetLimits(1.72, 2.0);
         hist->GetXaxis()->SetTitle("m_{#piK} (GeV/c^{2})");
-        hist->GetYaxis()->SetTitle("V_{2}");
+        hist->GetYaxis()->SetTitle("V_{2}^{S+B}");
         hist->GetXaxis()->CenterTitle();
         hist->GetYaxis()->CenterTitle();
         hist->GetXaxis()->SetTitleOffset(1.3);
@@ -496,7 +496,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         }
 
         c[i]->cd(1);
-        tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2,ndf));
+        //tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2,ndf));
         
         double xv2[200];
         double pullv2[200];
@@ -518,7 +518,7 @@ void massfitVn_combine_npd0_v2vspt_process_new(
         }
 
         c[i]->cd(2);
-        tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2v2,ndfv2));
+        //tex->DrawLatex(0.22,0.68,Form("Chi2/ndf = %.0f/%d",Chi2v2,ndfv2));
 
         c[i]->Print(Form("plots/dcaFull/v2/D0_mass_Vnfit_combine_pt%d_y%.1f_dca%d.png",i, yMax, idca));
         c[i]->Print(Form("plots/dcaFull/v2/D0_mass_Vnfit_combine_pt%d_y%.1f_dca%d.pdf",i, yMax, idca));
