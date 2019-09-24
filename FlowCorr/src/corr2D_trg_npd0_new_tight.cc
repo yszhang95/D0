@@ -471,11 +471,11 @@ int main(int argc, char** argv)
       }
       auto ntrkBounds = ntrkEdges(dataset);
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+         outName = TString::Format("%s/fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_tight.root", 
                prefix.c_str(), datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
       else
-         outName = TString::Format("fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+         outName = TString::Format("fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_tight.root", 
                datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
    }

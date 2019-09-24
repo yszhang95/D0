@@ -43,6 +43,10 @@ class corr2D_pd0{
       TH1D** histMult_eff_D0() {return hMult_eff_D0;}
       TH2D** histSignal_D0() {return hSignal_D0;}
       TH2D** histBackground_D0() {return hBackground_D0;};
+      TH2D** histSignal_D0_symm() {return hSignal_D0_symm;}
+      TH2D** histBackground_D0_symm() {return hBackground_D0_symm;};
+      TH2D** histSignal_D0_old() {return hSignal_D0_old;}
+      TH2D** histBackground_D0_old() {return hBackground_D0_old;};
 
       TH3D* histDcaVsMassAndMva() {return hDcaVsMassAndMva;}
 
@@ -65,6 +69,10 @@ class corr2D_pd0{
    
       TH2D* hSignal_D0[ana::nMass];
       TH2D* hBackground_D0[ana::nMass];
+      TH2D* hSignal_D0_symm[ana::nMass];
+      TH2D* hBackground_D0_symm[ana::nMass];
+      TH2D* hSignal_D0_old[ana::nMass];
+      TH2D* hBackground_D0_old[ana::nMass];
 
       TH3D* hDcaVsMassAndMva;
 };
@@ -87,6 +95,14 @@ corr2D_pd0::corr2D_pd0(string name)
             ana::nEtaBin, ana::etaBegin, ana::etaEnd, ana::nPhiBin, ana::phiBegin, ana::phiEnd);
       hBackground_D0[imass] = new TH2D(Form("hBackground_D0_mass%d_%s", imass, name.c_str()), Form("hBackground_D0_mass%d_%s", imass, name.c_str()),
             ana::nEtaBin, ana::etaBegin, ana::etaEnd, ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+      hSignal_D0_symm[imass] = new TH2D(Form("hSignal_D0_symm_mass%d_%s", imass, name.c_str()), Form("hSignal_D0_mass%d_%s", imass, name.c_str()), 
+            ana::nEtaBin, ana::etaBegin, ana::etaEnd, ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+      hBackground_D0_symm[imass] = new TH2D(Form("hBackground_D0_symm_mass%d_%s", imass, name.c_str()), Form("hBackground_D0_mass%d_%s", imass, name.c_str()),
+            ana::nEtaBin, ana::etaBegin, ana::etaEnd, ana::nPhiBin, ana::phiBegin, ana::phiEnd);
+      hSignal_D0_old[imass] = new TH2D(Form("hSignal_D0_old_mass%d_%s", imass, name.c_str()), Form("hSignal_D0_mass%d_%s", imass, name.c_str()), 
+            ana::nEtaBin, ana::etaBegin, ana::etaEnd, ana::nPhiBin, ana::phiBegin_old, ana::phiEnd_old);
+      hBackground_D0_old[imass] = new TH2D(Form("hBackground_D0_old_mass%d_%s", imass, name.c_str()), Form("hBackground_D0_mass%d_%s", imass, name.c_str()),
+            ana::nEtaBin, ana::etaBegin, ana::etaEnd, ana::nPhiBin, ana::phiBegin_old, ana::phiEnd_old);
    }
 
    hDcaVsMassAndMva = new TH3D(Form("hDcaVsMassAndMva_%s", name.c_str()), Form("hDcaVsMassAndMva_%s", name.c_str()), 
@@ -95,42 +111,50 @@ corr2D_pd0::corr2D_pd0(string name)
 
 corr2D_pd0::~corr2D_pd0()
 {
-   if(!hKET_D0 ) delete hKET_D0 ; 
-   if(!hPt_D0 ) delete hPt_D0 ; 
-   if(!hEta_D0 ) delete hEta_D0 ; 
-   if(!hRapidity_D0 ) delete hRapidity_D0 ; 
+   if(hKET_D0 ) delete hKET_D0 ; 
+   if(hPt_D0 ) delete hPt_D0 ; 
+   if(hEta_D0 ) delete hEta_D0 ; 
+   if(hRapidity_D0 ) delete hRapidity_D0 ; 
    
-   if(!hMass ) delete hMass ; 
+   if(hMass ) delete hMass ; 
    for(int imass=0; imass<ana::nMass; imass++){
-      if(!hMult_ass[imass] ) delete hMult_ass[imass]; 
-      if(!hMass_D0[imass] ) delete hMass_D0[imass] ; 
-      if(!hMult_raw_D0[imass] ) delete hMult_raw_D0[imass] ; 
-      if(!hMult_eff_D0[imass] ) delete hMult_eff_D0[imass] ; 
-      if(!hSignal_D0[imass] ) delete hSignal_D0[imass] ; 
-      if(!hBackground_D0[imass] ) delete hBackground_D0[imass] ; 
+      if(hMult_ass[imass] ) delete hMult_ass[imass]; 
+      if(hMass_D0[imass] ) delete hMass_D0[imass] ; 
+      if(hMult_raw_D0[imass] ) delete hMult_raw_D0[imass] ; 
+      if(hMult_eff_D0[imass] ) delete hMult_eff_D0[imass] ; 
+      if(hSignal_D0[imass] ) delete hSignal_D0[imass] ; 
+      if(hBackground_D0[imass] ) delete hBackground_D0[imass] ; 
+      if(hSignal_D0_symm[imass] ) delete hSignal_D0_symm[imass] ; 
+      if(hBackground_D0_symm[imass] ) delete hBackground_D0_symm[imass] ; 
+      if(hSignal_D0_old[imass] ) delete hSignal_D0_old[imass] ; 
+      if(hBackground_D0_old[imass] ) delete hBackground_D0_old[imass] ; 
    }
 
-   if(!hDcaVsMassAndMva ) delete hDcaVsMassAndMva ; 
+   if(hDcaVsMassAndMva ) delete hDcaVsMassAndMva ; 
 }
 
 int corr2D_pd0::write()
 {
-   if(!hKET_D0 ) hKET_D0->Write() ; 
-   if(!hPt_D0 ) hPt_D0->Write() ; 
-   if(!hEta_D0 ) hEta_D0->Write() ; 
-   if(!hRapidity_D0 ) hRapidity_D0->Write() ; 
+   if(hKET_D0 ) hKET_D0->Write() ; 
+   if(hPt_D0 ) hPt_D0->Write() ; 
+   if(hEta_D0 ) hEta_D0->Write() ; 
+   if(hRapidity_D0 ) hRapidity_D0->Write() ; 
    
-   if(!hMass ) delete hMass ; 
+   if(hMass ) hMass->Write() ; 
    for(int imass=0; imass<ana::nMass; imass++){
-      if(!hMult_ass[imass] ) hMult_ass[imass]->Write(); 
-      if(!hMass_D0[imass] ) hMass_D0[imass]->Write(); 
-      if(!hMult_raw_D0[imass] ) hMult_raw_D0[imass]->Write(); 
-      if(!hMult_eff_D0[imass] ) hMult_eff_D0[imass]->Write(); 
-      if(!hSignal_D0[imass] ) hSignal_D0[imass]->Write(); 
-      if(!hBackground_D0[imass] ) hBackground_D0[imass]->Write(); 
+      if(hMult_ass[imass] ) hMult_ass[imass]->Write(); 
+      if(hMass_D0[imass] ) hMass_D0[imass]->Write(); 
+      if(hMult_raw_D0[imass] ) hMult_raw_D0[imass]->Write(); 
+      if(hMult_eff_D0[imass] ) hMult_eff_D0[imass]->Write(); 
+      if(hSignal_D0[imass] ) hSignal_D0[imass]->Write(); 
+      if(hBackground_D0[imass] ) hBackground_D0[imass]->Write(); 
+      if(hSignal_D0_old[imass] ) hSignal_D0_old[imass]->Write(); 
+      if(hBackground_D0_old[imass] ) hBackground_D0_old[imass]->Write(); 
+      if(hSignal_D0_symm[imass] ) hSignal_D0_symm[imass]->Write(); 
+      if(hBackground_D0_symm[imass] ) hBackground_D0_symm[imass]->Write(); 
    }
 
-   if(!hDcaVsMassAndMva ) hDcaVsMassAndMva->Write() ; 
+   if(hDcaVsMassAndMva ) hDcaVsMassAndMva->Write() ; 
 
    return 0;
 }
@@ -432,16 +456,30 @@ int main(int argc, char** argv)
          for(int ipt=0; ipt<nPt; ipt++){
             ibins.at("ipt") = ipt;
             ibins.at("imass") = imass;
+            bool isFillStd = false;
+            bool isFillLoose = false;
+            bool isFillTight = false;
             auto it = find(ibinsVect_d0.begin(), ibinsVect_d0.end(), ibins);
-            if(it!=ibinsVect_d0.end()){
+            while(it!=ibinsVect_d0.end()){
                auto id0 = distance(ibinsVect_d0.begin(), it);
                const bool& passStd = isd0Vect_d0.at(id0).at("passStd");
                const bool& passLoose = isd0Vect_d0.at(id0).at("passLoose");
                const bool& passTight = isd0Vect_d0.at(id0).at("passTight");
 
-               if(passStd) corr2Dptr[iTrkBin][ipt]->histMult_ass()[imass]->Fill(nMult_ass);
-               if(passLoose) corr2Dptr_loose[iTrkBin][ipt]->histMult_ass()[imass]->Fill(nMult_ass);
-               if(passTight) corr2Dptr_tight[iTrkBin][ipt]->histMult_ass()[imass]->Fill(nMult_ass);
+               if(passStd && !isFillStd) {
+                  isFillStd = true;
+                  corr2Dptr[iTrkBin][ipt]->histMult_ass()[imass]->Fill(nMult_ass);
+               }
+               if(passLoose && !isFillLoose) {
+                  isFillLoose = true;
+                  corr2Dptr_loose[iTrkBin][ipt]->histMult_ass()[imass]->Fill(nMult_ass);
+               }
+               if(passTight && !isFillTight) {
+                  isFillTight = true;
+                  corr2Dptr_tight[iTrkBin][ipt]->histMult_ass()[imass]->Fill(nMult_ass);
+               }
+               if(isFillTight && isFillStd && isFillTight) break;
+               it++;
             }
          }
       }
@@ -459,6 +497,10 @@ int main(int argc, char** argv)
          for(int imass=0; imass<ana::nMass; imass++){
             nMult_trg_raw_d0[ipt][imass] = 0;
             nMult_trg_eff_d0[ipt][imass] = 0;
+            nMult_trg_raw_d0_loose[ipt][imass] = 0;
+            nMult_trg_eff_d0_loose[ipt][imass] = 0;
+            nMult_trg_raw_d0_tight[ipt][imass] = 0;
+            nMult_trg_eff_d0_tight[ipt][imass] = 0;
          }
       }
 
@@ -519,19 +561,58 @@ int main(int argc, char** argv)
 
             double deltaEta = pvector_ass.Eta() - pVect_trg_d0.at(id0).Eta();
             double deltaPhi = pvector_ass.DeltaPhi(pVect_trg_d0.at(id0));
+
+            double absDeltaPhi = fabs(deltaPhi);
+            double symAbsDeltaPhi = -100;
+            if(absDeltaPhi<ana::PI/2.) symAbsDeltaPhi = -1* absDeltaPhi;
+            if(absDeltaPhi>=ana::PI/2.) symAbsDeltaPhi = 2*ana::PI - absDeltaPhi;
+
             if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
 
             if(passStd){
                corr2Dptr[iTrkBin][ipt]->histSignal_D0()[imass]->Fill(deltaEta, deltaPhi, 
                         1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr[iTrkBin][ipt]->histSignal_D0_old()[imass]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+
+               corr2Dptr[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(-1*fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(-1*fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
             }
             if(passLoose){
                corr2Dptr_loose[iTrkBin][ipt]->histSignal_D0()[imass]->Fill(deltaEta, deltaPhi, 
                         1./nMult_trg_eff_d0_loose[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_loose[iTrkBin][ipt]->histSignal_D0_old()[imass]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0_loose[ipt][imass]/effks/effweight_ass);
+
+               corr2Dptr_loose[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_loose[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(-1*fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_loose[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_loose[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(-1*fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
             }
             if(passTight){
                corr2Dptr_tight[iTrkBin][ipt]->histSignal_D0()[imass]->Fill(deltaEta, deltaPhi, 
                         1./nMult_trg_eff_d0_tight[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_tight[iTrkBin][ipt]->histSignal_D0_old()[imass]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0_tight[ipt][imass]/effks/effweight_ass);
+
+               corr2Dptr_tight[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_tight[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(-1*fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_tight[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+               corr2Dptr_tight[iTrkBin][ipt]->histSignal_D0_symm()[imass]->Fill(-1*fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
             }
          }
       }
@@ -565,21 +646,59 @@ int main(int argc, char** argv)
 
                   double deltaEta = pvector_ass.Eta() - pVect_trg_d0.at(id0).Eta();
                   double deltaPhi = pvector_ass.DeltaPhi(pVect_trg_d0.at(id0));
+                  double absDeltaPhi = fabs(deltaPhi);
+                  double symAbsDeltaPhi = -100;
+                  if(absDeltaPhi<ana::PI/2.) symAbsDeltaPhi = -1* absDeltaPhi;
+                  if(absDeltaPhi>=ana::PI/2.) symAbsDeltaPhi = 2*ana::PI - absDeltaPhi;
+
                   if(deltaPhi>-ana::PI && deltaPhi<-ana::PI/2.) deltaPhi += 2*ana::PI;
 
                   if(passStd){
                      corr2Dptr[iTrkBin][ipt]->histBackground_D0()[imass]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr[iTrkBin][ipt]->histBackground_D0_old()[imass]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+
+                     corr2Dptr[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(-1*fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(-1*fabs(deltaEta), symAbsDeltaPhi, 
                         1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
                   }
 
                   if(passLoose){
                      corr2Dptr_loose[iTrkBin][ipt]->histBackground_D0()[imass]->Fill(deltaEta, deltaPhi, 
                         1./nMult_trg_eff_d0_loose[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_loose[iTrkBin][ipt]->histBackground_D0_old()[imass]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0_loose[ipt][imass]/effks/effweight_ass);
+
+                     corr2Dptr_loose[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_loose[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(-1*fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_loose[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_loose[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(-1*fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
                   }
 
                   if(passTight){
                      corr2Dptr_tight[iTrkBin][ipt]->histBackground_D0()[imass]->Fill(deltaEta, deltaPhi, 
                         1./nMult_trg_eff_d0_tight[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_tight[iTrkBin][ipt]->histBackground_D0_old()[imass]->Fill(deltaEta, deltaPhi, 
+                        1./nMult_trg_eff_d0_tight[ipt][imass]/effks/effweight_ass);
+
+                     corr2Dptr_tight[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_tight[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(-1*fabs(deltaEta), absDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_tight[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
+                     corr2Dptr_tight[iTrkBin][ipt]->histBackground_D0_symm()[imass]->Fill(-1*fabs(deltaEta), symAbsDeltaPhi, 
+                        1./nMult_trg_eff_d0[ipt][imass]/effks/effweight_ass);
                   }
                }
                ievt_eff_ass++;

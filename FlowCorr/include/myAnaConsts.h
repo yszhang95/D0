@@ -18,10 +18,10 @@ namespace ana{
    const double etaEnd = 4.95;
 
    const int nPhiBin = 32;
-//   const double phiBegin = -(0.5-1.0/32)*PI;
-//   const double phiEnd = (1.5-1.0/32)*PI;
-   const double phiBegin = -0.5*PI;
-   const double phiEnd = 1.5*PI;
+   const double phiBegin = -(0.5-1.0/32)*PI;
+   const double phiEnd = (1.5-1.0/32)*PI;
+   const double phiBegin_old = -0.5*PI;
+   const double phiEnd_old = 1.5*PI;
 
    const double etaMin_ass_ = -2.4;
    const double etaMax_ass_ = 2.4;

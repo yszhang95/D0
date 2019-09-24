@@ -40,6 +40,7 @@ int ana::findZVtxBin(const float& z_vtx)
    return -1;
 }
 
+/*
 bool ana::pass_pPb2016_8TeV_PD0_MVA(const float& pT, const float& mva)
 {
    if(pT<4.) return mva > 0.58;
@@ -64,6 +65,34 @@ bool ana::pass_pPb2016_8TeV_PD0_looseMVA(const float& pT, const float& mva)
    else if(pT < 6. && pT >= 4.) return mva > (0.46-0.05);
    else if(pT < 8. && pT >= 6.) return mva > (0.28-0.05);
    else if(pT < 20. && pT >= 8.) return mva > (0.1-0.05);
+   return false;
+}
+*/
+
+bool ana::pass_pPb2016_8TeV_PD0_MVA(const float& pT, const float& mva)
+{
+   if(pT<4.) return mva > 0.56;
+   else if(pT < 6. && pT >= 4.) return mva > 0.42;
+   else if(pT < 8. && pT >= 6.) return mva > 0.24;
+   else if(pT < 20. && pT >= 8.) return mva > 0.02;
+   return false;
+}
+
+bool ana::pass_pPb2016_8TeV_PD0_tightMVA(const float& pT, const float& mva)
+{
+   if(pT<4.) return mva > (0.56+0.05);
+   else if(pT < 6. && pT >= 4.) return mva > (0.42+0.05);
+   else if(pT < 8. && pT >= 6.) return mva > (0.24+0.05);
+   else if(pT < 20. && pT >= 8.) return mva > (0.02+0.05);
+   return false;
+}
+
+bool ana::pass_pPb2016_8TeV_PD0_looseMVA(const float& pT, const float& mva)
+{
+   if(pT<4.) return mva > (0.56-0.05);
+   else if(pT < 6. && pT >= 4.) return mva > (0.42-0.05);
+   else if(pT < 8. && pT >= 6.) return mva > (0.28-0.05);
+   else if(pT < 20. && pT >= 8.) return mva > (0.02-0.05);
    return false;
 }
 
