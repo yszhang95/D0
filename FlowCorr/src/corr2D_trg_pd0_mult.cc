@@ -241,15 +241,19 @@ int main(int argc, char** argv)
 
    TChain *chain_d0 = new TChain("d0ana/VertexCompositeNtuple");
    TChain *chain_tracks = new TChain("track_ana/trackTree");
+   TChain *chain_evt = new TChain("eventinfoana/EventInfoNtuple");
 
    TFileCollection* fcData = new TFileCollection(datalist.c_str(), "", datalist.c_str());
 
    chain_d0->AddFileInfoList(fcData->GetList());
 
    chain_tracks->AddFileInfoList(fcData->GetList());
-   std::cout << "tracks ready" << std::endl;
 
-   Event* evt = new Event(chain_d0, chain_tracks);
+   chain_evt->AddFileInfoList(fcData->GetList());
+
+   //std::cout << "tracks ready" << std::endl;
+
+   Event* evt = new Event(chain_d0, chain_tracks, chain_evt);
    setBranchStatus(evt);
    if(!checkBranchStatus(evt)) return -1;
 

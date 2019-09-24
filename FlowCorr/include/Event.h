@@ -18,11 +18,11 @@
 class Event : public TObject{
 
 public:
-   Event(TTree *d0Collection=0, TTree *trackCollection=0);
+   Event(TTree *d0Collection=0, TTree *trackCollection=0, TTree *evt=0);
    virtual ~Event();
    virtual Long64_t GetEntries();
    virtual Int_t    GetEntry(Long64_t entry);
-   virtual void     Init(TTree *d0Collection, TTree *trackCollection);
+   virtual void     Init(TTree *d0Collection, TTree *trackCollection, TTree* evt);
    virtual void     SetBranchStatus(const char* bname, Bool_t status);
    virtual Bool_t   GetBranchStatus(const char* bname);
    virtual Bool_t   Notify();
@@ -82,9 +82,12 @@ public:
    virtual Float_t   PhiTrk(const unsigned int icand)       const {return phiTRK[icand];}
    virtual Float_t   WeightTrk(const unsigned int icand)    const {return weightTRK[icand];}
 
+   virtual Bool_t    EvtSel(const unsigned int itype)       const {return evtSel[itype];}
+
 protected :
    TTree          *fChain_D0;   //!pointer to the analyzed TTree or TChain of D0 candidates
    TTree          *fChain_track;   //!pointer to the analyzed TTree or TChain of tracks
+   TTree          *fChain_evt;   //!pointer to the analyzed TTree or TChain of evts
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
@@ -144,6 +147,9 @@ protected :
    Float_t         phiTRK[800];   //[candSizeTRK]
    Float_t         weightTRK[800];   //[candSizeTRK]
 
+   // event selection
+   Bool_t          evtSel[6];
+
    // List of branches
    TBranch        *b_Ntrkoffline;   //!
    TBranch        *b_Npixel;   //!
@@ -198,5 +204,7 @@ protected :
    TBranch        *b_etaTRK;   //!
    TBranch        *b_phiTRK;   //!
    TBranch        *b_weightTRK;   //!
+
+   TBranch        *b_evtSel;   //!
 };
 #endif

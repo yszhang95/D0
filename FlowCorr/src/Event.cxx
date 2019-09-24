@@ -7,7 +7,7 @@
 
 #include "Event.h"
 
-Event::Event(TTree *d0Collection, TTree *trackCollection) : fChain_D0(0) 
+Event::Event(TTree *d0Collection, TTree *trackCollection, TTree* evt) : fChain_D0(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -15,8 +15,10 @@ Event::Event(TTree *d0Collection, TTree *trackCollection) : fChain_D0(0)
       std::cout << "empty tree of D0 candidates" << std::endl;
    }else if(trackCollection == 0){
       std::cout << "empty tree of tracks" << std::endl;
+   }else if(evt == 0){
+      std::cout << "empty tree of evt" << std::endl;
    }else {
-      Init(d0Collection, trackCollection);
+      Init(d0Collection, trackCollection, evt);
    }
 }
 
@@ -53,7 +55,7 @@ Long64_t Event::GetEntries()
    return fChain_D0->GetEntries();
 }
 
-void Event::Init(TTree *d0Collection, TTree *trackCollection)
+void Event::Init(TTree *d0Collection, TTree *trackCollection, TTree *evt)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -66,6 +68,7 @@ void Event::Init(TTree *d0Collection, TTree *trackCollection)
    // Set branch addresses and branch pointers
    if (!d0Collection) return;
    if (!trackCollection) return;
+   if (!evt) return;
 
    fChain_D0 = d0Collection;
    fChain_D0->SetMakeClass(1);
@@ -73,7 +76,11 @@ void Event::Init(TTree *d0Collection, TTree *trackCollection)
    fChain_track = trackCollection;
    fChain_track->SetMakeClass(1);
 
+   fChain_evt = evt;
+   fChain_evt->SetMakeClass(1);
+
    fChain_D0->AddFriend(fChain_track, "tracks");
+   fChain_D0->AddFriend(fChain_evt, "event");
 
    fChain_D0->SetBranchAddress("Ntrkoffline", &Ntrkoffline, &b_Ntrkoffline);
    fChain_D0->SetBranchAddress("Npixel", &Npixel, &b_Npixel);
@@ -129,11 +136,16 @@ void Event::Init(TTree *d0Collection, TTree *trackCollection)
    fChain_D0->SetBranchAddress("tracks.phiTRK", phiTRK, &b_phiTRK);
    fChain_D0->SetBranchAddress("tracks.weightTRK", weightTRK, &b_weightTRK);
 
+   fChain_D0->SetBranchAddress("event.evtSel", evtSel, &b_evtSel);
+   fChain_D0->SetBranchAddress("event.evtSel", evtSel, &b_evtSel);
+
    fChain_D0->SetBranchStatus("*", 0);
    fChain_D0->SetBranchStatus("*bestvtx*", 1);
    fChain_D0->SetBranchStatus("tracks.bestvtxX", 1);
    fChain_D0->SetBranchStatus("tracks.bestvtxY", 1);
    fChain_D0->SetBranchStatus("tracks.bestvtxZ", 1);
+
+   fChain_D0->SetBranchStatus("event.evtSel", 1);
 
    Notify();
 }
