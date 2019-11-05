@@ -51,6 +51,7 @@ pair<int, int> ntrkEdges(const string& dataset);
 // par7, y_Min
 // par8, y_Max
 // par9, csv of dca cut
+// par10, training
 static bool isPromptD0 = false;
 
 struct kinematicalCuts{
@@ -60,14 +61,19 @@ struct kinematicalCuts{
    float yMax;
 } cuts;
 
+static string training;
+
 int main(int argc, char** argv)
 {
    TH1::SetDefaultSumw2(true);
 
-   if(argc!=10) {
+   if(argc!=11) {
       std::cerr << "The number of arguments is wrong" << std::endl;
       return -1;
    }
+
+   training = argv[10];
+   cout << "Training: " << training << endl;
 
    //constrcut ntuple to read dca cut
    TTree dcaCutTree("dcaCutTree", "tree to read csv of dca cut");
@@ -135,19 +141,22 @@ int main(int argc, char** argv)
    }
 
 
-   TChain *chain_d0 = new TChain("npd0ana1/VertexCompositeNtuple");
+   TChain *chain_d0 = new TChain(Form("%s/VertexCompositeNtuple", training.c_str()));
    TChain *chain_tracks = new TChain("track_ana/trackTree");
+   TChain *chain_evt = new TChain("eventinfoana/EventInfoNtuple");
 
    TFileCollection* fcData = new TFileCollection(datalist.c_str(), "", datalist.c_str());
 
    chain_d0->AddFileInfoList(fcData->GetList());
 
    chain_tracks->AddFileInfoList(fcData->GetList());
-   std::cout << "tracks ready" << std::endl;
 
-   Event* evt = new Event(chain_d0, chain_tracks);
+   chain_evt->AddFileInfoList(fcData->GetList());
+   //std::cout << "tracks ready" << std::endl;
+
+   Event* evt = new Event(chain_d0, chain_tracks, chain_evt);
    setBranchStatus(evt);
-   if(!checkBranchStatus(evt)) return 0;
+   if(!checkBranchStatus(evt)) return -1;
 
    // declare hists
    TH1D* hEvt;
@@ -247,6 +256,9 @@ int main(int argc, char** argv)
          skip++;
          continue;
       }
+
+      // dz1p0 pileup rejector
+      if(!evt->EvtSel(4)) continue;
 
       hEvt->Fill(evt->nTrkOffline());
 
@@ -471,12 +483,12 @@ int main(int argc, char** argv)
       }
       auto ntrkBounds = ntrkEdges(dataset);
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_tight.root", 
-               prefix.c_str(), datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
+         outName = TString::Format("%s/fout_%s_%s_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_tight.root", 
+               prefix.c_str(), datalist.c_str(), training.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
       else
-         outName = TString::Format("fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_tight.root", 
-               datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
+         outName = TString::Format("fout_%s_%s_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f_tight.root", 
+               datalist.c_str(), training.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
    }
    TFile fout(outName.Data(), "recreate");
@@ -648,12 +660,16 @@ bool passD0MVA(const int& trigger, Event* event, const int& icand,
       // non-prompt would not be measured
       return false;
    } else{
-      double pT = event->Pt(icand);
-      double mva = event->Mva(icand);
-      if(pT<4.) return mva > (0.52+0.04);
-      else if(pT < 6. && pT >= 4.) return mva > (0.44+0.04);
-      else if(pT < 8. && pT >= 6.) return mva > (0.32+0.04);
-      return false;
+      if(training == "npd0ana1"){
+         double pT = event->Pt(icand);
+         double mva = event->Mva(icand);
+         if(pT<4.) return mva > (0.52+0.05);
+         else if(pT < 6. && pT >= 4.) return mva > (0.44+0.05);
+         else if(pT < 8. && pT >= 6.) return mva > (0.32+0.05);
+         return false;
+      } else{
+         return event->Mva(icand) > 0.54;
+      }
    }
    return false;
 }

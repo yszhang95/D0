@@ -18,7 +18,7 @@ namespace ana{
    const double etaEnd = 4.95;
 
    const int nPhiBin = 32;
-   const double phiBegin = -(0.5-1.0/32)*PI;
+   const double phiBegin = -(0.5+1.0/32)*PI;
    const double phiEnd = (1.5-1.0/32)*PI;
    const double phiBegin_old = -0.5*PI;
    const double phiEnd_old = 1.5*PI;
@@ -54,7 +54,8 @@ namespace ana{
    const double d0_y_max_  = 2;
 
    const int nMass = 14;
-   const double massbin[nMass+1] = {1.72, 1.75, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
+   //const double massbin[nMass+1] = {1.72, 1.75, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
+   const double massbin[nMass+1] = {1.725, 1.75, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
       1.87, 1.88, 1.9, 1.92, 1.96, 2.0};
    const double massbin_HM[nMass+1] = {1.70, 1.74, 1.78, 1.8, 1.82, 1.84, 1.85, 1.86, 1.865, 
       1.87, 1.88, 1.9, 1.92, 1.96, 2.0};

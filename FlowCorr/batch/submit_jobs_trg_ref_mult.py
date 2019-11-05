@@ -8,14 +8,20 @@ dataset_name = 'PAHM7'
 #dataset_name = 'PAMB'
 
 dataset = {
-      'PAHM7'   : 'PAHM250-inf_ref_Aug26.list',
+      'PAMB'    : 'PAMB0-185_REF_Sep23.list',
+      'PAHM1-6' : 'PAHM185-250_REF_Sep23.list',
+      'PAHM7'   : 'PAHM250-inf_REF_Sep23.list'
       }
 storage = {
-      'PAHM7'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/PAHM250-inf-PD0-v2vsNtrk',
+      'PAMB'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/PAMB0-185-PD0-v2vsNtrk_MC',
+      'PAHM1-6'   : '/afs/cern.ch/user/y/yousen/work/pPb2016/PAHM185-250-PD0-v2vsNtrk_MC',
+      'PAHM7'  : '/afs/cern.ch/user/y/yousen/work/pPb2016/PAHM250-inf-PD0-v2vsNtrk_MC'
       }
 
 sublist_number = {
-      'PAHM7'   : 499,
+      'PAMB'      : 500,
+      'PAHM1-6'   : 400,
+      'PAHM7'   : 500,
       }
 
 if sublist_number[dataset_name] != 0:

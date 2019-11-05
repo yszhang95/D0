@@ -51,6 +51,7 @@ pair<int, int> ntrkEdges(const string& dataset);
 // par7, y_Min
 // par8, y_Max
 // par9, csv of dca cut
+// par10, training
 static bool isPromptD0 = false;
 
 struct kinematicalCuts{
@@ -60,14 +61,19 @@ struct kinematicalCuts{
    float yMax;
 } cuts;
 
+static string training;
+
 int main(int argc, char** argv)
 {
    TH1::SetDefaultSumw2(true);
 
-   if(argc!=10) {
+   if(argc!=11) {
       std::cerr << "The number of arguments is wrong" << std::endl;
       return -1;
    }
+
+   training = argv[10];
+   cout << "Training: " << training << endl;
 
    //constrcut ntuple to read dca cut
    TTree dcaCutTree("dcaCutTree", "tree to read csv of dca cut");
@@ -135,21 +141,25 @@ int main(int argc, char** argv)
    }
 
 
-   TChain *chain_d0 = new TChain("npd0ana1/VertexCompositeNtuple");
+   TChain *chain_d0 = new TChain(Form("%s/VertexCompositeNtuple", training.c_str()));
    TChain *chain_tracks = new TChain("track_ana/trackTree");
+   TChain *chain_evt = new TChain("eventinfoana/EventInfoNtuple");
 
    TFileCollection* fcData = new TFileCollection(datalist.c_str(), "", datalist.c_str());
 
    chain_d0->AddFileInfoList(fcData->GetList());
 
    chain_tracks->AddFileInfoList(fcData->GetList());
-   std::cout << "tracks ready" << std::endl;
 
-   Event* evt = new Event(chain_d0, chain_tracks);
+   chain_evt->AddFileInfoList(fcData->GetList());
+   //std::cout << "tracks ready" << std::endl;
+
+   Event* evt = new Event(chain_d0, chain_tracks, chain_evt);
    setBranchStatus(evt);
-   if(!checkBranchStatus(evt)) return 0;
+   if(!checkBranchStatus(evt)) return -1;
 
    // declare hists
+   TH1D* hEvt_noPUFilter;
    TH1D* hEvt;
    TH1D* hMult;
    TH1D* hMult_ass;
@@ -173,6 +183,7 @@ int main(int argc, char** argv)
 
    TH1D* hDca[ana::nMass][nPt][nDca];
 
+   hEvt_noPUFilter = new TH1D("hEvt_noPUFilter", "", 600, 0, 600);
    hEvt = new TH1D("hEvt", "", 600, 0, 600);
    hMult = new TH1D("hMult", "", 600, 0, 600);
    hMult_ass = new TH1D("hMult_ass", "", 600, 0, 600);
@@ -247,6 +258,10 @@ int main(int argc, char** argv)
          skip++;
          continue;
       }
+
+      hEvt_noPUFilter->Fill(evt->nTrkOffline());
+      // dz1p0 pileup rejector
+      if(!evt->EvtSel(4)) continue;
 
       hEvt->Fill(evt->nTrkOffline());
 
@@ -471,18 +486,19 @@ int main(int argc, char** argv)
       }
       auto ntrkBounds = ntrkEdges(dataset);
       if(prefix.size())
-         outName = TString::Format("%s/fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
-               prefix.c_str(), datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
+         outName = TString::Format("%s/fout_%s_%s_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+               prefix.c_str(), datalist.c_str(), training.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
       else
-         outName = TString::Format("fout_%s_npd0ana1_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
-               datalist.c_str(), ntrkBounds.first, ntrkBounds.second, 
+         outName = TString::Format("fout_%s_%s_HM%3d-%3d_pT%.1f-%.1f_y%.1f-%.1f.root", 
+               datalist.c_str(), training.c_str(), ntrkBounds.first, ntrkBounds.second, 
                cuts.pTMin, cuts.pTMax, cuts.yMin, cuts.yMax);
    }
    TFile fout(outName.Data(), "recreate");
    fout.cd();
 
    // start writing output
+   hEvt_noPUFilter->Write();
    hEvt->Write();
    hMult->Write();
    hMult_ass->Write();
@@ -508,6 +524,7 @@ int main(int argc, char** argv)
       }
    }
 
+   delete hEvt_noPUFilter;
    delete hEvt;
    delete hMult;
    delete hMult_ass;
@@ -650,10 +667,14 @@ bool passD0MVA(const int& trigger, Event* event, const int& icand,
    } else{
       switch(trigger){
          case 0:  // PAMB
-            return ana::pass_pPb2016_8TeV_NPD0_MVA(event->Pt(icand), event->Mva(icand));
+            if(training == "npd0ana1")
+               return ana::pass_pPb2016_8TeV_NPD0_MVA(event->Pt(icand), event->Mva(icand));
+            else return event->Mva(icand) > 0.49;
             break;
          case 1:  // PAHM1-6
-            return ana::pass_pPb2016_8TeV_NPD0_MVA(event->Pt(icand), event->Mva(icand));
+            if(training == "npd0ana1")
+               return ana::pass_pPb2016_8TeV_NPD0_MVA(event->Pt(icand), event->Mva(icand));
+            else return event->Mva(icand) > 0.49;
             break;
          default: 
             return false;

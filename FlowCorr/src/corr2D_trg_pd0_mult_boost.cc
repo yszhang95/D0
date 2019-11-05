@@ -191,6 +191,22 @@ struct kinematicalCuts{
 
 static string training;
 
+int Get_N_nTrkBin(const string& dataset) {
+   if(dataset=="PAMB_pPb") return 4;
+   if(dataset=="PAMB_Pbp") return 4;
+   return 1;
+}
+
+int findNtrkBin(const int& ntrk, const string& dataset){
+   if(dataset == "PAMB_pPb" || dataset == "PAMB_Pbp"){
+      if(ntrk<35) return 0;
+      if(ntrk>=35 && ntrk<90) return 1;
+      if(ntrk>=90 && ntrk<120) return 2;
+      if(ntrk>=120 && ntrk<185) return 3;
+   }
+   return 0;
+}
+
 int main(int argc, char** argv)
 {
    TH1::SetDefaultSumw2(true);
@@ -213,22 +229,10 @@ int main(int argc, char** argv)
    cuts.yMin  = stof(argv[7]);
    cuts.yMax  = stof(argv[8]);
 
-   const int dataset_trigger = ana::Get_Trigger(dataset);
-   cout << "dataset number: " << dataset_trigger << endl;
-   const int nTrkBin = ana::Get_N_nTrkBin(dataset);
+   const int dataset_trigger = 1;
+   const int nTrkBin = Get_N_nTrkBin(dataset);
+
    cout << "number of bins of ntrk: " <<  nTrkBin << endl;
-   if(dataset_trigger<0 || nTrkBin<0){
-      cerr << "wrong dataset name" << endl;
-      cout << "name should be:\n" 
-         << "PAMB\n"
-         << "PAHM1-6\n"
-         << "PPMB\n"
-         << "PPHM  //mult 80-100, 100-inf \n"
-         << "// means comments"
-         << endl;
-      return -1;
-   }
-   
    training = argv[9];
    cout << "Training: " << training << endl;
 
@@ -345,7 +349,7 @@ int main(int argc, char** argv)
 
       auto iz = ana::findZVtxBin(evt->BestVtxZ());
       if(iz < 0) continue;
-      auto iTrkBin = ana::findNtrkBin(evt->nTrkOffline(), dataset_trigger);
+      auto iTrkBin = findNtrkBin(evt->nTrkOffline(), dataset);
       if(iTrkBin<0) continue;
       hNtrk_D0[iTrkBin]->Fill(evt->nTrkOffline());
 

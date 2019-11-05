@@ -61,7 +61,6 @@ int main(int argc, char** argv)
       cerr << "wrong dataset name" << endl;
       cout << "name should be:\n" 
          << "PAMB\n"
-         << "PAHM0\n"
          << "PAHM1-6\n"
          << "PAHM7\n"
          << "PPMB\n"
@@ -149,7 +148,8 @@ int main(int argc, char** argv)
          continue;
       }
       
-      if(ientry<25) cout << boolalpha << evt->EvtSel(5) << endl;
+      if(ientry<25) cout << boolalpha << evt->EvtSel(4) << endl;
+      if(!evt->EvtSel(4)) continue;
 
       // good vertex check
       if(!passGoodVtx(evt)) continue;
