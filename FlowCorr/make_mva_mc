@@ -1,0 +1,23 @@
+CXX := $(shell root-config --cxx)
+CXX_FLAGS := $(shell root-config --cflags)
+CXX_FLAGS += -Wall -Wextra -ggdb
+LIBRARIES := $(shell root-config --glibs)
+
+BIN := bin
+SRC := src
+INCLUDE := include
+LIB := lib
+
+CORR2D_NPD0_NEW_MVA_MC := corr2D_trg_npd0_new_mva_mc
+CORR2D_REF_MULT_MC := corr2D_trg_ref_mc
+
+all: $(BIN)/$(CORR2D_NPD0_NEW_MVA_MC) $(BIN)/$(CORR2D_REF_MULT_MC)
+
+$(BIN)/$(CORR2D_REF_MULT_MC): $(SRC)/corr2D_trg_ref_mult_mc.cc $(SRC)/Event.cxx $(SRC)/functions.cxx
+	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) -L$(LIB) $^ -o $@ $(LIBRARIES)
+
+$(BIN)/$(CORR2D_NPD0_NEW_MVA_MC): $(SRC)/corr2D_trg_npd0_new_mva_mc.cc $(SRC)/Event.cxx $(SRC)/functions.cxx
+	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) -L$(LIB) $^ -o $@ $(LIBRARIES)
+
+clean:
+	-rm $(BIN)/*
