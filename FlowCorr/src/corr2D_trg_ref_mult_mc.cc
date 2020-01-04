@@ -150,8 +150,7 @@ int main(int argc, char** argv)
          continue;
       }
       
-      if(ientry<25) cout << boolalpha << evt->EvtSel(4) << endl;
-      if(!evt->EvtSel(4)) continue;
+      //if(!evt->EvtSel(4)) continue;
 
       // good vertex check
       if(!passGoodVtx(evt)) continue;
@@ -356,7 +355,7 @@ bool passGoodTrack(Event* event, const unsigned int& icand)
 
 int findNtrkBin(const int ntrk, const int trigger)
 {
-  if(trigger == 0 && ntrk<35) return 0;
-  if(trigger == 1 && ntrk>=35) return 1;
+  if(ntrk<35) return 0;
+  if(ntrk>=35) return 1;
   return -1;
 }
